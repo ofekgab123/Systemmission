@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Clock, Tag as TagIcon, Sparkles } from "lucide-react";
+import { CalendarDays, Clock, Tag as TagIcon, Sparkles, ClipboardList } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DateField } from "@/components/ui/date-field";
 import { useUIStore } from "@/store/ui-store";
 import { useCreateTask } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
@@ -19,11 +23,14 @@ import { formatDateTime } from "@/lib/date-utils";
 import { EnumSelect } from "@/components/ui/enum-select";
 import { PRIORITY_META } from "@/lib/task-meta";
 import { he } from "@/lib/i18n/he";
+import { cn } from "@/lib/utils";
 
 const priorityOptions = Object.entries(PRIORITY_META).map(([value, meta]) => ({
   value: value as keyof typeof PRIORITY_META,
   label: meta.label,
 }));
+
+type QuickAddTab = "quick" | "form";
 
 export function QuickAddModal() {
   const open = useUIStore((s) => s.quickAddOpen);
@@ -32,17 +39,37 @@ export function QuickAddModal() {
   const setNewProjectOpen = useUIStore((s) => s.setNewProjectOpen);
   const createTask = useCreateTask();
   const { data: projects } = useProjects();
+
+  const [tab, setTab] = useState<QuickAddTab>("quick");
   const [text, setText] = useState("");
   const [projectId, setProjectId] = useState<string | null>(null);
   const [priorityOverride, setPriorityOverride] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const [formTitle, setFormTitle] = useState("");
+  const [formContent, setFormContent] = useState("");
+  const [formDueDate, setFormDueDate] = useState<Date | null>(null);
+  const [formProjectId, setFormProjectId] = useState("");
+  const [formPriority, setFormPriority] = useState<string | null>(null);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (open) {
+      setTab("quick");
       setText(initialText);
       setProjectId(null);
       setPriorityOverride(null);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      setFormTitle(initialText.trim() ? initialText : "");
+      setFormContent("");
+      setFormDueDate(null);
+      setFormProjectId("");
+      setFormPriority(null);
+      setFormSubmitted(false);
+      setTimeout(() => {
+        if (initialText.trim()) inputRef.current?.focus();
+        else titleRef.current?.focus();
+      }, 50);
     }
   }, [open, initialText]);
 
@@ -53,7 +80,13 @@ export function QuickAddModal() {
     return projects.find((p) => p.name.toLowerCase().includes(parsed.projectHint!.toLowerCase())) ?? null;
   }, [parsed.projectHint, projects]);
 
-  const handleSubmit = () => {
+  const formValid =
+    formTitle.trim().length > 0 &&
+    formContent.trim().length > 0 &&
+    formDueDate !== null &&
+    formProjectId.length > 0;
+
+  const handleQuickSubmit = () => {
     if (!parsed.title.trim()) return;
     createTask.mutate(
       {
@@ -62,6 +95,28 @@ export function QuickAddModal() {
         priority: (priorityOverride ?? parsed.priority ?? undefined) as never,
         projectId: projectId ?? matchedProject?.id ?? undefined,
         tagNames: parsed.tagNames,
+        status: "INBOX",
+      },
+      {
+        onSuccess: () => toast.success(he.task.addedToInbox),
+      }
+    );
+    close();
+  };
+
+  const handleFormSubmit = () => {
+    setFormSubmitted(true);
+    if (!formValid) {
+      toast.error(he.quickAdd.fillRequired);
+      return;
+    }
+    createTask.mutate(
+      {
+        title: formTitle.trim(),
+        description: formContent.trim(),
+        dueDate: formDueDate!,
+        projectId: formProjectId,
+        priority: (formPriority ?? undefined) as never,
         status: "INBOX",
       },
       {
@@ -83,74 +138,224 @@ export function QuickAddModal() {
           </DialogTitle>
         </DialogHeader>
 
-        <Textarea
-          ref={inputRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-          placeholder={he.quickAdd.placeholder}
-          className="min-h-20 resize-none text-base sm:min-h-16 sm:text-sm"
-          dir="auto"
-        />
+        <Tabs value={tab} onValueChange={(v) => setTab(v as QuickAddTab)} className="gap-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="quick" className="gap-1.5">
+              <Sparkles className="size-3.5" />
+              {he.quickAdd.tabQuick}
+            </TabsTrigger>
+            <TabsTrigger value="form" className="gap-1.5">
+              <ClipboardList className="size-3.5" />
+              {he.quickAdd.tabForm}
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="flex min-h-6 flex-wrap items-center gap-1.5">
-          {parsed.dueDate && (
-            <Chip icon={<CalendarDays className="size-3" />}>
-              {formatDateTime(parsed.dueDate, parsed.hasTime)}
-            </Chip>
-          )}
-          {parsed.hasTime && !parsed.dueDate && (
-            <Chip icon={<Clock className="size-3" />}>{he.quickAdd.timeDetected}</Chip>
-          )}
-          {parsed.tagNames.map((t) => (
-            <Chip key={t} icon={<TagIcon className="size-3" />}>
-              #{t}
-            </Chip>
-          ))}
-          {matchedProject && <Chip>{matchedProject.name}</Chip>}
-        </div>
+          <TabsContent value="quick" className="flex flex-col gap-4">
+            <Textarea
+              ref={inputRef}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleQuickSubmit();
+                }
+              }}
+              placeholder={he.quickAdd.placeholder}
+              className="min-h-20 resize-none text-base sm:min-h-16 sm:text-sm"
+              dir="auto"
+            />
 
-        <div className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center">
-          <div className="flex flex-1 flex-col gap-1">
-            <select
-              value={projectId ?? matchedProject?.id ?? ""}
-              onChange={(e) => setProjectId(e.target.value || null)}
-              className="h-11 w-full rounded-md border bg-transparent px-2 text-sm outline-none sm:h-8 sm:text-xs"
-            >
-              <option value="">{he.task.noProject}</option>
-              {(projects ?? []).map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
+            <div className="flex min-h-6 flex-wrap items-center gap-1.5">
+              {parsed.dueDate && (
+                <Chip icon={<CalendarDays className="size-3" />}>
+                  {formatDateTime(parsed.dueDate, parsed.hasTime)}
+                </Chip>
+              )}
+              {parsed.hasTime && !parsed.dueDate && (
+                <Chip icon={<Clock className="size-3" />}>{he.quickAdd.timeDetected}</Chip>
+              )}
+              {parsed.tagNames.map((t) => (
+                <Chip key={t} icon={<TagIcon className="size-3" />}>
+                  #{t}
+                </Chip>
               ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => setNewProjectOpen(true)}
-              className="text-start text-xs text-primary hover:underline"
-            >
-              + {he.category.addNew}
-            </button>
-          </div>
-          <EnumSelect
-            value={(priorityOverride ?? parsed.priority) as never}
-            onChange={(v) => setPriorityOverride(v)}
-            options={priorityOptions}
-            placeholder={he.task.priority}
-            className="w-32"
-          />
-          <Button size="lg" className="h-11 w-full sm:h-8 sm:w-auto sm:size-default" onClick={handleSubmit} disabled={!parsed.title.trim()}>
-            {he.actions.addTask}
-          </Button>
-        </div>
-        <p className="text-[11px] text-muted-foreground">{he.quickAdd.tip}</p>
+              {matchedProject && <Chip>{matchedProject.name}</Chip>}
+            </div>
+
+            <div className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center">
+              <div className="flex flex-1 flex-col gap-1">
+                <select
+                  value={projectId ?? matchedProject?.id ?? ""}
+                  onChange={(e) => setProjectId(e.target.value || null)}
+                  className="h-11 w-full rounded-md border bg-transparent px-2 text-sm outline-none sm:h-8 sm:text-xs"
+                >
+                  <option value="">{he.task.noProject}</option>
+                  {(projects ?? []).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setNewProjectOpen(true)}
+                  className="text-start text-xs text-primary hover:underline"
+                >
+                  + {he.category.addNew}
+                </button>
+              </div>
+              <EnumSelect
+                value={(priorityOverride ?? parsed.priority) as never}
+                onChange={(v) => setPriorityOverride(v)}
+                options={priorityOptions}
+                placeholder={he.task.priority}
+                className="w-32"
+              />
+              <Button
+                size="lg"
+                className="h-11 w-full sm:h-8 sm:w-auto sm:size-default"
+                onClick={handleQuickSubmit}
+                disabled={!parsed.title.trim()}
+              >
+                {he.actions.addTask}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">{he.quickAdd.tip}</p>
+          </TabsContent>
+
+          <TabsContent value="form" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <FormField
+                label={he.quickAdd.formTitle}
+                required
+                invalid={formSubmitted && !formTitle.trim()}
+              >
+                <Input
+                  ref={titleRef}
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder={he.quickAdd.formTitlePlaceholder}
+                  dir="auto"
+                  aria-invalid={formSubmitted && !formTitle.trim()}
+                />
+              </FormField>
+
+              <FormField
+                label={he.quickAdd.formContent}
+                required
+                invalid={formSubmitted && !formContent.trim()}
+              >
+                <Textarea
+                  value={formContent}
+                  onChange={(e) => setFormContent(e.target.value)}
+                  placeholder={he.quickAdd.formContentPlaceholder}
+                  className="min-h-24 resize-none text-sm"
+                  dir="auto"
+                  aria-invalid={formSubmitted && !formContent.trim()}
+                />
+              </FormField>
+
+              <FormField
+                label={he.quickAdd.formDate}
+                required
+                invalid={formSubmitted && !formDueDate}
+              >
+                <DateField
+                  value={formDueDate}
+                  onChange={setFormDueDate}
+                  placeholder={he.task.setDate}
+                  className={cn(
+                    "h-10 w-full text-sm",
+                    formSubmitted && !formDueDate && "border-destructive"
+                  )}
+                />
+              </FormField>
+
+              <FormField
+                label={he.quickAdd.formCategory}
+                required
+                invalid={formSubmitted && !formProjectId}
+              >
+                <select
+                  value={formProjectId}
+                  onChange={(e) => setFormProjectId(e.target.value)}
+                  className={cn(
+                    "h-10 w-full rounded-md border bg-transparent px-3 text-sm outline-none",
+                    formSubmitted && !formProjectId && "border-destructive"
+                  )}
+                  aria-invalid={formSubmitted && !formProjectId}
+                >
+                  <option value="">{he.quickAdd.formCategoryPlaceholder}</option>
+                  {(projects ?? []).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setNewProjectOpen(true)}
+                  className="text-start text-xs text-primary hover:underline"
+                >
+                  + {he.category.addNew}
+                </button>
+              </FormField>
+
+              <FormField label={he.task.priority}>
+                <EnumSelect
+                  value={formPriority as never}
+                  onChange={(v) => setFormPriority(v)}
+                  options={priorityOptions}
+                  placeholder={he.task.priority}
+                  className="w-full"
+                />
+              </FormField>
+            </div>
+
+            <div className="flex justify-end border-t pt-3">
+              <Button
+                size="lg"
+                className="h-11 w-full sm:h-9 sm:w-auto"
+                onClick={handleFormSubmit}
+                disabled={createTask.isPending}
+              >
+                {he.quickAdd.formSubmit}
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FormField({
+  label,
+  required,
+  invalid,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  invalid?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label className={cn("text-xs font-medium", invalid && "text-destructive")}>
+        {label}
+        {required && (
+          <span className="ms-1 text-destructive" aria-hidden>
+            *
+          </span>
+        )}
+        {required && (
+          <span className="sr-only"> ({he.quickAdd.required})</span>
+        )}
+      </Label>
+      {children}
+    </div>
   );
 }
 
