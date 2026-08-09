@@ -29,10 +29,6 @@ export function getTaskMissingFields(
   return missing;
 }
 
-export function taskNeedsReview(task: TaskWithRelations): boolean {
-  return getTaskMissingFields(task).length > 0;
-}
-
 export function getMissingFieldLabel(field: TaskMissingField): string {
   const labels: Record<TaskMissingField, string> = {
     description: he.task.description,

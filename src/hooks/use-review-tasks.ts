@@ -1,22 +1,17 @@
-import { useMemo } from "react";
-import { useTasks } from "@/hooks/use-tasks";
-import { taskNeedsReview } from "@/lib/task-completeness";
+import { useQuery } from "@tanstack/react-query";
+import type { TaskWithRelations } from "@/types";
 
+/** Review queue is disabled; missing-field warnings still show on task rows. */
 export function useReviewTasks() {
-  const query = useTasks({
-    topLevel: true,
-    excludeStatus: "CANCELLED",
-    limit: 500,
+  const query = useQuery({
+    queryKey: ["review-tasks"],
+    queryFn: async (): Promise<TaskWithRelations[]> => [],
+    staleTime: Infinity,
   });
-
-  const reviewTasks = useMemo(
-    () => (query.data ?? []).filter((task) => task.status !== "DONE" && taskNeedsReview(task)),
-    [query.data]
-  );
 
   return {
     ...query,
-    data: reviewTasks,
-    count: reviewTasks.length,
+    data: [] as TaskWithRelations[],
+    count: 0,
   };
 }

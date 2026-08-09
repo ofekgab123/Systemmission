@@ -20,7 +20,6 @@ import { useUIStore } from "@/store/ui-store";
 import { useCreateTask } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { parseQuickAdd } from "@/lib/quick-add-parser";
-import { taskNeedsReview } from "@/lib/task-completeness";
 import { formatDateTime, startOfToday } from "@/lib/date-utils";
 import { EnumSelect } from "@/components/ui/enum-select";
 import { PRIORITY_META, SELECTABLE_PRIORITIES } from "@/lib/task-meta";
@@ -133,8 +132,8 @@ export function QuickAddModal() {
         ...recurrencePayload(quickRecurring, quickRecurrencePattern, quickRecurrenceWeekday),
       },
       {
-        onSuccess: (task) => {
-          toast.success(taskNeedsReview(task) ? he.task.addedForReview : he.task.addedToInbox);
+        onSuccess: () => {
+          toast.success(he.task.addedToInbox);
           clearPendingImages();
         },
       }
@@ -166,8 +165,8 @@ export function QuickAddModal() {
         ...recurrencePayload(formRecurring, formRecurrencePattern, formRecurrenceWeekday),
       },
       {
-        onSuccess: (task) => {
-          toast.success(taskNeedsReview(task) ? he.task.addedForReview : he.task.addedToInbox);
+        onSuccess: () => {
+          toast.success(he.task.addedToInbox);
           clearPendingImages();
         },
       }
