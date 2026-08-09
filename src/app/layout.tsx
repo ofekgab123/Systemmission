@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `Mission — ${he.app.tagline}`,
+  title: `${he.app.name} — ${he.app.tagline}`,
   description: he.app.description,
   appleWebApp: {
     capable: true,
