@@ -24,7 +24,6 @@ import { formatDateTime, startOfToday } from "@/lib/date-utils";
 import { EnumSelect } from "@/components/ui/enum-select";
 import { PRIORITY_META, SELECTABLE_PRIORITIES } from "@/lib/task-meta";
 import { he } from "@/lib/i18n/he";
-import { cn } from "@/lib/utils";
 import { QuickAddHelp } from "@/components/quick-add/quick-add-help";
 
 const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
@@ -56,7 +55,6 @@ export function QuickAddModal() {
   const [formCreatedDate, setFormCreatedDate] = useState<Date | null>(null);
   const [formProjectId, setFormProjectId] = useState("");
   const [formPriority, setFormPriority] = useState<string | null>(null);
-  const [formSubmitted, setFormSubmitted] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -72,7 +70,6 @@ export function QuickAddModal() {
       setFormCreatedDate(null);
       setFormProjectId("");
       setFormPriority(null);
-      setFormSubmitted(false);
       setTimeout(() => {
         if (initialTab === "form") titleRef.current?.focus();
         else if (initialText.trim()) inputRef.current?.focus();
@@ -87,12 +84,6 @@ export function QuickAddModal() {
     if (!parsed.projectHint || !projects) return null;
     return projects.find((p) => p.name.toLowerCase().includes(parsed.projectHint!.toLowerCase())) ?? null;
   }, [parsed.projectHint, projects]);
-
-  const formValid =
-    formTitle.trim().length > 0 &&
-    formContent.trim().length > 0 &&
-    (formNoDeadline || formDueDate !== null) &&
-    formProjectId.length > 0;
 
   const handleQuickSubmit = () => {
     if (!parsed.title.trim()) return;
@@ -112,18 +103,18 @@ export function QuickAddModal() {
   };
 
   const handleFormSubmit = () => {
-    setFormSubmitted(true);
-    if (!formValid) {
-      toast.error(he.quickAdd.fillRequired);
-      return;
-    }
+    const title =
+      formTitle.trim() ||
+      formContent.trim().split("\n")[0]?.trim() ||
+      he.quickAdd.defaultTitle;
+
     createTask.mutate(
       {
-        title: formTitle.trim(),
-        description: formContent.trim(),
-        dueDate: formNoDeadline ? undefined : formDueDate!,
+        title,
+        description: formContent.trim() || undefined,
+        dueDate: formNoDeadline ? undefined : formDueDate ?? undefined,
         createdAt: formNoDeadline ? (formCreatedDate ?? startOfToday()) : undefined,
-        projectId: formProjectId,
+        projectId: formProjectId || undefined,
         priority: (formPriority ?? undefined) as never,
         status: "READY",
       },
@@ -238,39 +229,27 @@ export function QuickAddModal() {
 
           <TabsContent value="form" className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-2">
-              <FormField
-                label={he.quickAdd.formTitle}
-                required
-                invalid={formSubmitted && !formTitle.trim()}
-              >
+              <FormField label={he.quickAdd.formTitle}>
                 <Input
                   ref={titleRef}
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder={he.quickAdd.formTitlePlaceholder}
                   className="h-11 text-base sm:h-10 sm:text-sm"
-                  aria-invalid={formSubmitted && !formTitle.trim()}
                 />
               </FormField>
 
-              <FormField
-                label={he.quickAdd.formContent}
-                required
-                invalid={formSubmitted && !formContent.trim()}
-              >
+              <FormField label={he.quickAdd.formContent}>
                 <Textarea
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
                   placeholder={he.quickAdd.formContentPlaceholder}
                   className="min-h-24 resize-none text-sm"
-                  aria-invalid={formSubmitted && !formContent.trim()}
                 />
               </FormField>
 
               <FormField
                 label={formNoDeadline ? he.quickAdd.formDateNoDeadline : he.quickAdd.formDate}
-                required={!formNoDeadline}
-                invalid={formSubmitted && !formNoDeadline && !formDueDate}
               >
                 <DueDateSelect
                   allowNoDeadline
@@ -280,21 +259,15 @@ export function QuickAddModal() {
                   onNoDeadlineChange={setFormNoDeadline}
                   createdDate={formCreatedDate}
                   onCreatedDateChange={setFormCreatedDate}
-                  invalid={formSubmitted && !formNoDeadline && !formDueDate}
                 />
               </FormField>
 
-              <FormField
-                label={he.quickAdd.formCategory}
-                required
-                invalid={formSubmitted && !formProjectId}
-              >
+              <FormField label={he.quickAdd.formCategory}>
                 <FieldSelect
                   value={formProjectId}
                   onChange={setFormProjectId}
                   options={projectOptions}
                   placeholder={he.quickAdd.formCategoryPlaceholder}
-                  invalid={formSubmitted && !formProjectId}
                 />
                 <button
                   type="button"
@@ -335,28 +308,14 @@ export function QuickAddModal() {
 
 function FormField({
   label,
-  required,
-  invalid,
   children,
 }: {
   label: string;
-  required?: boolean;
-  invalid?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className={cn("text-sm font-medium", invalid && "text-destructive")}>
-        {label}
-        {required && (
-          <span className="ms-1 text-destructive" aria-hidden>
-            *
-          </span>
-        )}
-        {required && (
-          <span className="sr-only"> ({he.quickAdd.required})</span>
-        )}
-      </Label>
+      <Label className="text-sm font-medium">{label}</Label>
       {children}
     </div>
   );

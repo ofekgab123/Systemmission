@@ -93,31 +93,34 @@ export function TaskRow({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => openTaskPanel(task.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openTaskPanel(task.id);
+        }
+      }}
       className={cn(
-        "group flex items-start gap-2 px-3 transition-colors hover:bg-accent/30 active:bg-accent/50",
+        "group flex cursor-pointer items-start gap-2 px-3 transition-colors hover:bg-accent/30 active:bg-accent/50",
         started && !done && "bg-primary/[0.03]",
         dense ? "py-2.5" : "py-3"
       )}
     >
-      <div className="mt-1 shrink-0">
+      <div className="mt-1 shrink-0" onClick={(e) => e.stopPropagation()}>
         <TaskCheckbox checked={done} onCheckedChange={handleToggleDone} />
       </div>
 
       <div className="min-w-0 flex-1">
-        <button
-          type="button"
-          onClick={() => openTaskPanel(task.id)}
-          className="w-full min-w-0 text-start"
+        <span
+          className={cn(
+            "block truncate text-base leading-snug font-medium transition-smooth",
+            done ? "text-muted-foreground line-through" : "text-foreground"
+          )}
         >
-          <span
-            className={cn(
-              "block truncate text-base leading-snug font-medium transition-smooth",
-              done ? "text-muted-foreground line-through" : "text-foreground"
-            )}
-          >
-            {task.title}
-          </span>
-        </button>
+          {task.title}
+        </span>
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <PriorityBadge priority={task.priority} />
@@ -155,14 +158,17 @@ export function TaskRow({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-nowrap items-center gap-0.5 self-start pt-0.5">
+      <div
+        className="flex shrink-0 flex-nowrap items-center gap-0.5 self-start pt-0.5"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Button
           type="button"
           variant="ghost"
           size="icon"
           className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
           aria-label={he.task.addNote}
-          onClick={() => openTaskPanel(task.id, "note")}
+          onClick={() => openTaskEdit(task.id, "notes")}
         >
           <StickyNote className="size-4" />
         </Button>

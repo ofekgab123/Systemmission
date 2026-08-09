@@ -41,6 +41,7 @@ export function TaskPanel() {
   const taskId = useUIStore((s) => s.taskPanelId);
   const taskPanelMode = useUIStore((s) => s.taskPanelMode);
   const setTaskPanelMode = useUIStore((s) => s.setTaskPanelMode);
+  const openTaskEdit = useUIStore((s) => s.openTaskEdit);
   const close = useUIStore((s) => s.closeTaskPanel);
   const { data: task, isLoading } = useTask(taskId);
   const updateTask = useUpdateTask();
@@ -113,6 +114,8 @@ export function TaskPanel() {
           toast.success(he.task.subtaskAdded);
           resetSubtaskForm();
           setMode(null);
+          handleClose();
+          openTaskEdit(taskId, "subtasks");
         },
       }
     );
@@ -128,6 +131,8 @@ export function TaskPanel() {
           toast.success(he.task.noteAdded);
           setNoteText("");
           setMode(null);
+          handleClose();
+          openTaskEdit(taskId, "notes");
         },
       }
     );

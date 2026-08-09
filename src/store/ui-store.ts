@@ -8,7 +8,8 @@ interface UIState {
   closeTaskPanel: () => void;
 
   taskEditId: string | null;
-  openTaskEdit: (id: string) => void;
+  taskEditTab: "details" | "notes" | "subtasks";
+  openTaskEdit: (id: string, tab?: "details" | "notes" | "subtasks") => void;
   closeTaskEdit: () => void;
 
   quickAddOpen: boolean;
@@ -35,8 +36,9 @@ export const useUIStore = create<UIState>((set) => ({
   closeTaskPanel: () => set({ taskPanelId: null, taskPanelMode: null }),
 
   taskEditId: null,
-  openTaskEdit: (id) => set({ taskEditId: id }),
-  closeTaskEdit: () => set({ taskEditId: null }),
+  taskEditTab: "details",
+  openTaskEdit: (id, tab = "details") => set({ taskEditId: id, taskEditTab: tab }),
+  closeTaskEdit: () => set({ taskEditId: null, taskEditTab: "details" }),
 
   quickAddOpen: false,
   quickAddInitialText: "",
