@@ -1,5 +1,14 @@
 import type { Prisma } from "@/generated/prisma/client";
 
+export type TaskAttachment = {
+  id: string;
+  mimeType: string;
+  data: string;
+  createdAt: string;
+  taskId: string;
+  activityId: string | null;
+};
+
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
     project: { include: { area: true } };

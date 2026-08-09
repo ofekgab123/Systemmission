@@ -371,6 +371,7 @@ export type TaskWhereInput = {
   isNextActionFor?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   tags?: Prisma.TagListRelationFilter
   activities?: Prisma.ActivityListRelationFilter
+  attachments?: Prisma.TaskAttachmentListRelationFilter
 }
 
 export type TaskOrderByWithRelationInput = {
@@ -404,6 +405,7 @@ export type TaskOrderByWithRelationInput = {
   isNextActionFor?: Prisma.ProjectOrderByWithRelationInput
   tags?: Prisma.TagOrderByRelationAggregateInput
   activities?: Prisma.ActivityOrderByRelationAggregateInput
+  attachments?: Prisma.TaskAttachmentOrderByRelationAggregateInput
 }
 
 export type TaskWhereUniqueInput = Prisma.AtLeast<{
@@ -440,6 +442,7 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
   isNextActionFor?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   tags?: Prisma.TagListRelationFilter
   activities?: Prisma.ActivityListRelationFilter
+  attachments?: Prisma.TaskAttachmentListRelationFilter
 }, "id">
 
 export type TaskOrderByWithAggregationInput = {
@@ -530,6 +533,7 @@ export type TaskCreateInput = {
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateInput = {
@@ -560,6 +564,7 @@ export type TaskUncheckedCreateInput = {
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUpdateInput = {
@@ -590,6 +595,7 @@ export type TaskUpdateInput = {
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateInput = {
@@ -620,6 +626,7 @@ export type TaskUncheckedUpdateInput = {
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskCreateManyInput = {
@@ -798,6 +805,11 @@ export type TaskMinOrderByAggregateInput = {
 export type TaskSumOrderByAggregateInput = {
   estimatedMinutes?: Prisma.SortOrder
   actualMinutes?: Prisma.SortOrder
+}
+
+export type TaskScalarRelationFilter = {
+  is?: Prisma.TaskWhereInput
+  isNot?: Prisma.TaskWhereInput
 }
 
 export type TaskCreateNestedManyWithoutAreaInput = {
@@ -1024,6 +1036,20 @@ export type TaskUncheckedUpdateManyWithoutParentTaskNestedInput = {
   deleteMany?: Prisma.TaskScalarWhereInput | Prisma.TaskScalarWhereInput[]
 }
 
+export type TaskCreateNestedOneWithoutAttachmentsInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutAttachmentsInput, Prisma.TaskUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutAttachmentsInput
+  connect?: Prisma.TaskWhereUniqueInput
+}
+
+export type TaskUpdateOneRequiredWithoutAttachmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutAttachmentsInput, Prisma.TaskUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutAttachmentsInput
+  upsert?: Prisma.TaskUpsertWithoutAttachmentsInput
+  connect?: Prisma.TaskWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TaskUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.TaskUpdateWithoutAttachmentsInput>, Prisma.TaskUncheckedUpdateWithoutAttachmentsInput>
+}
+
 export type TaskCreateNestedOneWithoutActivitiesInput = {
   create?: Prisma.XOR<Prisma.TaskCreateWithoutActivitiesInput, Prisma.TaskUncheckedCreateWithoutActivitiesInput>
   connectOrCreate?: Prisma.TaskCreateOrConnectWithoutActivitiesInput
@@ -1067,6 +1093,7 @@ export type TaskCreateWithoutAreaInput = {
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutAreaInput = {
@@ -1096,6 +1123,7 @@ export type TaskUncheckedCreateWithoutAreaInput = {
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutAreaInput = {
@@ -1180,6 +1208,7 @@ export type TaskCreateWithoutIsNextActionForInput = {
   subtasks?: Prisma.TaskCreateNestedManyWithoutParentTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutIsNextActionForInput = {
@@ -1209,6 +1238,7 @@ export type TaskUncheckedCreateWithoutIsNextActionForInput = {
   subtasks?: Prisma.TaskUncheckedCreateNestedManyWithoutParentTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutIsNextActionForInput = {
@@ -1243,6 +1273,7 @@ export type TaskCreateWithoutProjectInput = {
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutProjectInput = {
@@ -1272,6 +1303,7 @@ export type TaskUncheckedCreateWithoutProjectInput = {
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutProjectInput = {
@@ -1322,6 +1354,7 @@ export type TaskUpdateWithoutIsNextActionForInput = {
   subtasks?: Prisma.TaskUpdateManyWithoutParentTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutIsNextActionForInput = {
@@ -1351,6 +1384,7 @@ export type TaskUncheckedUpdateWithoutIsNextActionForInput = {
   subtasks?: Prisma.TaskUncheckedUpdateManyWithoutParentTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUpsertWithWhereUniqueWithoutProjectInput = {
@@ -1396,6 +1430,7 @@ export type TaskCreateWithoutTagsInput = {
   subtasks?: Prisma.TaskCreateNestedManyWithoutParentTaskInput
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutTagsInput = {
@@ -1425,6 +1460,7 @@ export type TaskUncheckedCreateWithoutTagsInput = {
   subtasks?: Prisma.TaskUncheckedCreateNestedManyWithoutParentTaskInput
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutTagsInput = {
@@ -1475,6 +1511,7 @@ export type TaskCreateWithoutSubtasksInput = {
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutSubtasksInput = {
@@ -1504,6 +1541,7 @@ export type TaskUncheckedCreateWithoutSubtasksInput = {
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutSubtasksInput = {
@@ -1538,6 +1576,7 @@ export type TaskCreateWithoutParentTaskInput = {
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutParentTaskInput = {
@@ -1567,6 +1606,7 @@ export type TaskUncheckedCreateWithoutParentTaskInput = {
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutParentTaskInput = {
@@ -1617,6 +1657,7 @@ export type TaskUpdateWithoutSubtasksInput = {
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutSubtasksInput = {
@@ -1646,6 +1687,7 @@ export type TaskUncheckedUpdateWithoutSubtasksInput = {
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUpsertWithWhereUniqueWithoutParentTaskInput = {
@@ -1662,6 +1704,142 @@ export type TaskUpdateWithWhereUniqueWithoutParentTaskInput = {
 export type TaskUpdateManyWithWhereWithoutParentTaskInput = {
   where: Prisma.TaskScalarWhereInput
   data: Prisma.XOR<Prisma.TaskUpdateManyMutationInput, Prisma.TaskUncheckedUpdateManyWithoutParentTaskInput>
+}
+
+export type TaskCreateWithoutAttachmentsInput = {
+  id?: string
+  title: string
+  description?: string | null
+  status?: $Enums.TaskStatus
+  priority?: $Enums.Priority
+  impact?: $Enums.Impact | null
+  urgency?: $Enums.Urgency | null
+  energy?: $Enums.EnergyLevel | null
+  category?: $Enums.TaskCategory | null
+  estimatedMinutes?: number | null
+  actualMinutes?: number | null
+  startDate?: Date | string | null
+  dueDate?: Date | string | null
+  scheduledAt?: Date | string | null
+  waitingFor?: string | null
+  followUpDate?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  completedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutTasksInput
+  area?: Prisma.AreaCreateNestedOneWithoutTasksInput
+  parentTask?: Prisma.TaskCreateNestedOneWithoutSubtasksInput
+  subtasks?: Prisma.TaskCreateNestedManyWithoutParentTaskInput
+  isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
+  tags?: Prisma.TagCreateNestedManyWithoutTasksInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutTaskInput
+}
+
+export type TaskUncheckedCreateWithoutAttachmentsInput = {
+  id?: string
+  title: string
+  description?: string | null
+  status?: $Enums.TaskStatus
+  priority?: $Enums.Priority
+  impact?: $Enums.Impact | null
+  urgency?: $Enums.Urgency | null
+  energy?: $Enums.EnergyLevel | null
+  category?: $Enums.TaskCategory | null
+  estimatedMinutes?: number | null
+  actualMinutes?: number | null
+  startDate?: Date | string | null
+  dueDate?: Date | string | null
+  scheduledAt?: Date | string | null
+  waitingFor?: string | null
+  followUpDate?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  completedAt?: Date | string | null
+  projectId?: string | null
+  areaId?: string | null
+  parentTaskId?: string | null
+  subtasks?: Prisma.TaskUncheckedCreateNestedManyWithoutParentTaskInput
+  isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutTaskInput
+}
+
+export type TaskCreateOrConnectWithoutAttachmentsInput = {
+  where: Prisma.TaskWhereUniqueInput
+  create: Prisma.XOR<Prisma.TaskCreateWithoutAttachmentsInput, Prisma.TaskUncheckedCreateWithoutAttachmentsInput>
+}
+
+export type TaskUpsertWithoutAttachmentsInput = {
+  update: Prisma.XOR<Prisma.TaskUpdateWithoutAttachmentsInput, Prisma.TaskUncheckedUpdateWithoutAttachmentsInput>
+  create: Prisma.XOR<Prisma.TaskCreateWithoutAttachmentsInput, Prisma.TaskUncheckedCreateWithoutAttachmentsInput>
+  where?: Prisma.TaskWhereInput
+}
+
+export type TaskUpdateToOneWithWhereWithoutAttachmentsInput = {
+  where?: Prisma.TaskWhereInput
+  data: Prisma.XOR<Prisma.TaskUpdateWithoutAttachmentsInput, Prisma.TaskUncheckedUpdateWithoutAttachmentsInput>
+}
+
+export type TaskUpdateWithoutAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  impact?: Prisma.NullableEnumImpactFieldUpdateOperationsInput | $Enums.Impact | null
+  urgency?: Prisma.NullableEnumUrgencyFieldUpdateOperationsInput | $Enums.Urgency | null
+  energy?: Prisma.NullableEnumEnergyLevelFieldUpdateOperationsInput | $Enums.EnergyLevel | null
+  category?: Prisma.NullableEnumTaskCategoryFieldUpdateOperationsInput | $Enums.TaskCategory | null
+  estimatedMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  actualMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutTasksNestedInput
+  area?: Prisma.AreaUpdateOneWithoutTasksNestedInput
+  parentTask?: Prisma.TaskUpdateOneWithoutSubtasksNestedInput
+  subtasks?: Prisma.TaskUpdateManyWithoutParentTaskNestedInput
+  isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
+  tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+}
+
+export type TaskUncheckedUpdateWithoutAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  impact?: Prisma.NullableEnumImpactFieldUpdateOperationsInput | $Enums.Impact | null
+  urgency?: Prisma.NullableEnumUrgencyFieldUpdateOperationsInput | $Enums.Urgency | null
+  energy?: Prisma.NullableEnumEnergyLevelFieldUpdateOperationsInput | $Enums.EnergyLevel | null
+  category?: Prisma.NullableEnumTaskCategoryFieldUpdateOperationsInput | $Enums.TaskCategory | null
+  estimatedMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  actualMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  areaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentTaskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subtasks?: Prisma.TaskUncheckedUpdateManyWithoutParentTaskNestedInput
+  isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
+  tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskCreateWithoutActivitiesInput = {
@@ -1691,6 +1869,7 @@ export type TaskCreateWithoutActivitiesInput = {
   subtasks?: Prisma.TaskCreateNestedManyWithoutParentTaskInput
   isNextActionFor?: Prisma.ProjectCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagCreateNestedManyWithoutTasksInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutActivitiesInput = {
@@ -1720,6 +1899,7 @@ export type TaskUncheckedCreateWithoutActivitiesInput = {
   subtasks?: Prisma.TaskUncheckedCreateNestedManyWithoutParentTaskInput
   isNextActionFor?: Prisma.ProjectUncheckedCreateNestedOneWithoutNextActionTaskInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutTasksInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutActivitiesInput = {
@@ -1765,6 +1945,7 @@ export type TaskUpdateWithoutActivitiesInput = {
   subtasks?: Prisma.TaskUpdateManyWithoutParentTaskNestedInput
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutActivitiesInput = {
@@ -1794,6 +1975,7 @@ export type TaskUncheckedUpdateWithoutActivitiesInput = {
   subtasks?: Prisma.TaskUncheckedUpdateManyWithoutParentTaskNestedInput
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskCreateManyAreaInput = {
@@ -1848,6 +2030,7 @@ export type TaskUpdateWithoutAreaInput = {
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutAreaInput = {
@@ -1877,6 +2060,7 @@ export type TaskUncheckedUpdateWithoutAreaInput = {
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutAreaInput = {
@@ -1956,6 +2140,7 @@ export type TaskUpdateWithoutProjectInput = {
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutProjectInput = {
@@ -1985,6 +2170,7 @@ export type TaskUncheckedUpdateWithoutProjectInput = {
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutProjectInput = {
@@ -2039,6 +2225,7 @@ export type TaskUpdateWithoutTagsInput = {
   subtasks?: Prisma.TaskUpdateManyWithoutParentTaskNestedInput
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutTagsInput = {
@@ -2068,6 +2255,7 @@ export type TaskUncheckedUpdateWithoutTagsInput = {
   subtasks?: Prisma.TaskUncheckedUpdateManyWithoutParentTaskNestedInput
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutTagsInput = {
@@ -2148,6 +2336,7 @@ export type TaskUpdateWithoutParentTaskInput = {
   isNextActionFor?: Prisma.ProjectUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutParentTaskInput = {
@@ -2177,6 +2366,7 @@ export type TaskUncheckedUpdateWithoutParentTaskInput = {
   isNextActionFor?: Prisma.ProjectUncheckedUpdateOneWithoutNextActionTaskNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutTasksNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutParentTaskInput = {
@@ -2213,12 +2403,14 @@ export type TaskCountOutputType = {
   subtasks: number
   tags: number
   activities: number
+  attachments: number
 }
 
 export type TaskCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   subtasks?: boolean | TaskCountOutputTypeCountSubtasksArgs
   tags?: boolean | TaskCountOutputTypeCountTagsArgs
   activities?: boolean | TaskCountOutputTypeCountActivitiesArgs
+  attachments?: boolean | TaskCountOutputTypeCountAttachmentsArgs
 }
 
 /**
@@ -2250,6 +2442,13 @@ export type TaskCountOutputTypeCountTagsArgs<ExtArgs extends runtime.Types.Exten
  */
 export type TaskCountOutputTypeCountActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ActivityWhereInput
+}
+
+/**
+ * TaskCountOutputType without action
+ */
+export type TaskCountOutputTypeCountAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskAttachmentWhereInput
 }
 
 
@@ -2284,6 +2483,7 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   isNextActionFor?: boolean | Prisma.Task$isNextActionForArgs<ExtArgs>
   tags?: boolean | Prisma.Task$tagsArgs<ExtArgs>
   activities?: boolean | Prisma.Task$activitiesArgs<ExtArgs>
+  attachments?: boolean | Prisma.Task$attachmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TaskCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["task"]>
 
@@ -2380,6 +2580,7 @@ export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   isNextActionFor?: boolean | Prisma.Task$isNextActionForArgs<ExtArgs>
   tags?: boolean | Prisma.Task$tagsArgs<ExtArgs>
   activities?: boolean | Prisma.Task$activitiesArgs<ExtArgs>
+  attachments?: boolean | Prisma.Task$attachmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TaskCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TaskIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2403,6 +2604,7 @@ export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     isNextActionFor: Prisma.$ProjectPayload<ExtArgs> | null
     tags: Prisma.$TagPayload<ExtArgs>[]
     activities: Prisma.$ActivityPayload<ExtArgs>[]
+    attachments: Prisma.$TaskAttachmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2829,6 +3031,7 @@ export interface Prisma__TaskClient<T, Null = never, ExtArgs extends runtime.Typ
   isNextActionFor<T extends Prisma.Task$isNextActionForArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$isNextActionForArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   tags<T extends Prisma.Task$tagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.Task$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attachments<T extends Prisma.Task$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3427,6 +3630,30 @@ export type Task$activitiesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ActivityScalarFieldEnum | Prisma.ActivityScalarFieldEnum[]
+}
+
+/**
+ * Task.attachments
+ */
+export type Task$attachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskAttachment
+   */
+  select?: Prisma.TaskAttachmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskAttachment
+   */
+  omit?: Prisma.TaskAttachmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskAttachmentInclude<ExtArgs> | null
+  where?: Prisma.TaskAttachmentWhereInput
+  orderBy?: Prisma.TaskAttachmentOrderByWithRelationInput | Prisma.TaskAttachmentOrderByWithRelationInput[]
+  cursor?: Prisma.TaskAttachmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskAttachmentScalarFieldEnum | Prisma.TaskAttachmentScalarFieldEnum[]
 }
 
 /**

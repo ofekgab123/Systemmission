@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Trash2, ListTree, StickyNote } from "lucide-react";
+import { Trash2, ListTree, StickyNote, Pencil } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { he as dateHe } from "date-fns/locale";
 import {
@@ -26,7 +26,7 @@ import {
   PRIORITY_META,
   SELECTABLE_PRIORITIES,
 } from "@/lib/task-meta";
-import { useTask, useUpdateTask, useDeleteTask, useCreateTask } from "@/hooks/use-tasks";
+import { useTask, useUpdateTask, useDeleteTask, useCreateTask, useUpdateActivity } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { useUIStore } from "@/store/ui-store";
 import { useIsMobile } from "@/hooks/use-is-mobile";
@@ -34,6 +34,10 @@ import { FieldSelect } from "@/components/ui/field-select";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import { startOfToday } from "@/lib/date-utils";
+import { AddImagePicker } from "@/components/ui/add-image-picker";
+import { TaskImageGallery } from "@/components/task/task-image-gallery";
+import { pendingImagePayload, revokePendingImages, type PendingImage } from "@/lib/image-utils";
+import type { TaskAttachment } from "@/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +61,7 @@ const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
   label: PRIORITY_META[value].label,
 }));
 
-type EditTab = "details" | "notes" | "subtasks";
+type EditTab = "edit" | "notesSubtasks";
 
 export function TaskEditSheet() {
   const taskId = useUIStore((s) => s.taskEditId);
@@ -73,7 +77,7 @@ export function TaskEditSheet() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [tab, setTab] = useState<EditTab>("details");
+  const [tab, setTab] = useState<EditTab>("edit");
 
   useEffect(() => {
     if (taskId) setTab(editTab);
@@ -105,7 +109,13 @@ export function TaskEditSheet() {
   };
 
   const notes = (task?.activities ?? []).filter((a) => a.type === "NOTE_ADDED");
-  const subtasks = task?.subtasks ?? [];
+  const subtasks = (task?.subtasks ?? []) as Array<{
+    id: string;
+    title: string;
+    status: string;
+    attachments?: TaskAttachment[];
+  }>;
+  const attachments = (task?.attachments ?? []) as TaskAttachment[];
 
   return (
     <Sheet open={!!taskId} onOpenChange={(open) => !open && close()}>
@@ -155,32 +165,22 @@ export function TaskEditSheet() {
 
             <Tabs value={tab} onValueChange={handleTabChange} className="flex flex-col gap-0">
               <div className="border-b px-6 py-3">
-                <TabsList className="grid h-10 w-full grid-cols-3">
-                  <TabsTrigger value="details" className="gap-1.5 text-xs sm:text-sm">
-                    {he.task.tabDetails}
+                <TabsList className="grid h-10 w-full grid-cols-2">
+                  <TabsTrigger value="edit" className="text-xs sm:text-sm">
+                    {he.task.tabEdit}
                   </TabsTrigger>
-                  <TabsTrigger value="notes" className="gap-1.5 text-xs sm:text-sm">
-                    <StickyNote className="size-3.5" />
-                    {he.task.notes}
-                    {notes.length > 0 && (
+                  <TabsTrigger value="notesSubtasks" className="gap-1.5 text-xs sm:text-sm">
+                    {he.task.tabNotesSubtasks}
+                    {(notes.length > 0 || subtasks.length > 0) && (
                       <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">
-                        {notes.length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger value="subtasks" className="gap-1.5 text-xs sm:text-sm">
-                    <ListTree className="size-3.5" />
-                    {he.task.subtasks}
-                    {subtasks.length > 0 && (
-                      <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">
-                        {subtasks.length}
+                        {notes.length + subtasks.length}
                       </span>
                     )}
                   </TabsTrigger>
                 </TabsList>
               </div>
 
-              <TabsContent value="details" className="px-6 py-5">
+              <TabsContent value="edit" className="px-6 py-5">
                 <div className="flex flex-col gap-5">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Field label={he.task.status}>
@@ -252,15 +252,19 @@ export function TaskEditSheet() {
                       className="min-h-20 text-sm"
                     />
                   </Field>
+
+                  <TaskImagesField taskId={taskId} attachments={attachments.filter((item) => !item.activityId)} />
                 </div>
               </TabsContent>
 
-              <TabsContent value="notes" className="px-6 py-5">
-                <NotesTab taskId={taskId} notes={notes} />
-              </TabsContent>
-
-              <TabsContent value="subtasks" className="px-6 py-5">
-                <SubtasksTab taskId={taskId} projectId={task.projectId} subtasks={subtasks} />
+              <TabsContent value="notesSubtasks" className="px-6 py-5">
+                <NotesSubtasksTab
+                  taskId={taskId}
+                  projectId={task.projectId}
+                  notes={notes}
+                  subtasks={subtasks}
+                  attachments={attachments}
+                />
               </TabsContent>
             </Tabs>
           </>
@@ -270,78 +274,171 @@ export function TaskEditSheet() {
   );
 }
 
-function NotesTab({
+function TaskImagesField({
   taskId,
-  notes,
+  attachments,
 }: {
   taskId: string;
-  notes: { id: string; message: string; createdAt: string }[];
+  attachments: TaskAttachment[];
 }) {
   const updateTask = useUpdateTask();
-  const [noteText, setNoteText] = useState("");
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
 
-  const handleAddNote = () => {
-    if (!noteText.trim()) return;
-
+  const uploadImages = () => {
+    if (!pendingImages.length) return;
     updateTask.mutate(
-      { id: taskId, data: { note: noteText.trim() } },
+      { id: taskId, data: { images: pendingImagePayload(pendingImages) } },
       {
         onSuccess: () => {
-          toast.success(he.task.noteAdded);
-          setNoteText("");
+          revokePendingImages(pendingImages);
+          setPendingImages([]);
+          toast.success(he.image.added);
         },
       }
     );
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
+      <TaskImageGallery attachments={attachments} />
+      <AddImagePicker images={pendingImages} onChange={setPendingImages} />
+      {pendingImages.length > 0 && (
+        <Button size="sm" className="w-full" onClick={uploadImages} disabled={updateTask.isPending}>
+          {he.actions.save}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function NotesSubtasksTab({
+  taskId,
+  projectId,
+  notes,
+  subtasks,
+  attachments,
+}: {
+  taskId: string;
+  projectId: string | null;
+  notes: { id: string; message: string; createdAt: string }[];
+  subtasks: { id: string; title: string; status: string; attachments?: TaskAttachment[] }[];
+  attachments: TaskAttachment[];
+}) {
+  return (
+    <div className="flex flex-col gap-0 divide-y rounded-xl border">
+      <section className="flex flex-col gap-3 p-4">
+        <div className="flex items-center gap-2">
+          <StickyNote className="size-4 text-muted-foreground" />
+          <h3 className="text-sm font-medium">{he.task.notes}</h3>
+          {notes.length > 0 && (
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
+              {notes.length}
+            </span>
+          )}
+        </div>
+        <NotesSection taskId={taskId} notes={notes} attachments={attachments} />
+      </section>
+
+      <section className="flex flex-col gap-3 p-4">
+        <div className="flex items-center gap-2">
+          <ListTree className="size-4 text-muted-foreground" />
+          <h3 className="text-sm font-medium">{he.task.subtasks}</h3>
+          {subtasks.length > 0 && (
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
+              {subtasks.length}
+            </span>
+          )}
+        </div>
+        <SubtasksSection taskId={taskId} projectId={projectId} subtasks={subtasks} />
+      </section>
+    </div>
+  );
+}
+
+function NotesSection({
+  taskId,
+  notes,
+  attachments,
+}: {
+  taskId: string;
+  notes: { id: string; message: string; createdAt: string }[];
+  attachments: TaskAttachment[];
+}) {
+  const updateTask = useUpdateTask();
+  const [noteText, setNoteText] = useState("");
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+
+  const clearImages = () => {
+    revokePendingImages(pendingImages);
+    setPendingImages([]);
+  };
+
+  const handleAddNote = () => {
+    if (!noteText.trim() && pendingImages.length === 0) return;
+
+    updateTask.mutate(
+      {
+        id: taskId,
+        data: {
+          ...(noteText.trim() ? { note: noteText.trim() } : {}),
+          images: pendingImagePayload(pendingImages),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(he.task.noteAdded);
+          setNoteText("");
+          clearImages();
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
       {notes.length > 0 ? (
-        <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
+        <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
           {notes.map((note) => (
-            <div key={note.id} className="rounded-lg border bg-muted/30 px-3 py-2 text-sm">
-              <p>{note.message}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(note.createdAt), {
-                  addSuffix: true,
-                  locale: dateHe,
-                })}
-              </p>
-            </div>
+            <EditableNoteItem
+              key={note.id}
+              note={note}
+              attachments={attachments.filter((item) => item.activityId === note.id)}
+            />
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{he.task.noNotes}</p>
+        <p className="text-xs text-muted-foreground">{he.task.noNotes}</p>
       )}
 
-      <div className="flex flex-col gap-2 border-t pt-4">
-        <Label className="text-sm font-medium">{he.task.addNoteTitle}</Label>
+      <div className="flex flex-col gap-2">
         <Textarea
           value={noteText}
           onChange={(e) => setNoteText(e.target.value)}
           placeholder={he.task.notePlaceholder}
-          className="min-h-24 text-sm"
+          className="min-h-20 text-sm"
         />
+        <AddImagePicker images={pendingImages} onChange={setPendingImages} />
         <Button
           onClick={handleAddNote}
-          disabled={!noteText.trim() || updateTask.isPending}
+          disabled={(!noteText.trim() && pendingImages.length === 0) || updateTask.isPending}
+          size="sm"
           className="w-full"
         >
-          {he.actions.save}
+          {he.task.addNote}
         </Button>
       </div>
     </div>
   );
 }
 
-function SubtasksTab({
+function SubtasksSection({
   taskId,
   projectId,
   subtasks,
 }: {
   taskId: string;
   projectId: string | null;
-  subtasks: { id: string; title: string; status: string }[];
+  subtasks: { id: string; title: string; status: string; attachments?: TaskAttachment[] }[];
 }) {
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -349,8 +446,15 @@ function SubtasksTab({
   const [subtaskDueDate, setSubtaskDueDate] = useState<Date | null>(null);
   const [subtaskNoDeadline, setSubtaskNoDeadline] = useState(false);
   const [subtaskCreatedDate, setSubtaskCreatedDate] = useState<Date | null>(startOfToday());
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+
+  const clearImages = () => {
+    revokePendingImages(pendingImages);
+    setPendingImages([]);
+  };
 
   const handleAddSubtask = () => {
+    if (!subtaskTitle.trim() && pendingImages.length === 0) return;
     const title = subtaskTitle.trim() || he.quickAdd.defaultTitle;
 
     createTask.mutate(
@@ -361,6 +465,7 @@ function SubtasksTab({
         dueDate: subtaskNoDeadline ? undefined : subtaskDueDate ?? undefined,
         createdAt: subtaskNoDeadline ? (subtaskCreatedDate ?? startOfToday()) : undefined,
         status: "READY",
+        images: pendingImagePayload(pendingImages),
       },
       {
         onSuccess: () => {
@@ -369,60 +474,234 @@ function SubtasksTab({
           setSubtaskDueDate(null);
           setSubtaskNoDeadline(false);
           setSubtaskCreatedDate(startOfToday());
+          clearImages();
         },
       }
     );
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {subtasks.length > 0 ? (
-        <div className="flex flex-col gap-1 rounded-lg border bg-card p-2">
+        <div className="flex flex-col gap-1 rounded-lg bg-muted/20 p-2">
           {subtasks.map((sub) => (
-            <div key={sub.id} className="flex items-center gap-2 py-1.5 px-1">
-              <TaskCheckbox
-                checked={sub.status === "DONE"}
-                onCheckedChange={(checked) =>
-                  updateTask.mutate({ id: sub.id, data: { status: checked ? "DONE" : "READY" } })
-                }
-              />
-              <span
-                className={cn(
-                  "text-sm",
-                  sub.status === "DONE" && "text-muted-foreground line-through"
-                )}
-              >
-                {sub.title}
-              </span>
-            </div>
+            <EditableSubtaskItem key={sub.id} subtask={sub} />
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{he.task.noSubtasks}</p>
+        <p className="text-xs text-muted-foreground">{he.task.noSubtasks}</p>
       )}
 
-      <div className="flex flex-col gap-3 border-t pt-4">
-        <Label className="text-sm font-medium">{he.task.addSubtaskTitle}</Label>
+      <div className="flex flex-col gap-2">
         <Input
           value={subtaskTitle}
           onChange={(e) => setSubtaskTitle(e.target.value)}
           placeholder={he.task.addSubtask}
+          className="h-9 text-sm"
         />
-        <Field label={he.task.dueDate}>
-          <DueDateSelect
-            value={subtaskDueDate}
-            onChange={setSubtaskDueDate}
-            noDeadline={subtaskNoDeadline}
-            onNoDeadlineChange={setSubtaskNoDeadline}
-            createdDate={subtaskCreatedDate}
-            onCreatedDateChange={setSubtaskCreatedDate}
-            allowNoDeadline
-          />
-        </Field>
-        <Button onClick={handleAddSubtask} disabled={createTask.isPending} className="w-full">
-          {he.actions.add}
+        <DueDateSelect
+          value={subtaskDueDate}
+          onChange={setSubtaskDueDate}
+          noDeadline={subtaskNoDeadline}
+          onNoDeadlineChange={setSubtaskNoDeadline}
+          createdDate={subtaskCreatedDate}
+          onCreatedDateChange={setSubtaskCreatedDate}
+          allowNoDeadline
+        />
+        <AddImagePicker images={pendingImages} onChange={setPendingImages} />
+        <Button
+          onClick={handleAddSubtask}
+          disabled={(!subtaskTitle.trim() && pendingImages.length === 0) || createTask.isPending}
+          size="sm"
+          className="w-full"
+        >
+          {he.task.addSubtaskAction}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function EditableNoteItem({
+  note,
+  attachments,
+}: {
+  note: { id: string; message: string; createdAt: string };
+  attachments: TaskAttachment[];
+}) {
+  const updateActivity = useUpdateActivity();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(note.message);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+
+  const cancel = () => {
+    setDraft(note.message);
+    revokePendingImages(pendingImages);
+    setPendingImages([]);
+    setEditing(false);
+  };
+
+  const save = () => {
+    if (!draft.trim() && pendingImages.length === 0 && attachments.length === 0) return;
+
+    updateActivity.mutate(
+      {
+        id: note.id,
+        data: {
+          message: draft.trim() || note.message,
+          images: pendingImagePayload(pendingImages),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(he.task.noteUpdated);
+          revokePendingImages(pendingImages);
+          setPendingImages([]);
+          setEditing(false);
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm">
+      {editing ? (
+        <div className="flex flex-col gap-2">
+          <Textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            className="min-h-20 text-sm"
+            autoFocus
+          />
+          <TaskImageGallery attachments={attachments} />
+          <AddImagePicker images={pendingImages} onChange={setPendingImages} />
+          <div className="flex gap-2">
+            <Button size="sm" className="flex-1" onClick={save} disabled={updateActivity.isPending}>
+              {he.actions.save}
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1" onClick={cancel}>
+              {he.actions.cancel}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-start justify-between gap-2">
+            {note.message ? (
+              <p className="min-w-0 flex-1 whitespace-pre-wrap">{note.message}</p>
+            ) : (
+              <p className="min-w-0 flex-1 text-muted-foreground italic">{he.task.noNotes}</p>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0 text-muted-foreground"
+              aria-label={he.actions.edit}
+              onClick={() => {
+                setDraft(note.message);
+                setEditing(true);
+              }}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+          </div>
+          <TaskImageGallery attachments={attachments} className={note.message ? "mt-2" : undefined} />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {formatDistanceToNow(new Date(note.createdAt), {
+              addSuffix: true,
+              locale: dateHe,
+            })}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function EditableSubtaskItem({
+  subtask,
+}: {
+  subtask: { id: string; title: string; status: string; attachments?: TaskAttachment[] };
+}) {
+  const updateTask = useUpdateTask();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(subtask.title);
+
+  const save = () => {
+    const title = draft.trim();
+    if (!title) return;
+
+    updateTask.mutate(
+      { id: subtask.id, data: { title } },
+      {
+        onSuccess: () => {
+          toast.success(he.task.subtaskUpdated);
+          setEditing(false);
+        },
+      }
+    );
+  };
+
+  const cancel = () => {
+    setDraft(subtask.title);
+    setEditing(false);
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5 py-1.5 px-1">
+      {editing ? (
+        <div className="flex flex-col gap-2">
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            className="h-9 text-sm"
+            autoFocus
+          />
+          <TaskImageGallery attachments={subtask.attachments ?? []} />
+          <div className="flex gap-2">
+            <Button size="sm" className="flex-1" onClick={save} disabled={!draft.trim() || updateTask.isPending}>
+              {he.actions.save}
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1" onClick={cancel}>
+              {he.actions.cancel}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2">
+            <TaskCheckbox
+              checked={subtask.status === "DONE"}
+              onCheckedChange={(checked) =>
+                updateTask.mutate({ id: subtask.id, data: { status: checked ? "DONE" : "READY" } })
+              }
+            />
+            <span
+              className={cn(
+                "min-w-0 flex-1 text-sm",
+                subtask.status === "DONE" && "text-muted-foreground line-through"
+              )}
+            >
+              {subtask.title}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0 text-muted-foreground"
+              aria-label={he.actions.edit}
+              onClick={() => {
+                setDraft(subtask.title);
+                setEditing(true);
+              }}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+          </div>
+          <TaskImageGallery attachments={subtask.attachments ?? []} className="ms-7" />
+        </>
+      )}
     </div>
   );
 }

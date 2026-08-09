@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { startOfToday, endOfToday, nextNDays } from "@/lib/date-utils";
+import { attachmentCreates, parseImageUploads } from "@/lib/task-attachments";
 
 const taskInclude = {
   project: { include: { area: true } },
@@ -97,6 +98,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+  const images = parseImageUploads(body.images);
 
   const tagNames: string[] = body.tagNames ?? [];
   const tags = tagNames.length
@@ -139,6 +141,12 @@ export async function POST(req: NextRequest) {
     },
     include: taskInclude,
   });
+
+  if (images.length) {
+    await prisma.taskAttachment.createMany({
+      data: attachmentCreates(task.id, images),
+    });
+  }
 
   return NextResponse.json(task, { status: 201 });
 }

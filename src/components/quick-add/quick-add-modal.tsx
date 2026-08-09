@@ -25,6 +25,8 @@ import { EnumSelect } from "@/components/ui/enum-select";
 import { PRIORITY_META, SELECTABLE_PRIORITIES } from "@/lib/task-meta";
 import { he } from "@/lib/i18n/he";
 import { QuickAddHelp } from "@/components/quick-add/quick-add-help";
+import { AddImagePicker } from "@/components/ui/add-image-picker";
+import { pendingImagePayload, revokePendingImages, type PendingImage } from "@/lib/image-utils";
 
 const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
   value,
@@ -55,7 +57,13 @@ export function QuickAddModal() {
   const [formCreatedDate, setFormCreatedDate] = useState<Date | null>(null);
   const [formProjectId, setFormProjectId] = useState("");
   const [formPriority, setFormPriority] = useState<string | null>(null);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const titleRef = useRef<HTMLInputElement>(null);
+
+  const clearPendingImages = () => {
+    revokePendingImages(pendingImages);
+    setPendingImages([]);
+  };
 
   useEffect(() => {
     if (open) {
@@ -70,6 +78,10 @@ export function QuickAddModal() {
       setFormCreatedDate(null);
       setFormProjectId("");
       setFormPriority(null);
+      setPendingImages((prev) => {
+        revokePendingImages(prev);
+        return [];
+      });
       setTimeout(() => {
         if (initialTab === "form") titleRef.current?.focus();
         else if (initialText.trim()) inputRef.current?.focus();
@@ -94,9 +106,13 @@ export function QuickAddModal() {
         priority: (priorityOverride ?? parsed.priority ?? undefined) as never,
         projectId: projectId ?? matchedProject?.id ?? undefined,
         status: "READY",
+        images: pendingImagePayload(pendingImages),
       },
       {
-        onSuccess: () => toast.success(he.task.addedToInbox),
+        onSuccess: () => {
+          toast.success(he.task.addedToInbox);
+          clearPendingImages();
+        },
       }
     );
     close();
@@ -117,9 +133,13 @@ export function QuickAddModal() {
         projectId: formProjectId || undefined,
         priority: (formPriority ?? undefined) as never,
         status: "READY",
+        images: pendingImagePayload(pendingImages),
       },
       {
-        onSuccess: () => toast.success(he.task.addedToInbox),
+        onSuccess: () => {
+          toast.success(he.task.addedToInbox);
+          clearPendingImages();
+        },
       }
     );
     close();
@@ -215,6 +235,7 @@ export function QuickAddModal() {
                 placeholder={he.task.priority}
                 className="w-full"
               />
+              <AddImagePicker images={pendingImages} onChange={setPendingImages} />
               <Button
                 size="lg"
                 className="h-11 w-full"
@@ -290,6 +311,7 @@ export function QuickAddModal() {
             </div>
 
             <div className="shrink-0 border-t pt-3 pb-[env(safe-area-inset-bottom,0px)]">
+              <AddImagePicker images={pendingImages} onChange={setPendingImages} className="mb-3" />
               <Button
                 size="lg"
                 className="h-11 w-full sm:h-10"

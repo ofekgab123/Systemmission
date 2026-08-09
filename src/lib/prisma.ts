@@ -14,7 +14,11 @@ function createPrismaClient() {
 }
 
 function isStaleClient(client: PrismaClient | undefined): client is undefined {
-  return !client || typeof client.stickyNote?.findMany !== "function";
+  return (
+    !client ||
+    typeof client.stickyNote?.findMany !== "function" ||
+    typeof client.taskAttachment?.createMany !== "function"
+  );
 }
 
 function getPrismaClient() {

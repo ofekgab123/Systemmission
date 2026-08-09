@@ -178,14 +178,31 @@ model Task {
 
   isNextActionFor Project? @relation("ProjectNextAction")
 
-  tags       Tag[]      @relation("TaskTags")
-  activities Activity[]
+  tags        Tag[]            @relation("TaskTags")
+  activities  Activity[]
+  attachments TaskAttachment[]
 
   @@index([status])
   @@index([projectId])
   @@index([areaId])
   @@index([dueDate])
   @@index([parentTaskId])
+}
+
+model TaskAttachment {
+  id         String   @id @default(cuid())
+  mimeType   String
+  data       String   @db.Text
+  createdAt  DateTime @default(now())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  activityId String?
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+
+  @@index([taskId])
+  @@index([activityId])
 }
 
 model Activity {
@@ -199,6 +216,8 @@ model Activity {
 
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  attachments TaskAttachment[]
 
   @@index([taskId])
   @@index([projectId])

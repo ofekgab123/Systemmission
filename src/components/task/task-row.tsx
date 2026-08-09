@@ -168,7 +168,7 @@ export function TaskRow({
           size="icon"
           className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
           aria-label={he.task.addNote}
-          onClick={() => openTaskEdit(task.id, "notes")}
+          onClick={() => openTaskEdit(task.id, "notesSubtasks")}
         >
           <StickyNote className="size-4" />
         </Button>

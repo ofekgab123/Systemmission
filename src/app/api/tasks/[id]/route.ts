@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { TASK_STATUS_META } from "@/lib/task-meta";
+import { attachmentCreates, parseImageUploads } from "@/lib/task-attachments";
 
 const taskInclude = {
   project: { include: { area: true } },
@@ -11,6 +12,20 @@ const taskInclude = {
   isNextActionFor: true,
 } satisfies Prisma.TaskInclude;
 
+const taskDetailInclude = {
+  project: { include: { area: true } },
+  area: true,
+  tags: true,
+  subtasks: {
+    include: {
+      attachments: { orderBy: { createdAt: "desc" as const } },
+    },
+  },
+  isNextActionFor: true,
+  attachments: { orderBy: { createdAt: "desc" as const } },
+  activities: { orderBy: { createdAt: "desc" as const }, take: 30 },
+} satisfies Prisma.TaskInclude;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -18,10 +33,7 @@ export async function GET(
   const { id } = await params;
   const task = await prisma.task.findUnique({
     where: { id },
-    include: {
-      ...taskInclude,
-      activities: { orderBy: { createdAt: "desc" }, take: 30 },
-    },
+    include: taskDetailInclude,
   });
   if (!task) return NextResponse.json({ error: "לא נמצא" }, { status: 404 });
   return NextResponse.json(task);
@@ -39,6 +51,8 @@ export async function PATCH(
 
   const data: Prisma.TaskUpdateInput = {};
   const activities: Prisma.ActivityCreateWithoutTaskInput[] = [];
+  const images = parseImageUploads(body.images);
+  let noteActivityId: string | null = null;
 
   const scalarFields = [
     "title",
@@ -83,7 +97,6 @@ export async function PATCH(
         message: `הסטטוס שונה ל-${label}`,
       });
     }
-    // Clear stale waiting/blocked context when leaving those states.
     if (existing.status === "WAITING" && body.status !== "WAITING") {
       data.waitingFor = null;
       data.followUpDate = null;
@@ -94,7 +107,14 @@ export async function PATCH(
   }
 
   if ("note" in body && typeof body.note === "string" && body.note.trim()) {
-    activities.push({ type: "NOTE_ADDED", message: body.note.trim() });
+    const noteActivity = await prisma.activity.create({
+      data: {
+        taskId: id,
+        type: "NOTE_ADDED",
+        message: body.note.trim(),
+      },
+    });
+    noteActivityId = noteActivity.id;
   }
 
   if ("tagNames" in body) {
@@ -113,13 +133,20 @@ export async function PATCH(
     data.activities = { create: activities };
   }
 
-  const task = await prisma.task.update({
+  await prisma.task.update({
     where: { id },
     data,
-    include: {
-      ...taskInclude,
-      activities: { orderBy: { createdAt: "desc" }, take: 30 },
-    },
+  });
+
+  if (images.length) {
+    await prisma.taskAttachment.createMany({
+      data: attachmentCreates(id, images, noteActivityId),
+    });
+  }
+
+  const task = await prisma.task.findUnique({
+    where: { id },
+    include: taskDetailInclude,
   });
 
   return NextResponse.json(task);

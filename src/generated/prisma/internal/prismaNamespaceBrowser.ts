@@ -55,6 +55,7 @@ export const ModelName = {
   Project: 'Project',
   Tag: 'Tag',
   Task: 'Task',
+  TaskAttachment: 'TaskAttachment',
   Activity: 'Activity',
   StickyNote: 'StickyNote'
 } as const
@@ -148,6 +149,18 @@ export const TaskScalarFieldEnum = {
 } as const
 
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
+
+
+export const TaskAttachmentScalarFieldEnum = {
+  id: 'id',
+  mimeType: 'mimeType',
+  data: 'data',
+  createdAt: 'createdAt',
+  taskId: 'taskId',
+  activityId: 'activityId'
+} as const
+
+export type TaskAttachmentScalarFieldEnum = (typeof TaskAttachmentScalarFieldEnum)[keyof typeof TaskAttachmentScalarFieldEnum]
 
 
 export const ActivityScalarFieldEnum = {

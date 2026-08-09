@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { TaskWithRelations } from "@/types";
+import type { TaskWithRelations, TaskAttachment } from "@/types";
+import type { ImageUploadInput } from "@/lib/task-attachments";
 
 export type TaskDetail = TaskWithRelations & {
   activities: { id: string; type: string; message: string; createdAt: string }[];
+  attachments: TaskAttachment[];
 };
 
 export interface TaskFilters {
@@ -64,6 +66,7 @@ export function useCreateTask() {
       data: Omit<Partial<TaskWithRelations>, "createdAt"> & {
         tagNames?: string[];
         createdAt?: string | Date;
+        images?: ImageUploadInput[];
       }
     ) => {
       const res = await fetch("/api/tasks", {
@@ -92,7 +95,7 @@ export function useUpdateTask() {
       data,
     }: {
       id: string;
-      data: Partial<TaskWithRelations> & { tagNames?: string[]; note?: string };
+      data: Partial<TaskWithRelations> & { tagNames?: string[]; note?: string; images?: ImageUploadInput[] };
     }) => {
       const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
@@ -101,6 +104,35 @@ export function useUpdateTask() {
       });
       if (!res.ok) throw new Error("Failed to update task");
       return res.json() as Promise<TaskWithRelations>;
+    },
+    onSuccess: (task) => {
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["task", task.id] });
+      if (task.parentTaskId) {
+        qc.invalidateQueries({ queryKey: ["task", task.parentTaskId] });
+      }
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
+
+export function useUpdateActivity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { message?: string; images?: ImageUploadInput[] };
+    }) => {
+      const res = await fetch(`/api/activities/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update note");
+      return res.json() as Promise<TaskDetail>;
     },
     onSuccess: (task) => {
       qc.invalidateQueries({ queryKey: ["tasks"] });

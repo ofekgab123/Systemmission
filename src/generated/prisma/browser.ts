@@ -38,6 +38,11 @@ export type Tag = Prisma.TagModel
  */
 export type Task = Prisma.TaskModel
 /**
+ * Model TaskAttachment
+ * 
+ */
+export type TaskAttachment = Prisma.TaskAttachmentModel
+/**
  * Model Activity
  * 
  */

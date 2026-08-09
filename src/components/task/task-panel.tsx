@@ -23,6 +23,8 @@ import { he as dateHe } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import { startOfToday } from "@/lib/date-utils";
+import { AddImagePicker } from "@/components/ui/add-image-picker";
+import { pendingImagePayload, revokePendingImages, type PendingImage } from "@/lib/image-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,17 +59,25 @@ export function TaskPanel() {
   const [subtaskSubmitted, setSubtaskSubmitted] = useState(false);
 
   const [noteText, setNoteText] = useState("");
+  const [noteImages, setNoteImages] = useState<PendingImage[]>([]);
+  const [subtaskImages, setSubtaskImages] = useState<PendingImage[]>([]);
 
   useEffect(() => {
     if (!taskId) {
       setMode(null);
       resetSubtaskForm();
       setNoteText("");
+      revokePendingImages(noteImages);
+      setNoteImages([]);
       return;
     }
 
     setMode(taskPanelMode);
-    if (taskPanelMode !== "note") setNoteText("");
+    if (taskPanelMode !== "note") {
+      setNoteText("");
+      revokePendingImages(noteImages);
+      setNoteImages([]);
+    }
   }, [taskId, taskPanelMode]);
 
   const resetSubtaskForm = () => {
@@ -76,6 +86,8 @@ export function TaskPanel() {
     setSubtaskNoDeadline(false);
     setSubtaskCreatedDate(startOfToday());
     setSubtaskSubmitted(false);
+    revokePendingImages(subtaskImages);
+    setSubtaskImages([]);
   };
 
   if (!taskId) return null;
@@ -85,6 +97,8 @@ export function TaskPanel() {
     setMode(null);
     resetSubtaskForm();
     setNoteText("");
+    revokePendingImages(noteImages);
+    setNoteImages([]);
   };
 
   const handleDelete = () => {
@@ -93,21 +107,22 @@ export function TaskPanel() {
     toast(he.task.deleted);
   };
 
-  const subtaskValid =
-    subtaskTitle.trim().length > 0 && (subtaskNoDeadline || subtaskDueDate !== null);
-
   const handleAddSubtask = () => {
     setSubtaskSubmitted(true);
-    if (!subtaskValid) return;
+    const hasTitle = subtaskTitle.trim().length > 0;
+    const hasImages = subtaskImages.length > 0;
+    if (!hasTitle && !hasImages) return;
+    if (hasTitle && !subtaskNoDeadline && !subtaskDueDate) return;
 
     createTask.mutate(
       {
-        title: subtaskTitle.trim(),
+        title: subtaskTitle.trim() || he.quickAdd.defaultTitle,
         parentTaskId: taskId,
         projectId: task?.projectId ?? undefined,
-        dueDate: subtaskNoDeadline ? undefined : subtaskDueDate!,
+        dueDate: subtaskNoDeadline ? undefined : subtaskDueDate ?? undefined,
         createdAt: subtaskNoDeadline ? (subtaskCreatedDate ?? startOfToday()) : undefined,
         status: "READY",
+        images: pendingImagePayload(subtaskImages),
       },
       {
         onSuccess: () => {
@@ -115,24 +130,32 @@ export function TaskPanel() {
           resetSubtaskForm();
           setMode(null);
           handleClose();
-          openTaskEdit(taskId, "subtasks");
+          openTaskEdit(taskId, "notesSubtasks");
         },
       }
     );
   };
 
   const handleAddNote = () => {
-    if (!noteText.trim()) return;
+    if (!noteText.trim() && noteImages.length === 0) return;
 
     updateTask.mutate(
-      { id: taskId, data: { note: noteText.trim() } },
+      {
+        id: taskId,
+        data: {
+          ...(noteText.trim() ? { note: noteText.trim() } : {}),
+          images: pendingImagePayload(noteImages),
+        },
+      },
       {
         onSuccess: () => {
           toast.success(he.task.noteAdded);
           setNoteText("");
+          revokePendingImages(noteImages);
+          setNoteImages([]);
           setMode(null);
           handleClose();
-          openTaskEdit(taskId, "notes");
+          openTaskEdit(taskId, "notesSubtasks");
         },
       }
     );
@@ -278,6 +301,8 @@ export function TaskPanel() {
                     />
                   </div>
 
+                  <AddImagePicker images={subtaskImages} onChange={setSubtaskImages} />
+
                   <Button
                     onClick={handleAddSubtask}
                     disabled={createTask.isPending}
@@ -334,9 +359,10 @@ export function TaskPanel() {
                     className="min-h-28"
                     autoFocus
                   />
+                  <AddImagePicker images={noteImages} onChange={setNoteImages} />
                   <Button
                     onClick={handleAddNote}
-                    disabled={!noteText.trim() || updateTask.isPending}
+                    disabled={(!noteText.trim() && noteImages.length === 0) || updateTask.isPending}
                     className="w-full"
                   >
                     {he.actions.save}
