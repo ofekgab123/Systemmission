@@ -47,6 +47,8 @@ export async function GET(req: NextRequest) {
   } else if (view === "upcoming") {
     where.dueDate = { gte: startOfToday(), lte: nextNDays(7) };
     where.status = { notIn: ["DONE", "CANCELLED"] };
+  } else if (view === "ready") {
+    where.status = "READY";
   } else if (view === "waiting") {
     where.status = "WAITING";
   } else if (view === "blocked") {

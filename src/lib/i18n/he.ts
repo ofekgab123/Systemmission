@@ -12,6 +12,7 @@ export const he = {
     myTasks: "המשימות שלי",
     projects: "קטגוריות",
     waiting: "ממתין",
+    ready: "מוכן",
     blocked: "תקוע",
     search: "חיפוש",
     calendar: "לוח שנה",
@@ -98,6 +99,8 @@ export const he = {
     noProjectsDesc: "צור קטגוריה ראשונה כדי לארגן את המשימות.",
     noWaiting: "אין ממתינים",
     noWaitingDesc: "מצוין — שום דבר לא תקוע על אנשים אחרים.",
+    noReady: "אין משימות מוכנות",
+    noReadyDesc: "הוסף משימה חדשה או סמן משימות כמוכנות לביצוע.",
     noBlocked: "אין משימות תקועות",
     noBlockedDesc: "הכל יכול להתקדם.",
     noResults: "לא נמצאו תוצאות",
@@ -188,6 +191,7 @@ export const he = {
     upcoming: "קרוב",
     overdue: "באיחור",
     waiting: "ממתין",
+    ready: "מוכן",
     blocked: "תקוע",
     noDeadline: "ללא דדליין",
     completed: "הושלמו",
@@ -336,6 +340,10 @@ export const he = {
   blocked: {
     title: "תקוע",
     description: "אתה רוצה להתקדם, אבל משהו תוקע אותך.",
+  },
+  ready: {
+    title: "מוכן",
+    description: "משימות שמוכנות להתחלה — לחץ נגן כדי להתחיל.",
   },
   search: {
     title: "חיפוש",

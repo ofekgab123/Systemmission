@@ -9,6 +9,7 @@ import {
   ListTodo,
   Folder,
   CalendarDays,
+  CircleDot,
   Clock,
   Ban,
   Search as SearchIcon,
@@ -30,6 +31,7 @@ const mainNav = [
   { href: "/tasks", label: he.nav.myTasks, icon: ListTodo },
   { href: "/calendar", label: he.nav.calendar, icon: CalendarDays },
   { href: "/projects", label: he.nav.projects, icon: Folder },
+  { href: "/ready", label: he.nav.ready, icon: CircleDot },
   { href: "/waiting", label: he.nav.waiting, icon: Clock },
   { href: "/blocked", label: he.nav.blocked, icon: Ban },
   { href: "/search", label: he.nav.search, icon: SearchIcon },
@@ -38,6 +40,7 @@ const mainNav = [
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { data: stickyNotes } = useStickyNotes({ active: true });
+  const { data: readyTasks } = useTasks({ view: "ready" });
   const { data: waitingTasks } = useTasks({ view: "waiting" });
   const { data: blockedTasks } = useTasks({ view: "blocked" });
   const openQuickAdd = useUIStore((s) => s.openQuickAdd);
@@ -45,6 +48,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   const counts: Record<string, number | undefined> = {
     "/dont-forget": stickyNotes?.length,
+    "/ready": readyTasks?.length,
     "/waiting": waitingTasks?.length,
     "/blocked": blockedTasks?.length,
   };

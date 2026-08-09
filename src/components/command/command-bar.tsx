@@ -20,6 +20,7 @@ import {
   Folder,
   Clock,
   Ban,
+  CircleDot,
   Plus,
   Search as SearchIcon,
   ListTodo,
@@ -122,6 +123,9 @@ export function CommandBar() {
             </CommandItem>
             <CommandItem onSelect={() => go("/projects")}>
               <Folder className="size-4" /> {he.nav.projects}
+            </CommandItem>
+            <CommandItem onSelect={() => go("/ready")}>
+              <CircleDot className="size-4" /> {he.nav.ready}
             </CommandItem>
             <CommandItem onSelect={() => go("/waiting")}>
               <Clock className="size-4" /> {he.nav.waiting}

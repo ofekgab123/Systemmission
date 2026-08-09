@@ -23,6 +23,7 @@ const VIEW_GROUPS = [
   {
     label: he.tasks.filters.status,
     views: [
+      { value: "ready", label: he.views.ready },
       { value: "waiting", label: he.views.waiting },
       { value: "blocked", label: he.views.blocked },
       { value: "completed", label: he.views.completed },
