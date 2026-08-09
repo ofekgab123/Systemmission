@@ -30,7 +30,7 @@ interface UIState {
 export const useUIStore = create<UIState>((set) => ({
   taskPanelId: null,
   taskPanelMode: null,
-  openTaskPanel: (id, mode = null) => set({ taskPanelId: id, taskPanelMode: mode }),
+  openTaskPanel: (id, mode) => set({ taskPanelId: id, taskPanelMode: mode ?? null }),
   setTaskPanelMode: (mode) => set({ taskPanelMode: mode }),
   closeTaskPanel: () => set({ taskPanelId: null, taskPanelMode: null }),
 
