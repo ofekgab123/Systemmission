@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { StatusContextType } from "@/lib/task-status-prompt";
 
 interface UIState {
   taskPanelId: string | null;
@@ -8,8 +9,10 @@ interface UIState {
   closeTaskPanel: () => void;
 
   taskEditId: string | null;
-  taskEditTab: "edit" | "notesSubtasks";
-  openTaskEdit: (id: string, tab?: "edit" | "notesSubtasks") => void;
+  taskEditTab: "edit" | "notes" | "subtasks";
+  taskEditShowEditTab: boolean;
+  openTaskEdit: (id: string, tab?: "edit" | "notes" | "subtasks") => void;
+  setTaskEditTab: (tab: "edit" | "notes" | "subtasks") => void;
   closeTaskEdit: () => void;
 
   quickAddOpen: boolean;
@@ -26,6 +29,10 @@ interface UIState {
 
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
+
+  statusPrompt: { taskId: string; status: StatusContextType } | null;
+  openStatusPrompt: (taskId: string, status: StatusContextType) => void;
+  closeStatusPrompt: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -37,8 +44,15 @@ export const useUIStore = create<UIState>((set) => ({
 
   taskEditId: null,
   taskEditTab: "edit",
-  openTaskEdit: (id, tab = "edit") => set({ taskEditId: id, taskEditTab: tab }),
-  closeTaskEdit: () => set({ taskEditId: null, taskEditTab: "edit" }),
+  taskEditShowEditTab: true,
+  openTaskEdit: (id, tab = "edit") =>
+    set({
+      taskEditId: id,
+      taskEditTab: tab,
+      taskEditShowEditTab: tab === "edit",
+    }),
+  setTaskEditTab: (tab) => set({ taskEditTab: tab }),
+  closeTaskEdit: () => set({ taskEditId: null, taskEditTab: "edit", taskEditShowEditTab: true }),
 
   quickAddOpen: false,
   quickAddInitialText: "",
@@ -56,4 +70,8 @@ export const useUIStore = create<UIState>((set) => ({
 
   mobileMenuOpen: false,
   setMobileMenuOpen: (open) => set({ mobileMenuOpen: open }),
+
+  statusPrompt: null,
+  openStatusPrompt: (taskId, status) => set({ statusPrompt: { taskId, status } }),
+  closeStatusPrompt: () => set({ statusPrompt: null }),
 }));

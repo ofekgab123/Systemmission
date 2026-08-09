@@ -22,6 +22,7 @@ import { useUIStore } from "@/store/ui-store";
 import { Button } from "@/components/ui/button";
 import { useStickyNotes } from "@/hooks/use-sticky-notes";
 import { useTasks } from "@/hooks/use-tasks";
+import { DomainSwitcher } from "@/components/areas/domain-switcher";
 import { he } from "@/lib/i18n/he";
 
 const mainNav = [
@@ -59,7 +60,8 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Command className="size-4" />
         </div>
-        <span className="font-heading text-base font-semibold">{he.app.name}</span>
+        <span className="min-w-0 flex-1 font-heading text-base font-semibold">{he.app.name}</span>
+        <DomainSwitcher className="size-9" />
       </div>
 
       <div className="px-3">

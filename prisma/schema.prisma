@@ -91,6 +91,7 @@ enum ActivityType {
 model Area {
   id          String   @id @default(cuid())
   name        String
+  slug        String?  @unique
   icon        String   @default("Layers")
   color       String   @default("#6366f1")
   description String?
@@ -98,8 +99,9 @@ model Area {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  projects Project[]
-  tasks    Task[]
+  projects    Project[]
+  tasks       Task[]
+  stickyNotes StickyNote[]
 }
 
 model Project {
@@ -233,6 +235,10 @@ model StickyNote {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  areaId String?
+  area   Area?   @relation(fields: [areaId], references: [id])
+
   @@index([dismissed])
   @@index([nextAlertAt])
+  @@index([areaId])
 }

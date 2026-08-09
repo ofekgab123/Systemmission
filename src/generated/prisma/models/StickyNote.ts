@@ -32,6 +32,7 @@ export type StickyNoteMinAggregateOutputType = {
   nextAlertAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  areaId: string | null
 }
 
 export type StickyNoteMaxAggregateOutputType = {
@@ -42,6 +43,7 @@ export type StickyNoteMaxAggregateOutputType = {
   nextAlertAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  areaId: string | null
 }
 
 export type StickyNoteCountAggregateOutputType = {
@@ -52,6 +54,7 @@ export type StickyNoteCountAggregateOutputType = {
   nextAlertAt: number
   createdAt: number
   updatedAt: number
+  areaId: number
   _all: number
 }
 
@@ -64,6 +67,7 @@ export type StickyNoteMinAggregateInputType = {
   nextAlertAt?: true
   createdAt?: true
   updatedAt?: true
+  areaId?: true
 }
 
 export type StickyNoteMaxAggregateInputType = {
@@ -74,6 +78,7 @@ export type StickyNoteMaxAggregateInputType = {
   nextAlertAt?: true
   createdAt?: true
   updatedAt?: true
+  areaId?: true
 }
 
 export type StickyNoteCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type StickyNoteCountAggregateInputType = {
   nextAlertAt?: true
   createdAt?: true
   updatedAt?: true
+  areaId?: true
   _all?: true
 }
 
@@ -167,6 +173,7 @@ export type StickyNoteGroupByOutputType = {
   nextAlertAt: Date
   createdAt: Date
   updatedAt: Date
+  areaId: string | null
   _count: StickyNoteCountAggregateOutputType | null
   _min: StickyNoteMinAggregateOutputType | null
   _max: StickyNoteMaxAggregateOutputType | null
@@ -198,6 +205,8 @@ export type StickyNoteWhereInput = {
   nextAlertAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
+  areaId?: Prisma.StringNullableFilter<"StickyNote"> | string | null
+  area?: Prisma.XOR<Prisma.AreaNullableScalarRelationFilter, Prisma.AreaWhereInput> | null
 }
 
 export type StickyNoteOrderByWithRelationInput = {
@@ -208,6 +217,8 @@ export type StickyNoteOrderByWithRelationInput = {
   nextAlertAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  areaId?: Prisma.SortOrderInput | Prisma.SortOrder
+  area?: Prisma.AreaOrderByWithRelationInput
 }
 
 export type StickyNoteWhereUniqueInput = Prisma.AtLeast<{
@@ -221,6 +232,8 @@ export type StickyNoteWhereUniqueInput = Prisma.AtLeast<{
   nextAlertAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
+  areaId?: Prisma.StringNullableFilter<"StickyNote"> | string | null
+  area?: Prisma.XOR<Prisma.AreaNullableScalarRelationFilter, Prisma.AreaWhereInput> | null
 }, "id">
 
 export type StickyNoteOrderByWithAggregationInput = {
@@ -231,6 +244,7 @@ export type StickyNoteOrderByWithAggregationInput = {
   nextAlertAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  areaId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.StickyNoteCountOrderByAggregateInput
   _max?: Prisma.StickyNoteMaxOrderByAggregateInput
   _min?: Prisma.StickyNoteMinOrderByAggregateInput
@@ -247,6 +261,7 @@ export type StickyNoteScalarWhereWithAggregatesInput = {
   nextAlertAt?: Prisma.DateTimeWithAggregatesFilter<"StickyNote"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"StickyNote"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"StickyNote"> | Date | string
+  areaId?: Prisma.StringNullableWithAggregatesFilter<"StickyNote"> | string | null
 }
 
 export type StickyNoteCreateInput = {
@@ -257,6 +272,7 @@ export type StickyNoteCreateInput = {
   nextAlertAt?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  area?: Prisma.AreaCreateNestedOneWithoutStickyNotesInput
 }
 
 export type StickyNoteUncheckedCreateInput = {
@@ -267,6 +283,7 @@ export type StickyNoteUncheckedCreateInput = {
   nextAlertAt?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  areaId?: string | null
 }
 
 export type StickyNoteUpdateInput = {
@@ -277,6 +294,7 @@ export type StickyNoteUpdateInput = {
   nextAlertAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  area?: Prisma.AreaUpdateOneWithoutStickyNotesNestedInput
 }
 
 export type StickyNoteUncheckedUpdateInput = {
@@ -287,6 +305,7 @@ export type StickyNoteUncheckedUpdateInput = {
   nextAlertAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type StickyNoteCreateManyInput = {
@@ -297,6 +316,7 @@ export type StickyNoteCreateManyInput = {
   nextAlertAt?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  areaId?: string | null
 }
 
 export type StickyNoteUpdateManyMutationInput = {
@@ -317,6 +337,17 @@ export type StickyNoteUncheckedUpdateManyInput = {
   nextAlertAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type StickyNoteListRelationFilter = {
+  every?: Prisma.StickyNoteWhereInput
+  some?: Prisma.StickyNoteWhereInput
+  none?: Prisma.StickyNoteWhereInput
+}
+
+export type StickyNoteOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type StickyNoteCountOrderByAggregateInput = {
@@ -327,6 +358,7 @@ export type StickyNoteCountOrderByAggregateInput = {
   nextAlertAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  areaId?: Prisma.SortOrder
 }
 
 export type StickyNoteMaxOrderByAggregateInput = {
@@ -337,6 +369,7 @@ export type StickyNoteMaxOrderByAggregateInput = {
   nextAlertAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  areaId?: Prisma.SortOrder
 }
 
 export type StickyNoteMinOrderByAggregateInput = {
@@ -347,6 +380,149 @@ export type StickyNoteMinOrderByAggregateInput = {
   nextAlertAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  areaId?: Prisma.SortOrder
+}
+
+export type StickyNoteCreateNestedManyWithoutAreaInput = {
+  create?: Prisma.XOR<Prisma.StickyNoteCreateWithoutAreaInput, Prisma.StickyNoteUncheckedCreateWithoutAreaInput> | Prisma.StickyNoteCreateWithoutAreaInput[] | Prisma.StickyNoteUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.StickyNoteCreateOrConnectWithoutAreaInput | Prisma.StickyNoteCreateOrConnectWithoutAreaInput[]
+  createMany?: Prisma.StickyNoteCreateManyAreaInputEnvelope
+  connect?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+}
+
+export type StickyNoteUncheckedCreateNestedManyWithoutAreaInput = {
+  create?: Prisma.XOR<Prisma.StickyNoteCreateWithoutAreaInput, Prisma.StickyNoteUncheckedCreateWithoutAreaInput> | Prisma.StickyNoteCreateWithoutAreaInput[] | Prisma.StickyNoteUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.StickyNoteCreateOrConnectWithoutAreaInput | Prisma.StickyNoteCreateOrConnectWithoutAreaInput[]
+  createMany?: Prisma.StickyNoteCreateManyAreaInputEnvelope
+  connect?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+}
+
+export type StickyNoteUpdateManyWithoutAreaNestedInput = {
+  create?: Prisma.XOR<Prisma.StickyNoteCreateWithoutAreaInput, Prisma.StickyNoteUncheckedCreateWithoutAreaInput> | Prisma.StickyNoteCreateWithoutAreaInput[] | Prisma.StickyNoteUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.StickyNoteCreateOrConnectWithoutAreaInput | Prisma.StickyNoteCreateOrConnectWithoutAreaInput[]
+  upsert?: Prisma.StickyNoteUpsertWithWhereUniqueWithoutAreaInput | Prisma.StickyNoteUpsertWithWhereUniqueWithoutAreaInput[]
+  createMany?: Prisma.StickyNoteCreateManyAreaInputEnvelope
+  set?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  disconnect?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  delete?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  connect?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  update?: Prisma.StickyNoteUpdateWithWhereUniqueWithoutAreaInput | Prisma.StickyNoteUpdateWithWhereUniqueWithoutAreaInput[]
+  updateMany?: Prisma.StickyNoteUpdateManyWithWhereWithoutAreaInput | Prisma.StickyNoteUpdateManyWithWhereWithoutAreaInput[]
+  deleteMany?: Prisma.StickyNoteScalarWhereInput | Prisma.StickyNoteScalarWhereInput[]
+}
+
+export type StickyNoteUncheckedUpdateManyWithoutAreaNestedInput = {
+  create?: Prisma.XOR<Prisma.StickyNoteCreateWithoutAreaInput, Prisma.StickyNoteUncheckedCreateWithoutAreaInput> | Prisma.StickyNoteCreateWithoutAreaInput[] | Prisma.StickyNoteUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.StickyNoteCreateOrConnectWithoutAreaInput | Prisma.StickyNoteCreateOrConnectWithoutAreaInput[]
+  upsert?: Prisma.StickyNoteUpsertWithWhereUniqueWithoutAreaInput | Prisma.StickyNoteUpsertWithWhereUniqueWithoutAreaInput[]
+  createMany?: Prisma.StickyNoteCreateManyAreaInputEnvelope
+  set?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  disconnect?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  delete?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  connect?: Prisma.StickyNoteWhereUniqueInput | Prisma.StickyNoteWhereUniqueInput[]
+  update?: Prisma.StickyNoteUpdateWithWhereUniqueWithoutAreaInput | Prisma.StickyNoteUpdateWithWhereUniqueWithoutAreaInput[]
+  updateMany?: Prisma.StickyNoteUpdateManyWithWhereWithoutAreaInput | Prisma.StickyNoteUpdateManyWithWhereWithoutAreaInput[]
+  deleteMany?: Prisma.StickyNoteScalarWhereInput | Prisma.StickyNoteScalarWhereInput[]
+}
+
+export type StickyNoteCreateWithoutAreaInput = {
+  id?: string
+  content: string
+  color?: string
+  dismissed?: boolean
+  nextAlertAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type StickyNoteUncheckedCreateWithoutAreaInput = {
+  id?: string
+  content: string
+  color?: string
+  dismissed?: boolean
+  nextAlertAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type StickyNoteCreateOrConnectWithoutAreaInput = {
+  where: Prisma.StickyNoteWhereUniqueInput
+  create: Prisma.XOR<Prisma.StickyNoteCreateWithoutAreaInput, Prisma.StickyNoteUncheckedCreateWithoutAreaInput>
+}
+
+export type StickyNoteCreateManyAreaInputEnvelope = {
+  data: Prisma.StickyNoteCreateManyAreaInput | Prisma.StickyNoteCreateManyAreaInput[]
+  skipDuplicates?: boolean
+}
+
+export type StickyNoteUpsertWithWhereUniqueWithoutAreaInput = {
+  where: Prisma.StickyNoteWhereUniqueInput
+  update: Prisma.XOR<Prisma.StickyNoteUpdateWithoutAreaInput, Prisma.StickyNoteUncheckedUpdateWithoutAreaInput>
+  create: Prisma.XOR<Prisma.StickyNoteCreateWithoutAreaInput, Prisma.StickyNoteUncheckedCreateWithoutAreaInput>
+}
+
+export type StickyNoteUpdateWithWhereUniqueWithoutAreaInput = {
+  where: Prisma.StickyNoteWhereUniqueInput
+  data: Prisma.XOR<Prisma.StickyNoteUpdateWithoutAreaInput, Prisma.StickyNoteUncheckedUpdateWithoutAreaInput>
+}
+
+export type StickyNoteUpdateManyWithWhereWithoutAreaInput = {
+  where: Prisma.StickyNoteScalarWhereInput
+  data: Prisma.XOR<Prisma.StickyNoteUpdateManyMutationInput, Prisma.StickyNoteUncheckedUpdateManyWithoutAreaInput>
+}
+
+export type StickyNoteScalarWhereInput = {
+  AND?: Prisma.StickyNoteScalarWhereInput | Prisma.StickyNoteScalarWhereInput[]
+  OR?: Prisma.StickyNoteScalarWhereInput[]
+  NOT?: Prisma.StickyNoteScalarWhereInput | Prisma.StickyNoteScalarWhereInput[]
+  id?: Prisma.StringFilter<"StickyNote"> | string
+  content?: Prisma.StringFilter<"StickyNote"> | string
+  color?: Prisma.StringFilter<"StickyNote"> | string
+  dismissed?: Prisma.BoolFilter<"StickyNote"> | boolean
+  nextAlertAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"StickyNote"> | Date | string
+  areaId?: Prisma.StringNullableFilter<"StickyNote"> | string | null
+}
+
+export type StickyNoteCreateManyAreaInput = {
+  id?: string
+  content: string
+  color?: string
+  dismissed?: boolean
+  nextAlertAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type StickyNoteUpdateWithoutAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  dismissed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  nextAlertAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type StickyNoteUncheckedUpdateWithoutAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  dismissed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  nextAlertAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type StickyNoteUncheckedUpdateManyWithoutAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  dismissed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  nextAlertAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -359,6 +535,8 @@ export type StickyNoteSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   nextAlertAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  areaId?: boolean
+  area?: boolean | Prisma.StickyNote$areaArgs<ExtArgs>
 }, ExtArgs["result"]["stickyNote"]>
 
 export type StickyNoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -369,6 +547,8 @@ export type StickyNoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   nextAlertAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  areaId?: boolean
+  area?: boolean | Prisma.StickyNote$areaArgs<ExtArgs>
 }, ExtArgs["result"]["stickyNote"]>
 
 export type StickyNoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -379,6 +559,8 @@ export type StickyNoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   nextAlertAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  areaId?: boolean
+  area?: boolean | Prisma.StickyNote$areaArgs<ExtArgs>
 }, ExtArgs["result"]["stickyNote"]>
 
 export type StickyNoteSelectScalar = {
@@ -389,13 +571,25 @@ export type StickyNoteSelectScalar = {
   nextAlertAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  areaId?: boolean
 }
 
-export type StickyNoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "content" | "color" | "dismissed" | "nextAlertAt" | "createdAt" | "updatedAt", ExtArgs["result"]["stickyNote"]>
+export type StickyNoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "content" | "color" | "dismissed" | "nextAlertAt" | "createdAt" | "updatedAt" | "areaId", ExtArgs["result"]["stickyNote"]>
+export type StickyNoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  area?: boolean | Prisma.StickyNote$areaArgs<ExtArgs>
+}
+export type StickyNoteIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  area?: boolean | Prisma.StickyNote$areaArgs<ExtArgs>
+}
+export type StickyNoteIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  area?: boolean | Prisma.StickyNote$areaArgs<ExtArgs>
+}
 
 export type $StickyNotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "StickyNote"
-  objects: {}
+  objects: {
+    area: Prisma.$AreaPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     content: string
@@ -404,6 +598,7 @@ export type $StickyNotePayload<ExtArgs extends runtime.Types.Extensions.Internal
     nextAlertAt: Date
     createdAt: Date
     updatedAt: Date
+    areaId: string | null
   }, ExtArgs["result"]["stickyNote"]>
   composites: {}
 }
@@ -798,6 +993,7 @@ readonly fields: StickyNoteFieldRefs;
  */
 export interface Prisma__StickyNoteClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  area<T extends Prisma.StickyNote$areaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StickyNote$areaArgs<ExtArgs>>): Prisma.Prisma__AreaClient<runtime.Types.Result.GetResult<Prisma.$AreaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -834,6 +1030,7 @@ export interface StickyNoteFieldRefs {
   readonly nextAlertAt: Prisma.FieldRef<"StickyNote", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"StickyNote", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"StickyNote", 'DateTime'>
+  readonly areaId: Prisma.FieldRef<"StickyNote", 'String'>
 }
     
 
@@ -850,6 +1047,10 @@ export type StickyNoteFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the StickyNote
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
   /**
    * Filter, which StickyNote to fetch.
    */
@@ -869,6 +1070,10 @@ export type StickyNoteFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extens
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
+  /**
    * Filter, which StickyNote to fetch.
    */
   where: Prisma.StickyNoteWhereUniqueInput
@@ -886,6 +1091,10 @@ export type StickyNoteFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the StickyNote
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
   /**
    * Filter, which StickyNote to fetch.
    */
@@ -935,6 +1144,10 @@ export type StickyNoteFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
+  /**
    * Filter, which StickyNote to fetch.
    */
   where?: Prisma.StickyNoteWhereInput
@@ -982,6 +1195,10 @@ export type StickyNoteFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the StickyNote
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
   /**
    * Filter, which StickyNotes to fetch.
    */
@@ -1031,6 +1248,10 @@ export type StickyNoteCreateArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
+  /**
    * The data needed to create a StickyNote.
    */
   data: Prisma.XOR<Prisma.StickyNoteCreateInput, Prisma.StickyNoteUncheckedCreateInput>
@@ -1064,6 +1285,10 @@ export type StickyNoteCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    */
   data: Prisma.StickyNoteCreateManyInput | Prisma.StickyNoteCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1078,6 +1303,10 @@ export type StickyNoteUpdateArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the StickyNote
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
   /**
    * The data needed to update a StickyNote.
    */
@@ -1130,6 +1359,10 @@ export type StickyNoteUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    * Limit how many StickyNotes to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1144,6 +1377,10 @@ export type StickyNoteUpsertArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the StickyNote
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
   /**
    * The filter to search for the StickyNote to update in case it exists.
    */
@@ -1171,6 +1408,10 @@ export type StickyNoteDeleteArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
+  /**
    * Filter which StickyNote to delete.
    */
   where: Prisma.StickyNoteWhereUniqueInput
@@ -1191,6 +1432,25 @@ export type StickyNoteDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
+ * StickyNote.area
+ */
+export type StickyNote$areaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Area
+   */
+  select?: Prisma.AreaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Area
+   */
+  omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  where?: Prisma.AreaWhereInput
+}
+
+/**
  * StickyNote without action
  */
 export type StickyNoteDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1202,4 +1462,8 @@ export type StickyNoteDefaultArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the StickyNote
    */
   omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
 }

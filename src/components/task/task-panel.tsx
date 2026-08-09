@@ -130,7 +130,7 @@ export function TaskPanel() {
           resetSubtaskForm();
           setMode(null);
           handleClose();
-          openTaskEdit(taskId, "notesSubtasks");
+          openTaskEdit(taskId, "subtasks");
         },
       }
     );
@@ -155,7 +155,7 @@ export function TaskPanel() {
           setNoteImages([]);
           setMode(null);
           handleClose();
-          openTaskEdit(taskId, "notesSubtasks");
+          openTaskEdit(taskId, "notes");
         },
       }
     );

@@ -1,25 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
-import { MoreHorizontal, PlayCircle, StopCircle, Clock, Ban, CalendarClock, Trash2, Pencil, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskCheckbox } from "@/components/task/task-checkbox";
+import { TaskRowActions } from "@/components/task/task-row-actions";
 import { PriorityBadge } from "@/components/task/priority-badge";
 import { DueDateLabel } from "@/components/task/due-date-label";
 import { StatusBadge } from "@/components/task/status-badge";
 import { resolveIcon } from "@/lib/icons";
-import { useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
+import { useUpdateTask } from "@/hooks/use-tasks";
 import { useUIStore } from "@/store/ui-store";
 import type { TaskWithRelations } from "@/types";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { he } from "@/lib/i18n/he";
 
 export function TaskRow({
@@ -33,15 +24,12 @@ export function TaskRow({
   dense?: boolean;
 }) {
   const [optimisticDone, setOptimisticDone] = useState(task.status === "DONE");
-  const [optimisticStarted, setOptimisticStarted] = useState(task.status === "IN_PROGRESS");
   const updateTask = useUpdateTask();
-  const deleteTask = useDeleteTask();
   const openTaskPanel = useUIStore((s) => s.openTaskPanel);
-  const openTaskEdit = useUIStore((s) => s.openTaskEdit);
 
   const ProjectIcon = task.project ? resolveIcon(task.project.icon) : null;
   const done = task.status === "DONE" || optimisticDone;
-  const started = task.status === "IN_PROGRESS" || optimisticStarted;
+  const started = task.status === "IN_PROGRESS";
 
   const handleToggleDone = (checked: boolean) => {
     setOptimisticDone(checked);
@@ -51,44 +39,6 @@ export function TaskRow({
         onError: () => setOptimisticDone(!checked),
       }
     );
-  };
-
-  const handlePlayStop = () => {
-    if (done) return;
-
-    if (started) {
-      setOptimisticDone(true);
-      setOptimisticStarted(false);
-      updateTask.mutate(
-        { id: task.id, data: { status: "DONE" } },
-        {
-          onError: () => {
-            setOptimisticDone(false);
-            setOptimisticStarted(true);
-          },
-        }
-      );
-      return;
-    }
-
-    setOptimisticStarted(true);
-    updateTask.mutate(
-      { id: task.id, data: { status: "IN_PROGRESS" } },
-      {
-        onError: () => setOptimisticStarted(false),
-      }
-    );
-  };
-
-  const setStatus = (status: TaskWithRelations["status"], extra?: Record<string, unknown>) => {
-    updateTask.mutate({ id: task.id, data: { status, ...extra } });
-    if (status === "IN_PROGRESS") setOptimisticStarted(true);
-    else if (status !== "DONE") setOptimisticStarted(false);
-  };
-
-  const handleDelete = () => {
-    deleteTask.mutate(task.id);
-    toast(he.task.deleted);
   };
 
   return (
@@ -158,91 +108,7 @@ export function TaskRow({
         </div>
       </div>
 
-      <div
-        className="flex shrink-0 flex-nowrap items-center gap-0.5 self-start pt-0.5"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
-          aria-label={he.task.addNote}
-          onClick={() => openTaskEdit(task.id, "notesSubtasks")}
-        >
-          <StickyNote className="size-4" />
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
-          aria-label={he.task.editTask}
-          onClick={() => openTaskEdit(task.id)}
-        >
-          <Pencil className="size-4" />
-        </Button>
-
-        <Button
-          type="button"
-          variant={started && !done ? "default" : "outline"}
-          size="sm"
-          className={cn(
-            "h-8 shrink-0 gap-1 rounded-full px-2 text-xs font-medium sm:h-9 sm:px-3",
-            started && !done && "shadow-sm"
-          )}
-          onClick={handlePlayStop}
-          disabled={done}
-          aria-pressed={started && !done}
-          aria-label={started && !done ? he.task.stopAndComplete : he.task.started}
-        >
-          {started && !done ? (
-            <StopCircle className="size-3.5 shrink-0" />
-          ) : (
-            <PlayCircle className="size-3.5 shrink-0" />
-          )}
-          <span className="hidden sm:inline">
-            {started && !done ? he.task.stopAndComplete : he.task.started}
-          </span>
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
-                aria-label={he.actions.more}
-              />
-            }
-          >
-            <MoreHorizontal className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="min-w-44">
-            <DropdownMenuItem onClick={() => setStatus("WAITING")}>
-              <Clock className="size-4" /> {he.task.markWaiting}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatus("BLOCKED")}>
-              <Ban className="size-4" /> {he.task.markBlocked}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                setStatus("SCHEDULED", {
-                  dueDate: new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
-                })
-              }
-            >
-              <CalendarClock className="size-4" /> {he.task.scheduleTomorrow}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleDelete}>
-              <Trash2 className="size-4" /> {he.actions.delete}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <TaskRowActions task={task} className="pt-0.5" />
     </div>
   );
 }

@@ -6,10 +6,13 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { TaskPanel } from "@/components/task/task-panel";
 import { TaskEditSheet } from "@/components/task/task-edit-sheet";
+import { StatusContextPrompt } from "@/components/task/status-context-prompt";
 import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { CommandBar } from "@/components/command/command-bar";
 import { NewCategoryModal } from "@/components/category/new-category-modal";
 import { StickyNoteAlerts } from "@/components/sticky-notes/sticky-note-alerts";
+import { MotivationAlerts } from "@/components/motivation/motivation-alerts";
+import { AreaBootstrap } from "@/components/areas/area-bootstrap";
 import { FontScaleControl } from "@/components/accessibility/font-scale-control";
 import { useGlobalKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
@@ -27,10 +30,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MobileDrawer />
       <TaskPanel />
       <TaskEditSheet />
+      <StatusContextPrompt />
       <QuickAddModal />
       <NewCategoryModal />
       <CommandBar />
+      <AreaBootstrap />
       <StickyNoteAlerts />
+      <MotivationAlerts />
       <FontScaleControl />
     </div>
   );

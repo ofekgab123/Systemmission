@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TaskWithRelations, TaskAttachment } from "@/types";
 import type { ImageUploadInput } from "@/lib/task-attachments";
+import { areaFilterForApi } from "@/lib/areas";
+import { useAreaStore } from "@/store/area-store";
 
 export type TaskDetail = TaskWithRelations & {
   activities: { id: string; type: string; message: string; createdAt: string }[];
@@ -37,10 +39,13 @@ export function tasksQueryKey(filters: TaskFilters = {}) {
 }
 
 export function useTasks(filters: TaskFilters = {}) {
+  const selectedAreaId = useAreaStore((s) => s.selectedAreaId);
+  const merged = { ...filters, ...areaFilterForApi(selectedAreaId) };
+
   return useQuery({
-    queryKey: tasksQueryKey(filters),
+    queryKey: tasksQueryKey(merged),
     queryFn: async (): Promise<TaskWithRelations[]> => {
-      const res = await fetch(`/api/tasks?${buildQuery(filters)}`);
+      const res = await fetch(`/api/tasks?${buildQuery(merged)}`);
       if (!res.ok) throw new Error("Failed to load tasks");
       return res.json();
     },
@@ -61,6 +66,7 @@ export function useTask(id: string | null) {
 
 export function useCreateTask() {
   const qc = useQueryClient();
+  const getCreateAreaId = useAreaStore((s) => s.getCreateAreaId);
   return useMutation({
     mutationFn: async (
       data: Omit<Partial<TaskWithRelations>, "createdAt"> & {
@@ -69,10 +75,11 @@ export function useCreateTask() {
         images?: ImageUploadInput[];
       }
     ) => {
+      const areaId = data.areaId ?? getCreateAreaId() ?? undefined;
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, areaId }),
       });
       if (!res.ok) throw new Error("Failed to create task");
       return res.json() as Promise<TaskWithRelations>;

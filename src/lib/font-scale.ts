@@ -48,3 +48,7 @@ export function fontScaleLabel(level: FontScaleLevel): string {
   if (level > 0) return `+${level}`;
   return String(level);
 }
+
+export function fontScalePercentLabel(level: FontScaleLevel): string {
+  return `${Math.round(MULTIPLIERS[level] * 100)}%`;
+}

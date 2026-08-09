@@ -1,26 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Accessibility, Minus, Moon, Plus, RotateCcw, Sun, Type } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useFontScale } from "@/hooks/use-font-scale";
-import { fontScaleLabel } from "@/lib/font-scale";
+import { fontScalePercentLabel as formatFontScaleLevel } from "@/lib/font-scale";
 import { he } from "@/lib/i18n/he";
 import { cn } from "@/lib/utils";
 
 export function FontScaleControl() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { level, increase, decrease, reset, canIncrease, canDecrease } = useFontScale();
   const { theme, setTheme, resolvedTheme } = useTheme();
 
   useEffect(() => setMounted(true), []);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (containerRef.current?.contains(event.target as Node)) return;
+      setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
   const activeTheme = mounted ? (theme === "system" ? resolvedTheme : theme) : "light";
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "fixed z-50 flex flex-col items-center gap-1",
         "end-2 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:end-3 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
@@ -65,53 +79,53 @@ export function FontScaleControl() {
           </div>
 
           <div className="border-t pt-2">
-            <span className="mb-1.5 flex items-center gap-1.5 px-1 text-xs font-medium text-muted-foreground">
-              <Type className="size-3.5" />
+            <span className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-muted-foreground">
+              <Type className="size-3.5 shrink-0" />
               {he.a11y.fontSize}
             </span>
-            <div className="flex flex-col gap-1">
+            <div className="flex items-stretch gap-1.5">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                className="size-11 rounded-xl"
-                onClick={increase}
-                disabled={!canIncrease}
-                aria-label={he.a11y.increase}
-              >
-                <Plus className="size-5" />
-              </Button>
-              <span
-                className="flex h-9 items-center justify-center rounded-lg bg-muted/60 text-sm font-semibold tabular-nums"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                {fontScaleLabel(level)}
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="size-11 rounded-xl"
+                className="size-10 shrink-0 rounded-xl"
                 onClick={decrease}
                 disabled={!canDecrease}
                 aria-label={he.a11y.decrease}
               >
-                <Minus className="size-5" />
+                <Minus className="size-4" />
               </Button>
+              <div
+                className="flex min-w-0 flex-1 items-center justify-center rounded-xl border bg-muted/50 px-2 py-2 text-sm font-medium tabular-nums"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {formatFontScaleLevel(level)}
+              </div>
               <Button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="h-9 rounded-xl text-xs"
-                onClick={reset}
-                disabled={level === 0}
-                aria-label={he.a11y.reset}
+                variant="outline"
+                size="icon"
+                className="size-10 shrink-0 rounded-xl"
+                onClick={increase}
+                disabled={!canIncrease}
+                aria-label={he.a11y.increase}
               >
-                <RotateCcw className="size-3.5" />
-                {he.a11y.reset}
+                <Plus className="size-4" />
               </Button>
             </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mt-1.5 h-8 w-full rounded-xl text-xs text-muted-foreground"
+              onClick={reset}
+              disabled={level === 0}
+              aria-label={he.a11y.reset}
+            >
+              <RotateCcw className="size-3.5" />
+              {he.a11y.reset}
+            </Button>
           </div>
         </div>
       )}

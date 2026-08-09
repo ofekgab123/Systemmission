@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { areaFilterForApi } from "@/lib/areas";
+import { useAreaStore } from "@/store/area-store";
 
 export interface StickyNote {
   id: string;
@@ -8,19 +10,23 @@ export interface StickyNote {
   nextAlertAt: string;
   createdAt: string;
   updatedAt: string;
+  areaId?: string | null;
 }
 
-export const stickyNotesQueryKey = (filters?: { active?: boolean; due?: boolean }) =>
+export const stickyNotesQueryKey = (filters?: { active?: boolean; due?: boolean; areaId?: string }) =>
   ["sticky-notes", filters ?? {}] as const;
 
 export function useStickyNotes(options: { active?: boolean; due?: boolean } = {}) {
   const { active = true, due } = options;
+  const selectedAreaId = useAreaStore((s) => s.selectedAreaId);
+  const areaFilter = areaFilterForApi(selectedAreaId);
   const params = new URLSearchParams();
   if (active === false) params.set("active", "false");
   if (due) params.set("due", "true");
+  if (areaFilter.areaId) params.set("areaId", areaFilter.areaId);
 
   return useQuery({
-    queryKey: stickyNotesQueryKey({ active, due }),
+    queryKey: stickyNotesQueryKey({ active, due, areaId: areaFilter.areaId }),
     queryFn: async (): Promise<StickyNote[]> => {
       const res = await fetch(`/api/sticky-notes?${params}`);
       if (!res.ok) throw new Error("Failed to load sticky notes");
@@ -32,12 +38,14 @@ export function useStickyNotes(options: { active?: boolean; due?: boolean } = {}
 
 export function useCreateStickyNote() {
   const qc = useQueryClient();
+  const getCreateAreaId = useAreaStore((s) => s.getCreateAreaId);
   return useMutation({
     mutationFn: async (content: string) => {
+      const areaId = getCreateAreaId() ?? undefined;
       const res = await fetch("/api/sticky-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, areaId }),
       });
       if (!res.ok) throw new Error("Failed to create sticky note");
       return res.json() as Promise<StickyNote>;

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProjectWithRelations } from "@/types";
+import { areaFilterForApi } from "@/lib/areas";
+import { useAreaStore } from "@/store/area-store";
 
 export interface ProjectFilters {
   areaId?: string;
@@ -18,10 +20,13 @@ function buildQuery(filters: ProjectFilters = {}) {
 }
 
 export function useProjects(filters: ProjectFilters = {}) {
+  const selectedAreaId = useAreaStore((s) => s.selectedAreaId);
+  const merged = { ...filters, ...areaFilterForApi(selectedAreaId) };
+
   return useQuery({
-    queryKey: ["projects", filters],
+    queryKey: ["projects", merged],
     queryFn: async (): Promise<ProjectWithRelations[]> => {
-      const res = await fetch(`/api/projects?${buildQuery(filters)}`);
+      const res = await fetch(`/api/projects?${buildQuery(merged)}`);
       if (!res.ok) throw new Error("Failed to load projects");
       return res.json();
     },
@@ -42,12 +47,14 @@ export function useProject(id: string | null) {
 
 export function useCreateProject() {
   const qc = useQueryClient();
+  const getCreateAreaId = useAreaStore((s) => s.getCreateAreaId);
   return useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
+      const areaId = (data.areaId as string | undefined) ?? getCreateAreaId() ?? undefined;
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, areaId }),
       });
       if (!res.ok) throw new Error("Failed to create project");
       return res.json() as Promise<ProjectWithRelations>;

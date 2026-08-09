@@ -2,6 +2,7 @@
 
 import { Menu, Search } from "lucide-react";
 import { useUIStore } from "@/store/ui-store";
+import { DomainSwitcher } from "@/components/areas/domain-switcher";
 import { he } from "@/lib/i18n/he";
 import { Button } from "@/components/ui/button";
 
@@ -29,15 +30,18 @@ export function MobileHeader() {
         <span className="text-xs text-muted-foreground">{he.app.tagline}</span>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-10 shrink-0"
-        onClick={() => setCommandOpen(true)}
-        aria-label={he.nav.search}
-      >
-        <Search className="size-5" />
-      </Button>
+      <div className="flex shrink-0 items-center gap-0.5">
+        <DomainSwitcher />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-10 shrink-0"
+          onClick={() => setCommandOpen(true)}
+          aria-label={he.nav.search}
+        >
+          <Search className="size-5" />
+        </Button>
+      </div>
     </header>
   );
 }

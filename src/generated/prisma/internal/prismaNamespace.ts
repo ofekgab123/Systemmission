@@ -983,6 +983,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const AreaScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  slug: 'slug',
   icon: 'icon',
   color: 'color',
   description: 'description',
@@ -1086,7 +1087,8 @@ export const StickyNoteScalarFieldEnum = {
   dismissed: 'dismissed',
   nextAlertAt: 'nextAlertAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  areaId: 'areaId'
 } as const
 
 export type StickyNoteScalarFieldEnum = (typeof StickyNoteScalarFieldEnum)[keyof typeof StickyNoteScalarFieldEnum]

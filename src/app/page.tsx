@@ -5,12 +5,12 @@ import { useMemo } from "react";
 import { ArrowRight, Ban, Clock, AlertTriangle, PlayCircle, StickyNote } from "lucide-react";
 import { useTasks } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
-import { computeAttentionScore } from "@/lib/project-insights";
 import { countLongWaiting, buildInsightSentences } from "@/lib/dashboard-insights";
 import { greetingForNow, formatFullDate } from "@/lib/date-utils";
 import { TaskListSkeleton, EmptyState, TaskList } from "@/components/task/task-list";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { StickyNoteCapture, StickyNotesGrid } from "@/components/sticky-notes/sticky-notes-grid";
+import { CollapsibleSection } from "@/components/home/collapsible-section";
 import { he } from "@/lib/i18n/he";
 
 export default function HomePage() {
@@ -30,15 +30,6 @@ export default function HomePage() {
     () => (projects ?? []).filter((p) => p.status === "ACTIVE"),
     [projects]
   );
-
-  const projectsAtRisk = useMemo(() => {
-    return (projects ?? [])
-      .filter((p) => p.status !== "ARCHIVED" && p.status !== "COMPLETED")
-      .map((p) => ({ project: p, ...computeAttentionScore(p) }))
-      .filter((p) => p.score >= 20)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4);
-  }, [projects]);
 
   const longWaitingCount = countLongWaiting(waitingTasks ?? []);
   const overdueCount = (inProgressTasks ?? []).filter(
@@ -62,29 +53,26 @@ export default function HomePage() {
         <AddTaskButton className="gap-1.5" label={he.actions.new} size="sm" />
       </div>
 
-      <div className="mb-10">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 font-heading text-lg font-medium">
-            <StickyNote className="size-5 text-status-yellow" />
-            {he.home.dontForget}
-          </h2>
+      <CollapsibleSection
+        title={he.home.dontForget}
+        icon={<StickyNote className="size-5 text-status-yellow" />}
+        action={
           <Link
             href="/dont-forget"
             className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
           </Link>
-        </div>
+        }
+      >
         <StickyNoteCapture className="mb-4" />
         <StickyNotesGrid compact limit={3} />
-      </div>
+      </CollapsibleSection>
 
-      <div className="mb-10">
-        <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-medium">
-          <PlayCircle className="size-5 text-primary" />
-          {he.home.inProgress}
-        </h2>
-
+      <CollapsibleSection
+        title={he.home.inProgress}
+        icon={<PlayCircle className="size-5 text-primary" />}
+      >
         {loadingInProgress ? (
           <TaskListSkeleton rows={4} />
         ) : inProgressTasks && inProgressTasks.length > 0 ? (
@@ -96,27 +84,27 @@ export default function HomePage() {
             action={<AddTaskButton variant="outline" className="gap-2" />}
           />
         )}
-      </div>
+      </CollapsibleSection>
 
-      <div className="mb-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-heading text-lg font-medium">{he.home.upcoming}</h2>
+      <CollapsibleSection
+        title={he.home.upcoming}
+        action={
           <Link
             href="/tasks?view=upcoming"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
           </Link>
-        </div>
+        }
+      >
         {upcomingTasks && upcomingTasks.length > 0 ? (
           <TaskList tasks={upcomingTasks.slice(0, 8)} />
         ) : (
           <EmptyState title={he.empty.nothingScheduled} />
         )}
-      </div>
+      </CollapsibleSection>
 
-      <div className="mb-10">
-        <h2 className="mb-4 font-heading text-lg font-medium">{he.attention.title}</h2>
+      <CollapsibleSection title={he.attention.title}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <AttentionTile
             href="/blocked"
@@ -140,42 +128,18 @@ export default function HomePage() {
             label={he.attention.waitingLong}
           />
         </div>
-      </div>
-
-      {projectsAtRisk.length > 0 && (
-        <div className="mb-10">
-          <h2 className="mb-4 font-heading text-lg font-medium">{he.project.atRisk}</h2>
-          <div className="flex flex-col gap-2">
-            {projectsAtRisk.map(({ project, score, reasons }) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="flex items-center justify-between rounded-xl border bg-card p-3.5 transition-smooth hover:bg-accent/50"
-              >
-                <div>
-                  <p className="text-sm font-medium">{project.name}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{reasons.join(" · ")}</p>
-                </div>
-                <span className="rounded-full bg-status-red/10 px-2 py-1 text-xs font-semibold text-status-red">
-                  {score}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
+      </CollapsibleSection>
 
       {insights.length > 0 && (
-        <div className="mb-10 rounded-xl border bg-muted/40 p-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {he.insights.title}
-          </p>
-          <ul className="flex flex-col gap-1 text-sm text-foreground/80">
-            {insights.map((s, i) => (
-              <li key={i}>«{s}»</li>
-            ))}
-          </ul>
-        </div>
+        <CollapsibleSection title={he.insights.title}>
+          <div className="rounded-xl border bg-muted/40 p-4">
+            <ul className="flex flex-col gap-1 text-sm text-foreground/80">
+              {insights.map((s, i) => (
+                <li key={i}>«{s}»</li>
+              ))}
+            </ul>
+          </div>
+        </CollapsibleSection>
       )}
     </div>
   );

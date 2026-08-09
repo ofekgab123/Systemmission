@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Trash2, ListTree, StickyNote, Pencil } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { he as dateHe } from "date-fns/locale";
 import {
@@ -27,6 +27,7 @@ import {
   SELECTABLE_PRIORITIES,
 } from "@/lib/task-meta";
 import { useTask, useUpdateTask, useDeleteTask, useCreateTask, useUpdateActivity } from "@/hooks/use-tasks";
+import { useTaskStatusChange } from "@/hooks/use-task-status-change";
 import { useProjects } from "@/hooks/use-projects";
 import { useUIStore } from "@/store/ui-store";
 import { useIsMobile } from "@/hooks/use-is-mobile";
@@ -61,17 +62,19 @@ const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
   label: PRIORITY_META[value].label,
 }));
 
-type EditTab = "edit" | "notesSubtasks";
+type EditTab = "edit" | "notes" | "subtasks";
 
 export function TaskEditSheet() {
   const taskId = useUIStore((s) => s.taskEditId);
   const editTab = useUIStore((s) => s.taskEditTab);
-  const openTaskEdit = useUIStore((s) => s.openTaskEdit);
+  const showEditTab = useUIStore((s) => s.taskEditShowEditTab);
+  const setTaskEditTab = useUIStore((s) => s.setTaskEditTab);
   const close = useUIStore((s) => s.closeTaskEdit);
   const setNewProjectOpen = useUIStore((s) => s.setNewProjectOpen);
   const isMobile = useIsMobile();
   const { data: task, isLoading } = useTask(taskId);
   const updateTask = useUpdateTask();
+  const changeStatus = useTaskStatusChange();
   const deleteTask = useDeleteTask();
   const { data: projects } = useProjects();
 
@@ -105,7 +108,7 @@ export function TaskEditSheet() {
   const handleTabChange = (value: string) => {
     const next = value as EditTab;
     setTab(next);
-    openTaskEdit(taskId, next);
+    setTaskEditTab(next);
   };
 
   const notes = (task?.activities ?? []).filter((a) => a.type === "NOTE_ADDED");
@@ -165,26 +168,41 @@ export function TaskEditSheet() {
 
             <Tabs value={tab} onValueChange={handleTabChange} className="flex flex-col gap-0">
               <div className="border-b px-6 py-3">
-                <TabsList className="grid h-10 w-full grid-cols-2">
-                  <TabsTrigger value="edit" className="text-xs sm:text-sm">
-                    {he.task.tabEdit}
-                  </TabsTrigger>
-                  <TabsTrigger value="notesSubtasks" className="gap-1.5 text-xs sm:text-sm">
-                    {he.task.tabNotesSubtasks}
-                    {(notes.length > 0 || subtasks.length > 0) && (
+                <TabsList className={cn("grid h-10 w-full", showEditTab ? "grid-cols-3" : "grid-cols-2")}>
+                  {showEditTab && (
+                    <TabsTrigger value="edit" className="text-xs sm:text-sm">
+                      {he.task.tabEdit}
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="notes" className="gap-1.5 text-xs sm:text-sm">
+                    {he.task.tabNotes}
+                    {notes.length > 0 && (
                       <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">
-                        {notes.length + subtasks.length}
+                        {notes.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="subtasks" className="gap-1.5 text-xs sm:text-sm">
+                    {he.task.tabSubtasks}
+                    {subtasks.length > 0 && (
+                      <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">
+                        {subtasks.length}
                       </span>
                     )}
                   </TabsTrigger>
                 </TabsList>
               </div>
 
+              {showEditTab && (
               <TabsContent value="edit" className="px-6 py-5">
                 <div className="flex flex-col gap-5">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Field label={he.task.status}>
-                      <EnumSelect value={task.status} onChange={(v) => patch({ status: v })} options={statusOptions} />
+                      <EnumSelect
+                        value={task.status}
+                        onChange={(v) => changeStatus(taskId, v, task.status)}
+                        options={statusOptions}
+                      />
                     </Field>
                     <Field label={he.task.priority}>
                       <EnumSelect
@@ -256,15 +274,14 @@ export function TaskEditSheet() {
                   <TaskImagesField taskId={taskId} attachments={attachments.filter((item) => !item.activityId)} />
                 </div>
               </TabsContent>
+              )}
 
-              <TabsContent value="notesSubtasks" className="px-6 py-5">
-                <NotesSubtasksTab
-                  taskId={taskId}
-                  projectId={task.projectId}
-                  notes={notes}
-                  subtasks={subtasks}
-                  attachments={attachments}
-                />
+              <TabsContent value="notes" className="px-6 py-5">
+                <NotesSection taskId={taskId} notes={notes} attachments={attachments} />
+              </TabsContent>
+
+              <TabsContent value="subtasks" className="px-6 py-5">
+                <SubtasksSection taskId={taskId} projectId={task.projectId} subtasks={subtasks} />
               </TabsContent>
             </Tabs>
           </>
@@ -307,50 +324,6 @@ function TaskImagesField({
           {he.actions.save}
         </Button>
       )}
-    </div>
-  );
-}
-
-function NotesSubtasksTab({
-  taskId,
-  projectId,
-  notes,
-  subtasks,
-  attachments,
-}: {
-  taskId: string;
-  projectId: string | null;
-  notes: { id: string; message: string; createdAt: string }[];
-  subtasks: { id: string; title: string; status: string; attachments?: TaskAttachment[] }[];
-  attachments: TaskAttachment[];
-}) {
-  return (
-    <div className="flex flex-col gap-0 divide-y rounded-xl border">
-      <section className="flex flex-col gap-3 p-4">
-        <div className="flex items-center gap-2">
-          <StickyNote className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium">{he.task.notes}</h3>
-          {notes.length > 0 && (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
-              {notes.length}
-            </span>
-          )}
-        </div>
-        <NotesSection taskId={taskId} notes={notes} attachments={attachments} />
-      </section>
-
-      <section className="flex flex-col gap-3 p-4">
-        <div className="flex items-center gap-2">
-          <ListTree className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium">{he.task.subtasks}</h3>
-          {subtasks.length > 0 && (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
-              {subtasks.length}
-            </span>
-          )}
-        </div>
-        <SubtasksSection taskId={taskId} projectId={projectId} subtasks={subtasks} />
-      </section>
     </div>
   );
 }

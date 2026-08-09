@@ -27,6 +27,7 @@ export type AggregateArea = {
 export type AreaMinAggregateOutputType = {
   id: string | null
   name: string | null
+  slug: string | null
   icon: string | null
   color: string | null
   description: string | null
@@ -38,6 +39,7 @@ export type AreaMinAggregateOutputType = {
 export type AreaMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  slug: string | null
   icon: string | null
   color: string | null
   description: string | null
@@ -49,6 +51,7 @@ export type AreaMaxAggregateOutputType = {
 export type AreaCountAggregateOutputType = {
   id: number
   name: number
+  slug: number
   icon: number
   color: number
   description: number
@@ -62,6 +65,7 @@ export type AreaCountAggregateOutputType = {
 export type AreaMinAggregateInputType = {
   id?: true
   name?: true
+  slug?: true
   icon?: true
   color?: true
   description?: true
@@ -73,6 +77,7 @@ export type AreaMinAggregateInputType = {
 export type AreaMaxAggregateInputType = {
   id?: true
   name?: true
+  slug?: true
   icon?: true
   color?: true
   description?: true
@@ -84,6 +89,7 @@ export type AreaMaxAggregateInputType = {
 export type AreaCountAggregateInputType = {
   id?: true
   name?: true
+  slug?: true
   icon?: true
   color?: true
   description?: true
@@ -168,6 +174,7 @@ export type AreaGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type AreaGroupByOutputType = {
   id: string
   name: string
+  slug: string | null
   icon: string
   color: string
   description: string | null
@@ -200,6 +207,7 @@ export type AreaWhereInput = {
   NOT?: Prisma.AreaWhereInput | Prisma.AreaWhereInput[]
   id?: Prisma.StringFilter<"Area"> | string
   name?: Prisma.StringFilter<"Area"> | string
+  slug?: Prisma.StringNullableFilter<"Area"> | string | null
   icon?: Prisma.StringFilter<"Area"> | string
   color?: Prisma.StringFilter<"Area"> | string
   description?: Prisma.StringNullableFilter<"Area"> | string | null
@@ -208,11 +216,13 @@ export type AreaWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Area"> | Date | string
   projects?: Prisma.ProjectListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
+  stickyNotes?: Prisma.StickyNoteListRelationFilter
 }
 
 export type AreaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  slug?: Prisma.SortOrderInput | Prisma.SortOrder
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -221,10 +231,12 @@ export type AreaOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   projects?: Prisma.ProjectOrderByRelationAggregateInput
   tasks?: Prisma.TaskOrderByRelationAggregateInput
+  stickyNotes?: Prisma.StickyNoteOrderByRelationAggregateInput
 }
 
 export type AreaWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  slug?: string
   AND?: Prisma.AreaWhereInput | Prisma.AreaWhereInput[]
   OR?: Prisma.AreaWhereInput[]
   NOT?: Prisma.AreaWhereInput | Prisma.AreaWhereInput[]
@@ -237,11 +249,13 @@ export type AreaWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Area"> | Date | string
   projects?: Prisma.ProjectListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
-}, "id">
+  stickyNotes?: Prisma.StickyNoteListRelationFilter
+}, "id" | "slug">
 
 export type AreaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  slug?: Prisma.SortOrderInput | Prisma.SortOrder
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -259,6 +273,7 @@ export type AreaScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AreaScalarWhereWithAggregatesInput | Prisma.AreaScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Area"> | string
   name?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  slug?: Prisma.StringNullableWithAggregatesFilter<"Area"> | string | null
   icon?: Prisma.StringWithAggregatesFilter<"Area"> | string
   color?: Prisma.StringWithAggregatesFilter<"Area"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Area"> | string | null
@@ -270,6 +285,7 @@ export type AreaScalarWhereWithAggregatesInput = {
 export type AreaCreateInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -278,11 +294,13 @@ export type AreaCreateInput = {
   updatedAt?: Date | string
   projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
   tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -291,11 +309,13 @@ export type AreaUncheckedCreateInput = {
   updatedAt?: Date | string
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -304,11 +324,13 @@ export type AreaUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -317,11 +339,13 @@ export type AreaUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateManyInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -333,6 +357,7 @@ export type AreaCreateManyInput = {
 export type AreaUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -344,6 +369,7 @@ export type AreaUpdateManyMutationInput = {
 export type AreaUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -355,6 +381,7 @@ export type AreaUncheckedUpdateManyInput = {
 export type AreaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -366,6 +393,7 @@ export type AreaCountOrderByAggregateInput = {
 export type AreaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -377,6 +405,7 @@ export type AreaMaxOrderByAggregateInput = {
 export type AreaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   icon?: Prisma.SortOrder
   color?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -438,9 +467,26 @@ export type AreaUpdateOneWithoutTasksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutTasksInput, Prisma.AreaUpdateWithoutTasksInput>, Prisma.AreaUncheckedUpdateWithoutTasksInput>
 }
 
+export type AreaCreateNestedOneWithoutStickyNotesInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutStickyNotesInput, Prisma.AreaUncheckedCreateWithoutStickyNotesInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutStickyNotesInput
+  connect?: Prisma.AreaWhereUniqueInput
+}
+
+export type AreaUpdateOneWithoutStickyNotesNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutStickyNotesInput, Prisma.AreaUncheckedCreateWithoutStickyNotesInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutStickyNotesInput
+  upsert?: Prisma.AreaUpsertWithoutStickyNotesInput
+  disconnect?: Prisma.AreaWhereInput | boolean
+  delete?: Prisma.AreaWhereInput | boolean
+  connect?: Prisma.AreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutStickyNotesInput, Prisma.AreaUpdateWithoutStickyNotesInput>, Prisma.AreaUncheckedUpdateWithoutStickyNotesInput>
+}
+
 export type AreaCreateWithoutProjectsInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -448,11 +494,13 @@ export type AreaCreateWithoutProjectsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutProjectsInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -460,6 +508,7 @@ export type AreaUncheckedCreateWithoutProjectsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutProjectsInput = {
@@ -481,6 +530,7 @@ export type AreaUpdateToOneWithWhereWithoutProjectsInput = {
 export type AreaUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -488,11 +538,13 @@ export type AreaUpdateWithoutProjectsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -500,11 +552,13 @@ export type AreaUncheckedUpdateWithoutProjectsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateWithoutTasksInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -512,11 +566,13 @@ export type AreaCreateWithoutTasksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutTasksInput = {
   id?: string
   name: string
+  slug?: string | null
   icon?: string
   color?: string
   description?: string | null
@@ -524,6 +580,7 @@ export type AreaUncheckedCreateWithoutTasksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutTasksInput = {
@@ -545,6 +602,7 @@ export type AreaUpdateToOneWithWhereWithoutTasksInput = {
 export type AreaUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -552,11 +610,13 @@ export type AreaUpdateWithoutTasksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -564,6 +624,79 @@ export type AreaUncheckedUpdateWithoutTasksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaCreateWithoutStickyNotesInput = {
+  id?: string
+  name: string
+  slug?: string | null
+  icon?: string
+  color?: string
+  description?: string | null
+  archived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutStickyNotesInput = {
+  id?: string
+  name: string
+  slug?: string | null
+  icon?: string
+  color?: string
+  description?: string | null
+  archived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutStickyNotesInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutStickyNotesInput, Prisma.AreaUncheckedCreateWithoutStickyNotesInput>
+}
+
+export type AreaUpsertWithoutStickyNotesInput = {
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutStickyNotesInput, Prisma.AreaUncheckedUpdateWithoutStickyNotesInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutStickyNotesInput, Prisma.AreaUncheckedCreateWithoutStickyNotesInput>
+  where?: Prisma.AreaWhereInput
+}
+
+export type AreaUpdateToOneWithWhereWithoutStickyNotesInput = {
+  where?: Prisma.AreaWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutStickyNotesInput, Prisma.AreaUncheckedUpdateWithoutStickyNotesInput>
+}
+
+export type AreaUpdateWithoutStickyNotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutStickyNotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 
@@ -574,11 +707,13 @@ export type AreaUncheckedUpdateWithoutTasksInput = {
 export type AreaCountOutputType = {
   projects: number
   tasks: number
+  stickyNotes: number
 }
 
 export type AreaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projects?: boolean | AreaCountOutputTypeCountProjectsArgs
   tasks?: boolean | AreaCountOutputTypeCountTasksArgs
+  stickyNotes?: boolean | AreaCountOutputTypeCountStickyNotesArgs
 }
 
 /**
@@ -605,10 +740,18 @@ export type AreaCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.TaskWhereInput
 }
 
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeCountStickyNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StickyNoteWhereInput
+}
+
 
 export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  slug?: boolean
   icon?: boolean
   color?: boolean
   description?: boolean
@@ -617,12 +760,14 @@ export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   projects?: boolean | Prisma.Area$projectsArgs<ExtArgs>
   tasks?: boolean | Prisma.Area$tasksArgs<ExtArgs>
+  stickyNotes?: boolean | Prisma.Area$stickyNotesArgs<ExtArgs>
   _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["area"]>
 
 export type AreaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  slug?: boolean
   icon?: boolean
   color?: boolean
   description?: boolean
@@ -634,6 +779,7 @@ export type AreaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type AreaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  slug?: boolean
   icon?: boolean
   color?: boolean
   description?: boolean
@@ -645,6 +791,7 @@ export type AreaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type AreaSelectScalar = {
   id?: boolean
   name?: boolean
+  slug?: boolean
   icon?: boolean
   color?: boolean
   description?: boolean
@@ -653,10 +800,11 @@ export type AreaSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AreaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "icon" | "color" | "description" | "archived" | "createdAt" | "updatedAt", ExtArgs["result"]["area"]>
+export type AreaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "icon" | "color" | "description" | "archived" | "createdAt" | "updatedAt", ExtArgs["result"]["area"]>
 export type AreaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projects?: boolean | Prisma.Area$projectsArgs<ExtArgs>
   tasks?: boolean | Prisma.Area$tasksArgs<ExtArgs>
+  stickyNotes?: boolean | Prisma.Area$stickyNotesArgs<ExtArgs>
   _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AreaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -667,10 +815,12 @@ export type $AreaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     projects: Prisma.$ProjectPayload<ExtArgs>[]
     tasks: Prisma.$TaskPayload<ExtArgs>[]
+    stickyNotes: Prisma.$StickyNotePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    slug: string | null
     icon: string
     color: string
     description: string | null
@@ -1073,6 +1223,7 @@ export interface Prisma__AreaClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   projects<T extends Prisma.Area$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasks<T extends Prisma.Area$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stickyNotes<T extends Prisma.Area$stickyNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$stickyNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StickyNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1104,6 +1255,7 @@ export interface Prisma__AreaClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface AreaFieldRefs {
   readonly id: Prisma.FieldRef<"Area", 'String'>
   readonly name: Prisma.FieldRef<"Area", 'String'>
+  readonly slug: Prisma.FieldRef<"Area", 'String'>
   readonly icon: Prisma.FieldRef<"Area", 'String'>
   readonly color: Prisma.FieldRef<"Area", 'String'>
   readonly description: Prisma.FieldRef<"Area", 'String'>
@@ -1548,6 +1700,30 @@ export type Area$tasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
+}
+
+/**
+ * Area.stickyNotes
+ */
+export type Area$stickyNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StickyNote
+   */
+  select?: Prisma.StickyNoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StickyNote
+   */
+  omit?: Prisma.StickyNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StickyNoteInclude<ExtArgs> | null
+  where?: Prisma.StickyNoteWhereInput
+  orderBy?: Prisma.StickyNoteOrderByWithRelationInput | Prisma.StickyNoteOrderByWithRelationInput[]
+  cursor?: Prisma.StickyNoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StickyNoteScalarFieldEnum | Prisma.StickyNoteScalarFieldEnum[]
 }
 
 /**

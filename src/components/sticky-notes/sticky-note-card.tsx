@@ -19,11 +19,23 @@ export function StickyNoteCard({
   const updateNote = useUpdateStickyNote();
   const deleteNote = useDeleteStickyNote();
   const savedContent = useRef(note.content);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const syncTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
 
   useEffect(() => {
     setContent(note.content);
     savedContent.current = note.content;
   }, [note.content]);
+
+  useEffect(() => {
+    syncTextareaHeight();
+  }, [content, compact]);
 
   const saveIfChanged = () => {
     const trimmed = content.trim();
@@ -39,26 +51,27 @@ export function StickyNoteCard({
 
   return (
     <div
-      className={cn(
-        "group relative flex flex-col rounded-xl border border-black/5 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md",
-        compact ? "min-h-[7rem]" : "min-h-[9rem]"
-      )}
+      className="group relative flex flex-col rounded-xl border border-black/5 px-3 pt-3 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md"
       style={{ backgroundColor: note.color }}
     >
       <textarea
+        ref={textareaRef}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => {
+          setContent(e.target.value);
+          syncTextareaHeight();
+        }}
         onBlur={saveIfChanged}
-        rows={compact ? 3 : 4}
+        rows={1}
         className={cn(
-          "w-full resize-none bg-transparent px-3 pt-3 pb-2 text-sm leading-relaxed text-foreground/90 outline-none placeholder:text-foreground/40",
-          compact ? "min-h-[5.5rem]" : "min-h-[7rem]"
+          "w-full resize-none overflow-hidden bg-transparent pb-2 text-sm leading-relaxed text-foreground/90 outline-none placeholder:text-foreground/40",
+          compact ? "min-h-[2.25rem]" : "min-h-[2.5rem]"
         )}
         placeholder={he.dontForget.placeholder}
         aria-label={he.dontForget.noteLabel}
       />
 
-      <div className="flex items-center justify-between gap-2 px-3 pb-2.5">
+      <div className="flex items-center justify-between gap-2 pb-2.5">
         <span className="text-[11px] text-foreground/50">
           {he.dontForget.nextReminder}: {formatDistanceToNow(new Date(note.nextAlertAt))}
         </span>

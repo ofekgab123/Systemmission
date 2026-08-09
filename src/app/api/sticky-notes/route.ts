@@ -3,13 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { defaultNextAlertAt, pickStickyColor } from "@/lib/sticky-note-utils";
 
 export async function GET(req: NextRequest) {
-  const activeOnly = req.nextUrl.searchParams.get("active") !== "false";
-  const dueOnly = req.nextUrl.searchParams.get("due") === "true";
+  const params = req.nextUrl.searchParams;
+  const activeOnly = params.get("active") !== "false";
+  const dueOnly = params.get("due") === "true";
+  const areaId = params.get("areaId");
 
   const notes = await prisma.stickyNote.findMany({
     where: {
       ...(activeOnly ? { dismissed: false } : {}),
       ...(dueOnly ? { dismissed: false, nextAlertAt: { lte: new Date() } } : {}),
+      ...(areaId ? { areaId } : {}),
     },
     orderBy: [{ dismissed: "asc" }, { createdAt: "desc" }],
   });
@@ -33,6 +36,7 @@ export async function POST(req: NextRequest) {
       content,
       color: body.color ?? pickStickyColor(count),
       nextAlertAt: defaultNextAlertAt(now),
+      areaId: body.areaId ?? null,
     },
   });
 
