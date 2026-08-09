@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CollapsibleFilterGroup } from "@/components/ui/collapsible-filter-group";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { GroupedTaskList, TaskList, TaskListSkeleton } from "@/components/task/task-list";
@@ -65,20 +66,19 @@ function TasksContent() {
         className="mb-6 flex flex-col gap-3"
       >
         {VIEW_GROUPS.map((group) => (
-          <div key={group.label} className="flex flex-col gap-2">
-            <span className="px-1 text-xs font-medium text-muted-foreground">{group.label}</span>
-            <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-1.5 rounded-xl border bg-muted/50 p-1.5">
+          <CollapsibleFilterGroup key={group.label} title={group.label} defaultOpen>
+            <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-1.5 bg-transparent p-0.5">
               {group.views.map((v) => (
                 <TabsTrigger
                   key={v.value}
                   value={v.value}
-                  className="h-9 flex-none shrink-0 rounded-lg px-3.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="h-9 flex-none shrink-0 rounded-lg px-3.5 text-sm text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:font-medium data-active:shadow-sm data-active:ring-1 data-active:ring-border/60"
                 >
                   {v.label}
                 </TabsTrigger>
               ))}
             </TabsList>
-          </div>
+          </CollapsibleFilterGroup>
         ))}
       </Tabs>
 
