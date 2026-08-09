@@ -1,69 +1,247 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useMemo } from "react";
+import { ArrowRight, Ban, Clock, AlertTriangle, TrendingDown, Sparkles, Plus } from "lucide-react";
+import { useTasks } from "@/hooks/use-tasks";
+import { useProjects } from "@/hooks/use-projects";
+import { sortByScore } from "@/lib/task-score";
+import { computeAttentionScore } from "@/lib/project-insights";
+import { countStaleProjects, countLongWaiting, buildInsightSentences } from "@/lib/dashboard-insights";
+import { greetingForNow, formatFullDate } from "@/lib/date-utils";
+import { TaskRow } from "@/components/task/task-row";
+import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
+import { ProjectCard } from "@/components/project/project-card";
+import { Button } from "@/components/ui/button";
+import { useUIStore } from "@/store/ui-store";
+import { he } from "@/lib/i18n/he";
+
+export default function HomePage() {
+  const openQuickAdd = useUIStore((s) => s.openQuickAdd);
+
+  const { data: activeTasks, isLoading: loadingActive } = useTasks({
+    excludeStatus: "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED,INBOX",
+    topLevel: true,
+    limit: 300,
+  });
+  const { data: waitingTasks } = useTasks({ view: "waiting" });
+  const { data: blockedTasks } = useTasks({ view: "blocked" });
+  const { data: upcomingTasks } = useTasks({ view: "upcoming" });
+  const { data: projects, isLoading: loadingProjects } = useProjects();
+
+  const now = new Date();
+
+  const ranked = useMemo(() => (activeTasks ? sortByScore(activeTasks) : []), [activeTasks]);
+  const nowTask = ranked[0];
+  const nextTasks = ranked.slice(1, 4);
+
+  const activeProjects = useMemo(
+    () => (projects ?? []).filter((p) => p.status === "ACTIVE"),
+    [projects]
+  );
+
+  const projectsAtRisk = useMemo(() => {
+    return (projects ?? [])
+      .filter((p) => p.status !== "ARCHIVED" && p.status !== "COMPLETED")
+      .map((p) => ({ project: p, ...computeAttentionScore(p) }))
+      .filter((p) => p.score >= 20)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4);
+  }, [projects]);
+
+  const staleProjectsCount = countStaleProjects(projects ?? []);
+  const longWaitingCount = countLongWaiting(waitingTasks ?? []);
+  const overdueCount = (activeTasks ?? []).filter(
+    (t) => t.dueDate && new Date(t.dueDate) < now
+  ).length;
+
+  const insights = buildInsightSentences({
+    activeProjectsCount: activeProjects.length,
+    staleProjectsCount,
+    waitingCount: (waitingTasks ?? []).length,
+    overdueCount,
+    overdueDevelopmentShare: 0.6,
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="page-shell">
+      <div className="mb-6 flex items-start justify-between gap-3 md:mb-8">
+        <div className="min-w-0">
+          <h1 className="font-heading text-xl font-semibold tracking-tight md:text-2xl">{greetingForNow()}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{formatFullDate()}</p>
+        </div>
+        <Button onClick={() => openQuickAdd()} className="hidden gap-1.5 md:inline-flex">
+          <Plus className="size-4" /> {he.actions.new}
+        </Button>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="mb-4 font-heading text-lg font-medium">{he.home.attentionQuestion}</h2>
+
+        {loadingActive ? (
+          <TaskListSkeleton rows={3} />
+        ) : nowTask ? (
+          <div className="flex flex-col gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 to-transparent p-5">
+            <div>
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-primary">
+                <Sparkles className="size-3.5" /> {he.home.now}
+              </p>
+              <TaskRow task={nowTask} />
+            </div>
+            {nextTasks.length > 0 && (
+              <div className="border-t pt-3">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {he.home.next}
+                </p>
+                <div className="flex flex-col gap-0.5">
+                  {nextTasks.map((task) => (
+                    <TaskRow key={task.id} task={task} dense />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <EmptyState title={he.empty.allCaughtUp} description={he.empty.allCaughtUpDesc} />
+        )}
+      </div>
+
+      <div className="mb-10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-heading text-lg font-medium">{he.project.activeProjects}</h2>
+          <Link href="/projects" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
+          </Link>
+        </div>
+        {loadingProjects ? (
+          <div className="flex gap-3 overflow-hidden">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-40 w-64 shrink-0 animate-pulse rounded-xl bg-muted" />
+            ))}
+          </div>
+        ) : activeProjects.length > 0 ? (
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {activeProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title={he.empty.noProjects} description={he.empty.noProjectsDesc} />
+        )}
+      </div>
+
+      <div className="mb-10">
+        <h2 className="mb-4 font-heading text-lg font-medium">{he.attention.title}</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <AttentionTile
+            href="/blocked"
+            icon={<Ban className="size-4" />}
+            color="text-status-red"
+            count={(blockedTasks ?? []).length}
+            label={he.attention.blocked}
+          />
+          <AttentionTile
+            href="/tasks?view=overdue"
+            icon={<AlertTriangle className="size-4" />}
+            color="text-status-orange"
+            count={overdueCount}
+            label={he.attention.overdue}
+          />
+          <AttentionTile
+            href="/waiting"
+            icon={<Clock className="size-4" />}
+            color="text-status-yellow"
+            count={longWaitingCount}
+            label={he.attention.waitingLong}
+          />
+          <AttentionTile
+            href="/projects"
+            icon={<TrendingDown className="size-4" />}
+            color="text-status-blue"
+            count={staleProjectsCount}
+            label={he.attention.staleProjects}
+          />
+        </div>
+      </div>
+
+      {projectsAtRisk.length > 0 && (
+        <div className="mb-10">
+          <h2 className="mb-4 font-heading text-lg font-medium">{he.project.atRisk}</h2>
+          <div className="flex flex-col gap-2">
+            {projectsAtRisk.map(({ project, score, reasons }) => (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                className="flex items-center justify-between rounded-xl border bg-card p-3.5 transition-smooth hover:bg-accent/50"
+              >
+                <div>
+                  <p className="text-sm font-medium">{project.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{reasons.join(" · ")}</p>
+                </div>
+                <span className="rounded-full bg-status-red/10 px-2 py-1 text-xs font-semibold text-status-red">
+                  {score}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mb-10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-heading text-lg font-medium">{he.home.upcoming}</h2>
+          <Link href="/tasks" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
+          </Link>
+        </div>
+        {upcomingTasks && upcomingTasks.length > 0 ? (
+          <div className="flex flex-col gap-0.5 rounded-xl border bg-card p-1.5">
+            {upcomingTasks.slice(0, 8).map((task) => (
+              <TaskRow key={task.id} task={task} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title={he.empty.nothingScheduled} />
+        )}
+      </div>
+
+      {insights.length > 0 && (
+        <div className="mb-10 rounded-xl border bg-muted/40 p-4">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {he.insights.title}
           </p>
+          <ul className="flex flex-col gap-1 text-sm text-foreground/80">
+            {insights.map((s, i) => (
+              <li key={i}>«{s}»</li>
+            ))}
+          </ul>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
     </div>
+  );
+}
+
+function AttentionTile({
+  href,
+  icon,
+  color,
+  count,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  color: string;
+  count: number;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col gap-2 rounded-xl border bg-card p-4 transition-smooth hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <div className={color}>{icon}</div>
+      <p className="text-2xl font-semibold tabular-nums">{count}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </Link>
   );
 }

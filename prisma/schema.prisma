@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  WAITING
+  BLOCKED
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProgressMode {
+  AUTOMATIC
+  MANUAL
+  WEIGHTED
+}
+
+enum Priority {
+  P0
+  P1
+  P2
+  P3
+  P4
+}
+
+enum Impact {
+  VERY_HIGH
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Urgency {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum EnergyLevel {
+  LOW
+  MEDIUM
+  DEEP
+}
+
+enum TaskCategory {
+  DEVELOPMENT
+  RESEARCH
+  MEETING
+  ADMINISTRATION
+  PURCHASE
+  COMMUNICATION
+  BUG
+  PLANNING
+  FINANCE
+  PERSONAL
+  OTHER
+}
+
+enum TaskStatus {
+  INBOX
+  PLANNED
+  READY
+  IN_PROGRESS
+  WAITING
+  BLOCKED
+  REVIEW
+  SCHEDULED
+  SOMEDAY
+  DONE
+  CANCELLED
+}
+
+enum ActivityType {
+  CREATED
+  STATUS_CHANGED
+  UPDATED
+  NOTE_ADDED
+  DUE_DATE_CHANGED
+  COMPLETED
+  REOPENED
+}
+
+model Area {
+  id          String   @id @default(cuid())
+  name        String
+  icon        String   @default("Layers")
+  color       String   @default("#6366f1")
+  description String?
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects Project[]
+  tasks    Task[]
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  color       String        @default("#6366f1")
+  icon        String        @default("Folder")
+  status      ProjectStatus @default(PLANNING)
+  priority    Priority      @default(P2)
+  startDate   DateTime?
+  targetDate  DateTime?
+  progress    Float         @default(0)
+  progressMode ProgressMode @default(AUTOMATIC)
+  archived    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  areaId String?
+  area   Area?   @relation(fields: [areaId], references: [id])
+
+  nextActionTaskId String? @unique
+  nextActionTask   Task?   @relation("ProjectNextAction", fields: [nextActionTaskId], references: [id])
+
+  tasks      Task[]     @relation("ProjectTasks")
+  tags       Tag[]      @relation("ProjectTags")
+  activities Activity[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#94a3b8")
+  createdAt DateTime @default(now())
+
+  tasks    Task[]    @relation("TaskTags")
+  projects Project[] @relation("ProjectTags")
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+
+  status   TaskStatus @default(INBOX)
+  priority Priority   @default(P3)
+  impact   Impact?
+  urgency  Urgency?
+  energy   EnergyLevel?
+  category TaskCategory?
+
+  estimatedMinutes Int?
+  actualMinutes    Int?
+
+  startDate   DateTime?
+  dueDate     DateTime?
+  scheduledAt DateTime?
+
+  waitingFor    String?
+  followUpDate  DateTime?
+  blockedReason String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  projectId String?
+  project   Project? @relation("ProjectTasks", fields: [projectId], references: [id])
+
+  areaId String?
+  area   Area?   @relation(fields: [areaId], references: [id])
+
+  parentTaskId String?
+  parentTask   Task?   @relation("Subtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks     Task[]  @relation("Subtasks")
+
+  isNextActionFor Project? @relation("ProjectNextAction")
+
+  tags       Tag[]      @relation("TaskTags")
+  activities Activity[]
+
+  @@index([status])
+  @@index([projectId])
+  @@index([areaId])
+  @@index([dueDate])
+  @@index([parentTaskId])
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  type      ActivityType
+  message   String
+  createdAt DateTime     @default(now())
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([projectId])
+  @@index([createdAt])
+}

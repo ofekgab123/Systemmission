@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: mission-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mission
+      POSTGRES_PASSWORD: mission
+      POSTGRES_DB: mission
+    ports:
+      - "5433:5432"
+    volumes:
+      - mission_db_data:/var/lib/postgresql/data
+
+volumes:
+  mission_db_data:
