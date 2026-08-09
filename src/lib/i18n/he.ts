@@ -115,6 +115,9 @@ export const he = {
   },
   image: {
     add: "הוסף תמונה",
+    view: "הגדל תמונה",
+    previous: "תמונה קודמת",
+    next: "תמונה הבאה",
     fromGallery: "העלאה מגלריה",
     fromCamera: "צילום מהמצלמה",
     error: "לא ניתן לטעון את התמונה",
