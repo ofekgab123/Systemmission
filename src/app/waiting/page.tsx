@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { PageHeader } from "@/components/layout/page-header";
+import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { TaskRow } from "@/components/task/task-row";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
@@ -23,12 +24,20 @@ export default function WaitingPage() {
 
   return (
     <div>
-      <PageHeader title={he.waiting.title} description={he.waiting.description} />
+      <PageHeader
+        title={he.waiting.title}
+        description={he.waiting.description}
+        actions={<AddTaskButton className="gap-2" />}
+      />
       <div className="page-content">
         {isLoading ? (
           <TaskListSkeleton />
         ) : groups.length === 0 ? (
-          <EmptyState title={he.empty.noWaiting} description={he.empty.noWaitingDesc} />
+          <EmptyState
+            title={he.empty.noWaiting}
+            description={he.empty.noWaitingDesc}
+            action={<AddTaskButton variant="outline" className="gap-2" />}
+          />
         ) : (
           <div className="flex flex-col gap-6">
             {groups.map(([person, items]) => (

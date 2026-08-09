@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { MonthCalendar } from "@/components/calendar/month-calendar";
 import { CalendarLegend } from "@/components/calendar/calendar-legend";
 import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
+import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { useUIStore } from "@/store/ui-store";
 import { useProjects } from "@/hooks/use-projects";
@@ -88,7 +89,11 @@ export default function CalendarPage() {
 
   return (
     <div>
-      <PageHeader title={he.calendar.title} description={he.calendar.description} />
+      <PageHeader
+        title={he.calendar.title}
+        description={he.calendar.description}
+        actions={<AddTaskButton className="gap-2" />}
+      />
       <div className="page-content flex flex-col gap-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-1">
@@ -163,6 +168,7 @@ export default function CalendarPage() {
               <EmptyState
                 title={he.calendar.noTasksThisDay}
                 description={he.calendar.noTasksThisDayDesc}
+                action={<AddTaskButton variant="outline" className="gap-2" tab="form" />}
               />
             )}
           </section>

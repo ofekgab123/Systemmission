@@ -25,8 +25,8 @@ export function MobileHeader() {
       </Button>
 
       <div className="flex flex-col items-center">
-        <span className="font-heading text-sm font-semibold">{he.app.name}</span>
-        <span className="text-[10px] text-muted-foreground">{he.app.tagline}</span>
+        <span className="font-heading text-base font-semibold">{he.app.name}</span>
+        <span className="text-xs text-muted-foreground">{he.app.tagline}</span>
       </div>
 
       <Button

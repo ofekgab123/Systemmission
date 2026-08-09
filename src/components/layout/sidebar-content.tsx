@@ -77,7 +77,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             setCommandOpen(true);
             onNavigate?.();
           }}
-          className="mb-3 flex h-11 w-full items-center gap-2 rounded-xl border border-sidebar-border px-3 text-sm text-muted-foreground transition-smooth hover:bg-sidebar-accent active:bg-sidebar-accent"
+          className="mb-3 flex h-11 w-full items-center gap-2 rounded-xl border border-sidebar-border px-3 text-base text-muted-foreground transition-smooth hover:bg-sidebar-accent active:bg-sidebar-accent"
         >
           <SearchIcon className="size-4" />
           {he.nav.searchEverything}
@@ -95,7 +95,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-smooth active:scale-[0.98]",
+                "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-base transition-smooth active:scale-[0.98]",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/60"
@@ -104,7 +104,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               <item.icon className="size-5" />
               {item.label}
               {!!count && (
-                <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                   {count}
                 </span>
               )}
@@ -132,7 +132,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 href={`/areas/${area.id}`}
                 onClick={onNavigate}
                 className={cn(
-                  "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-smooth active:scale-[0.98]",
+                  "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-base transition-smooth active:scale-[0.98]",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60"
@@ -141,7 +141,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 <Icon className="size-5" style={{ color: area.color }} />
                 <span className="truncate">{area.name}</span>
                 {openTasks > 0 && (
-                  <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                  <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     {openTasks}
                   </span>
                 )}

@@ -48,15 +48,23 @@ export function TaskList({
   showEnergy = false,
   emptyTitle = he.empty.nothingHere,
   emptyDescription,
+  emptyAction,
 }: {
   tasks: TaskWithRelations[];
   showProject?: boolean;
   showEnergy?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
+  emptyAction?: React.ReactNode;
 }) {
   if (tasks.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    return (
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+      />
+    );
   }
   return (
     <div className="flex flex-col gap-0.5">
@@ -71,10 +79,12 @@ export function GroupedTaskList({
   tasks,
   groupBy = "status",
   showProject = true,
+  emptyAction,
 }: {
   tasks: TaskWithRelations[];
   groupBy?: "status";
   showProject?: boolean;
+  emptyAction?: React.ReactNode;
 }) {
   void groupBy;
   const order: TaskStatus[] = [
@@ -95,7 +105,12 @@ export function GroupedTaskList({
     .filter((g) => g.items.length > 0);
 
   if (groups.length === 0) {
-    return <EmptyState title={he.empty.nothingHere} />;
+    return (
+      <EmptyState
+        title={he.empty.nothingHere}
+        action={emptyAction}
+      />
+    );
   }
 
   return (

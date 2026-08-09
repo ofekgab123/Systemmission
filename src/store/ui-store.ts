@@ -7,7 +7,8 @@ interface UIState {
 
   quickAddOpen: boolean;
   quickAddInitialText: string;
-  openQuickAdd: (initialText?: string) => void;
+  quickAddInitialTab: "quick" | "form";
+  openQuickAdd: (initialText?: string, tab?: "quick" | "form") => void;
   closeQuickAdd: () => void;
 
   commandOpen: boolean;
@@ -30,8 +31,11 @@ export const useUIStore = create<UIState>((set) => ({
 
   quickAddOpen: false,
   quickAddInitialText: "",
-  openQuickAdd: (initialText = "") => set({ quickAddOpen: true, quickAddInitialText: initialText }),
-  closeQuickAdd: () => set({ quickAddOpen: false, quickAddInitialText: "" }),
+  quickAddInitialTab: "quick",
+  openQuickAdd: (initialText = "", tab = "quick") =>
+    set({ quickAddOpen: true, quickAddInitialText: initialText, quickAddInitialTab: tab }),
+  closeQuickAdd: () =>
+    set({ quickAddOpen: false, quickAddInitialText: "", quickAddInitialTab: "quick" }),
 
   commandOpen: false,
   setCommandOpen: (open) => set({ commandOpen: open }),

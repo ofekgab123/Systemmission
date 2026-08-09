@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { PageHeader } from "@/components/layout/page-header";
+import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { sortByScore } from "@/lib/task-score";
 import { TaskRow } from "@/components/task/task-row";
@@ -19,7 +20,6 @@ export default function TodayPage() {
   const { data: todayTasks } = useTasks({ view: "today" });
   const { data: overdueTasks } = useTasks({ view: "overdue" });
   const { data: waitingTasks } = useTasks({ view: "waiting" });
-  const { data: quickWins } = useTasks({ view: "quick-wins" });
 
   const ranked = useMemo(() => (activeTasks ? sortByScore(activeTasks) : []), [activeTasks]);
   const focusTasks = ranked.slice(0, 3);
@@ -28,7 +28,11 @@ export default function TodayPage() {
 
   return (
     <div>
-      <PageHeader title={greetingForNow()} description={formatFullDate()} />
+      <PageHeader
+        title={greetingForNow()}
+        description={formatFullDate()}
+        actions={<AddTaskButton className="gap-2" />}
+      />
       <div className="page-content flex flex-col gap-6 md:gap-8">
         <Section icon={<Target className="size-4" />} title={he.today.focus} subtitle={he.today.focusSubtitle}>
           {isLoading ? (
@@ -65,18 +69,6 @@ export default function TodayPage() {
             </div>
           </Section>
         )}
-
-        <Section icon={<Zap className="size-4" />} title={he.today.quickWins} subtitle={he.today.quickWinsSubtitle}>
-          {quickWins && quickWins.length > 0 ? (
-            <div className="flex flex-col gap-0.5 rounded-xl border bg-card p-1.5">
-              {quickWins.slice(0, 6).map((task) => (
-                <TaskRow key={task.id} task={task} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState title={he.empty.noQuickWins} />
-          )}
-        </Section>
 
         <Section icon={<Clock className="size-4" />} title={he.today.waiting} subtitle={he.today.waitingSubtitle}>
           {waitingTasks && waitingTasks.length > 0 ? (
@@ -119,8 +111,8 @@ function Section({
     <section>
       <div className="mb-3 flex items-baseline gap-2">
         <span className="text-muted-foreground">{icon}</span>
-        <h2 className="font-heading text-base font-medium">{title}</h2>
-        {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
+        <h2 className="font-heading text-lg font-medium">{title}</h2>
+        {subtitle && <span className="text-sm text-muted-foreground">{subtitle}</span>}
       </div>
       {children}
     </section>

@@ -91,7 +91,7 @@ function getAccentCssColor(task: TaskWithRelations): string {
 }
 
 function cnBase(...parts: (string | undefined)[]): string {
-  return ["w-full truncate rounded px-1.5 py-0.5 text-start text-[10px] leading-tight md:text-[11px]", ...parts]
+  return ["w-full truncate rounded px-1.5 py-0.5 text-start text-xs leading-tight md:text-sm", ...parts]
     .filter(Boolean)
     .join(" ");
 }

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { GroupedTaskList, TaskList, TaskListSkeleton } from "@/components/task/task-list";
 import { he } from "@/lib/i18n/he";
@@ -15,10 +16,8 @@ const VIEWS = [
   { value: "overdue", label: he.views.overdue },
   { value: "waiting", label: he.views.waiting },
   { value: "blocked", label: he.views.blocked },
-  { value: "quick-wins", label: he.views.quickWins },
   { value: "no-deadline", label: he.views.noDeadline },
   { value: "stale", label: he.views.stale },
-  { value: "someday", label: he.views.someday },
   { value: "completed", label: he.views.completed },
 ];
 
@@ -53,9 +52,16 @@ function TasksContent() {
       {isLoading ? (
         <TaskListSkeleton rows={8} />
       ) : isAll ? (
-        <GroupedTaskList tasks={tasks ?? []} />
+        <GroupedTaskList
+          tasks={tasks ?? []}
+          emptyAction={<AddTaskButton variant="outline" />}
+        />
       ) : (
-        <TaskList tasks={tasks ?? []} emptyTitle={he.empty.nothingHere} />
+        <TaskList
+          tasks={tasks ?? []}
+          emptyTitle={he.empty.nothingHere}
+          emptyAction={<AddTaskButton variant="outline" className="gap-2" />}
+        />
       )}
     </>
   );
@@ -64,7 +70,11 @@ function TasksContent() {
 export default function TasksPage() {
   return (
     <div>
-      <PageHeader title={he.tasks.title} description={he.tasks.description} />
+      <PageHeader
+        title={he.tasks.title}
+        description={he.tasks.description}
+        actions={<AddTaskButton className="gap-2" />}
+      />
       <div className="page-content">
         <Suspense fallback={<TaskListSkeleton rows={8} />}>
           <TasksContent />

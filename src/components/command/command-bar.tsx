@@ -84,6 +84,27 @@ export function CommandBar() {
         )}
 
         {!query.trim() && (
+          <CommandGroup heading={he.command.quickAdd}>
+            <CommandItem
+              onSelect={() => {
+                openQuickAdd();
+                setOpen(false);
+              }}
+            >
+              <Plus className="size-4" /> {he.command.addTaskQuick}
+            </CommandItem>
+            <CommandItem
+              onSelect={() => {
+                openQuickAdd("", "form");
+                setOpen(false);
+              }}
+            >
+              <ListTodo className="size-4" /> {he.command.addTaskForm}
+            </CommandItem>
+          </CommandGroup>
+        )}
+
+        {!query.trim() && (
           <CommandGroup heading={he.command.navigate}>
             <CommandItem onSelect={() => go("/")}>
               <Home className="size-4" /> {he.nav.home}

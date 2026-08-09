@@ -47,6 +47,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var l=localStorage.getItem("mission-font-scale");if(l!==null){var m={"-2":0.85,"-1":0.925,"0":1,"1":1.075,"2":1.15,"3":1.25};var n=parseInt(l,10);if(!isNaN(n)&&m[n]!=null){document.documentElement.style.setProperty("--font-scale",String(m[n]));document.documentElement.dataset.fontScale=String(n);}}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="h-full">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProvider>

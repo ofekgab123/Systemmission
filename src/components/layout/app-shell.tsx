@@ -8,6 +8,7 @@ import { TaskPanel } from "@/components/task/task-panel";
 import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { CommandBar } from "@/components/command/command-bar";
 import { NewCategoryModal } from "@/components/category/new-category-modal";
+import { FontScaleControl } from "@/components/accessibility/font-scale-control";
 import { useGlobalKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <QuickAddModal />
       <NewCategoryModal />
       <CommandBar />
+      <FontScaleControl />
     </div>
   );
 }

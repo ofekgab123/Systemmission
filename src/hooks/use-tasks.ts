@@ -60,7 +60,12 @@ export function useTask(id: string | null) {
 export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Partial<TaskWithRelations> & { tagNames?: string[] }) => {
+    mutationFn: async (
+      data: Omit<Partial<TaskWithRelations>, "createdAt"> & {
+        tagNames?: string[];
+        createdAt?: string | Date;
+      }
+    ) => {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

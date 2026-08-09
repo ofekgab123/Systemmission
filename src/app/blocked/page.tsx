@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { TaskRow } from "@/components/task/task-row";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
@@ -11,7 +12,11 @@ export default function BlockedPage() {
 
   return (
     <div>
-      <PageHeader title={he.blocked.title} description={he.blocked.description} />
+      <PageHeader
+        title={he.blocked.title}
+        description={he.blocked.description}
+        actions={<AddTaskButton className="gap-2" />}
+      />
       <div className="page-content">
         {isLoading ? (
           <TaskListSkeleton />
@@ -22,7 +27,11 @@ export default function BlockedPage() {
             ))}
           </div>
         ) : (
-          <EmptyState title={he.empty.noBlocked} description={he.empty.noBlockedDesc} />
+          <EmptyState
+            title={he.empty.noBlocked}
+            description={he.empty.noBlockedDesc}
+            action={<AddTaskButton variant="outline" className="gap-2" />}
+          />
         )}
       </div>
     </div>

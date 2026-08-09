@@ -21,6 +21,7 @@ import { TaskCheckbox } from "@/components/task/task-checkbox";
 import {
   TASK_STATUS_META,
   PRIORITY_META,
+  SELECTABLE_PRIORITIES,
   IMPACT_META,
   URGENCY_META,
   ENERGY_META,
@@ -34,6 +35,7 @@ import { useUIStore } from "@/store/ui-store";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { formatDistanceToNow } from "date-fns";
 import { he as dateHe } from "date-fns/locale";
+import { FieldSelect } from "@/components/ui/field-select";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import {
@@ -48,13 +50,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const statusOptions = Object.entries(TASK_STATUS_META).map(([value, meta]) => ({
-  value: value as keyof typeof TASK_STATUS_META,
-  label: meta.label,
-}));
-const priorityOptions = Object.entries(PRIORITY_META).map(([value, meta]) => ({
-  value: value as keyof typeof PRIORITY_META,
-  label: meta.label,
+const statusOptions = Object.entries(TASK_STATUS_META)
+  .filter(([value]) => value !== "SOMEDAY")
+  .map(([value, meta]) => ({
+    value: value as keyof typeof TASK_STATUS_META,
+    label: meta.label,
+  }));
+const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
+  value,
+  label: PRIORITY_META[value].label,
 }));
 const impactOptions = Object.entries(IMPACT_META).map(([value, meta]) => ({
   value: value as keyof typeof IMPACT_META,
@@ -177,7 +181,6 @@ export function TaskPanel() {
                 onBlur={() => title.trim() && title !== task.title && patch({ title: title.trim() })}
                 className="min-h-0 resize-none border-none px-0 text-lg font-semibold shadow-none focus-visible:ring-0"
                 rows={1}
-                dir="auto"
               />
             </SheetHeader>
 
@@ -305,7 +308,6 @@ export function TaskPanel() {
                   onBlur={() => description !== (task.description ?? "") && patch({ description })}
                   placeholder={he.task.descriptionPlaceholder}
                   className="min-h-20 text-sm"
-                  dir="auto"
                 />
               </Field>
 
@@ -325,7 +327,6 @@ export function TaskPanel() {
                     onKeyDown={(e) => e.key === "Enter" && addSubtask()}
                     placeholder={he.task.addSubtask}
                     className="h-8 text-xs"
-                    dir="auto"
                   />
                   <Button size="icon" variant="outline" className="size-8" onClick={addSubtask}>
                     <Plus className="size-4" />
@@ -399,18 +400,19 @@ function Select({
   onChange: (v: string | null) => void;
   options: { id: string; name: string }[];
 }) {
+  const placeholder = options.find((o) => !o.id)?.name;
+  const selectOptions = options
+    .filter((o) => o.id)
+    .map((o) => ({ value: o.id, label: o.name }));
+
   return (
-    <select
+    <FieldSelect
       value={value ?? ""}
-      onChange={(e) => onChange(e.target.value || null)}
-      className="h-8 rounded-md border bg-transparent px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {options.map((opt) => (
-        <option key={opt.id} value={opt.id}>
-          {opt.name}
-        </option>
-      ))}
-    </select>
+      onChange={(v) => onChange(v || null)}
+      options={selectOptions}
+      placeholder={placeholder}
+      className="h-11 sm:h-8"
+    />
   );
 }
 

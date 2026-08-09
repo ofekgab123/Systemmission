@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowRight, Ban, Clock, AlertTriangle, TrendingDown, Sparkles, Plus } from "lucide-react";
+import { ArrowRight, Ban, Clock, AlertTriangle, TrendingDown, Sparkles } from "lucide-react";
 import { useTasks } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { sortByScore } from "@/lib/task-score";
@@ -12,13 +12,11 @@ import { greetingForNow, formatFullDate } from "@/lib/date-utils";
 import { TaskRow } from "@/components/task/task-row";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
 import { ProjectCard } from "@/components/project/project-card";
+import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { Button } from "@/components/ui/button";
-import { useUIStore } from "@/store/ui-store";
 import { he } from "@/lib/i18n/he";
 
 export default function HomePage() {
-  const openQuickAdd = useUIStore((s) => s.openQuickAdd);
-
   const { data: activeTasks, isLoading: loadingActive } = useTasks({
     excludeStatus: "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED,INBOX",
     topLevel: true,
@@ -70,9 +68,7 @@ export default function HomePage() {
           <h1 className="font-heading text-xl font-semibold tracking-tight md:text-2xl">{greetingForNow()}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{formatFullDate()}</p>
         </div>
-        <Button onClick={() => openQuickAdd()} className="hidden gap-1.5 md:inline-flex">
-          <Plus className="size-4" /> {he.actions.new}
-        </Button>
+        <AddTaskButton className="gap-1.5" label={he.actions.new} />
       </div>
 
       <div className="mb-10">
@@ -102,7 +98,11 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <EmptyState title={he.empty.allCaughtUp} description={he.empty.allCaughtUpDesc} />
+          <EmptyState
+            title={he.empty.allCaughtUp}
+            description={he.empty.allCaughtUpDesc}
+            action={<AddTaskButton variant="outline" className="gap-2" />}
+          />
         )}
       </div>
 

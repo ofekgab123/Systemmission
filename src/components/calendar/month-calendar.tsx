@@ -117,7 +117,7 @@ export function MonthCalendar({
         {WEEKDAYS.map((d) => (
           <div
             key={d}
-            className="bg-muted/50 py-2 text-center text-[10px] font-medium text-muted-foreground md:text-xs"
+            className="bg-muted/50 py-2 text-center text-xs font-medium text-muted-foreground md:text-sm"
           >
             {d}
           </div>
@@ -162,7 +162,7 @@ export function MonthCalendar({
                   />
                 ))}
                 {dayTasks.length > MAX_CHIPS_DESKTOP && (
-                  <span className="px-1 text-[10px] text-muted-foreground">
+                  <span className="px-1 text-xs text-muted-foreground">
                     +{dayTasks.length - MAX_CHIPS_DESKTOP}
                   </span>
                 )}
@@ -178,14 +178,14 @@ export function MonthCalendar({
                   />
                 ))}
                 {dayTasks.length > MAX_CHIPS_MOBILE && (
-                  <span className="text-[9px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     +{dayTasks.length - MAX_CHIPS_MOBILE}
                   </span>
                 )}
               </div>
 
               {dayTasks.length > 0 && (
-                <span className="mt-auto hidden text-[9px] text-muted-foreground md:block">
+                <span className="mt-auto hidden text-xs text-muted-foreground md:block">
                   {he.calendar.taskCount(dayTasks.length)}
                 </span>
               )}

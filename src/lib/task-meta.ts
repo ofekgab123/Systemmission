@@ -132,10 +132,10 @@ export const TASK_STATUS_META: Record<
     description: "מתוזמן לזמן מסוים",
   },
   SOMEDAY: {
-    label: "יום אחד",
+    label: "מושהה",
     color: "gray",
     icon: Archive,
-    description: "אולי בעתיד",
+    description: "לא פעיל כרגע",
   },
   DONE: {
     label: "הושלם",
@@ -160,8 +160,12 @@ export const ACTIVE_TASK_STATUSES: TaskStatus[] = [
   "BLOCKED",
   "REVIEW",
   "SCHEDULED",
-  "SOMEDAY",
 ];
+
+/** סטטוסים לבחירה ב-UI (ללא SOMEDAY) */
+export const SELECTABLE_TASK_STATUSES: TaskStatus[] = ACTIVE_TASK_STATUSES;
+
+export const SELECTABLE_PRIORITIES: Priority[] = ["P0", "P1", "P2", "P3"];
 
 export const PRIORITY_META: Record<
   Priority,
@@ -171,7 +175,7 @@ export const PRIORITY_META: Record<
   P1: { label: "P1 · גבוה", short: "P1", color: "orange", weight: 4 },
   P2: { label: "P2 · בינוני", short: "P2", color: "yellow", weight: 3 },
   P3: { label: "P3 · נמוך", short: "P3", color: "blue", weight: 2 },
-  P4: { label: "P4 · יום אחד", short: "P4", color: "gray", weight: 1 },
+  P4: { label: "P4 · נמוך מאוד", short: "P4", color: "gray", weight: 1 },
 };
 
 export const IMPACT_META: Record<Impact, { label: string; weight: number }> = {

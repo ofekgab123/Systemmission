@@ -29,7 +29,7 @@ export function DateField({
             variant="outline"
             size="sm"
             className={cn(
-              "h-8 justify-start gap-1.5 text-xs font-normal",
+              "h-11 w-full justify-start gap-1.5 text-start text-sm font-normal sm:h-10",
               !date && "text-muted-foreground",
               className
             )}
@@ -49,7 +49,7 @@ export function DateField({
           />
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="z-[100] w-auto p-0" align="start">
         <Calendar
           mode="single"
           selected={date}

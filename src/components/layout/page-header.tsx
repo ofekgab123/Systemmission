@@ -10,8 +10,8 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-3 px-4 pt-4 pb-4 sm:flex-row sm:items-start sm:justify-between md:px-8 md:pt-8 md:pb-5">
       <div className="min-w-0">
-        <h1 className="font-heading text-xl font-semibold tracking-tight md:text-2xl">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        <h1 className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
+        {description && <p className="mt-1 text-base text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>

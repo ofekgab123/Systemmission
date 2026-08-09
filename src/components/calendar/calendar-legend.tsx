@@ -80,7 +80,7 @@ export function CalendarLegend({
       <span className="w-full text-xs font-medium text-muted-foreground md:w-auto">
         {he.calendar.legendPriority}
       </span>
-      {(["P0", "P1", "P2", "P3", "P4"] as const).map((p) => {
+      {(["P0", "P1", "P2", "P3"] as const).map((p) => {
         const color = STATUS_COLOR_CLASSES[PRIORITY_META[p].color];
         return (
           <span key={p} className="inline-flex items-center gap-1.5 text-xs">

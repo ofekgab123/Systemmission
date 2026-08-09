@@ -39,9 +39,9 @@ export function ProjectCard({
       </div>
 
       <div>
-        <p className="truncate text-sm font-medium">{project.name}</p>
+        <p className="truncate text-base font-medium">{project.name}</p>
         {project.area && (
-          <p className="truncate text-xs text-muted-foreground">{project.area.name}</p>
+          <p className="truncate text-sm text-muted-foreground">{project.area.name}</p>
         )}
       </div>
 
@@ -52,7 +52,7 @@ export function ProjectCard({
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{openTasks} {he.project.open}</span>
           <span>{progress}%</span>
         </div>

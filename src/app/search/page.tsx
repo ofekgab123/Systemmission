@@ -25,7 +25,6 @@ export default function SearchPage() {
             onChange={(e) => setQ(e.target.value)}
             placeholder={he.search.placeholder}
             className="ps-9"
-            dir="auto"
             autoFocus
           />
         </div>

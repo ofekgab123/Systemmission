@@ -54,6 +54,21 @@
   --color-status-blue: var(--status-blue);
   --color-status-purple: var(--status-purple);
   --color-status-gray: var(--status-gray);
+
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.875rem;
+  --text-2xl: 1.625rem;
+  --text-2xl--line-height: 2.125rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.375rem;
 }
 
 :root {
@@ -146,16 +161,51 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-base text-foreground;
   }
   html {
     @apply font-sans;
+    direction: rtl;
+    --font-base: 17px;
+    --font-scale: 1;
+    font-size: calc(var(--font-base) * var(--font-scale));
     -webkit-tap-highlight-color: transparent;
   }
-  button,
-  a,
-  [role="button"] {
-    touch-action: manipulation;
+  @media (max-width: 767px) {
+    html {
+      --font-base: 18px;
+    }
+  }
+  input:not([dir="ltr"]),
+  textarea:not([dir="ltr"]),
+  select:not([dir="ltr"]),
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="command-input"] {
+    direction: rtl;
+    text-align: start;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    direction: rtl;
+    text-align: start;
+  }
+  select option {
+    direction: rtl;
+    text-align: start;
+  }
+  [data-slot="select-trigger"],
+  [data-slot="select-value"],
+  [data-slot="select-item"] {
+    direction: rtl;
+    text-align: start;
+  }
+  @media (max-width: 767px) {
+    [data-slot="input"],
+    [data-slot="textarea"],
+    [data-slot="select-trigger"] {
+      font-size: 1rem;
+    }
   }
 }
 
@@ -172,7 +222,7 @@
   }
   .page-content {
     padding-inline: 1rem;
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
   }
   @media (min-width: 768px) {
     .page-content {

@@ -53,8 +53,6 @@ export async function GET(req: NextRequest) {
     where.status = "BLOCKED";
   } else if (view === "inbox") {
     where.status = "INBOX";
-  } else if (view === "someday") {
-    where.status = "SOMEDAY";
   } else if (view === "no-deadline") {
     where.dueDate = null;
     where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY"] };
@@ -63,9 +61,6 @@ export async function GET(req: NextRequest) {
     where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY", "INBOX"] };
   } else if (view === "completed") {
     where.status = "DONE";
-  } else if (view === "quick-wins") {
-    where.estimatedMinutes = { lte: 15 };
-    where.status = { notIn: ["DONE", "CANCELLED"] };
   } else if (view === "calendar") {
     const from = params.get("from");
     const to = params.get("to");
@@ -137,6 +132,7 @@ export async function POST(req: NextRequest) {
       projectId: body.projectId ?? null,
       areaId: body.areaId ?? null,
       parentTaskId: body.parentTaskId ?? null,
+      ...(body.createdAt ? { createdAt: new Date(body.createdAt) } : {}),
       tags: tags.length ? { connect: tags.map((t) => ({ id: t.id })) } : undefined,
       activities: {
         create: { type: "CREATED", message: "המשימה נוצרה" },

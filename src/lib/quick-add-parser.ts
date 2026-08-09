@@ -33,7 +33,7 @@ const EN_WEEKDAYS: Record<string, Day> = {
 /**
  * Lightweight heuristic parser (no LLM) for the Universal Quick Add box.
  * Understands Hebrew + English relative dates, clock times, #tags, @project
- * mentions, and !p0-!p4 priority shorthand. Anything it can't confidently
+ * mentions, and !p0-!p3 priority shorthand. Anything it can't confidently
  * parse is left in the title for the user to refine manually.
  */
 export function parseQuickAdd(raw: string): ParsedQuickAdd {
@@ -50,8 +50,8 @@ export function parseQuickAdd(raw: string): ParsedQuickAdd {
     return match;
   };
 
-  // Priority shorthand: !p0 .. !p4
-  const priorityMatch = consume(/!p([0-4])/i);
+  // Priority shorthand: !p0 .. !p3
+  const priorityMatch = consume(/!p([0-3])/i);
   if (priorityMatch) priority = `P${priorityMatch[1]}` as Priority;
 
   // #tag

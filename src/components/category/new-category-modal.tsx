@@ -15,6 +15,7 @@ import { useUIStore } from "@/store/ui-store";
 import { useCreateProject } from "@/hooks/use-projects";
 import { useAreas } from "@/hooks/use-areas";
 import { AREA_COLOR_OPTIONS, ICON_OPTIONS } from "@/lib/icons";
+import { FieldSelect } from "@/components/ui/field-select";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 
@@ -124,18 +125,12 @@ export function NewCategoryModal() {
 
           {areas && areas.length > 0 && (
             <Field label={he.task.area}>
-              <select
+              <FieldSelect
                 value={areaId}
-                onChange={(e) => setAreaId(e.target.value)}
-                className="h-10 w-full rounded-md border bg-transparent px-3 text-sm outline-none"
-              >
-                <option value="">{he.task.noArea}</option>
-                {areas.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setAreaId}
+                options={areas.map((a) => ({ value: a.id, label: a.name }))}
+                placeholder={he.task.noArea}
+              />
             </Field>
           )}
 
@@ -145,7 +140,6 @@ export function NewCategoryModal() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder={he.category.descriptionPlaceholder}
               className="min-h-16 resize-none text-sm"
-              dir="auto"
             />
           </Field>
 

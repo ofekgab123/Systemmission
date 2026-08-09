@@ -30,7 +30,7 @@ export function MobileBottomNav() {
       style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       aria-label="ניווט ראשי"
     >
-      <div className="relative mx-auto grid h-16 max-w-lg grid-cols-5 items-end px-2">
+      <div className="relative mx-auto grid h-[4.5rem] max-w-lg grid-cols-5 items-end px-2">
         {tabs.slice(0, 2).map((tab) => (
           <NavItem
             key={tab.href}
@@ -84,14 +84,14 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        "relative flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-[10px] font-medium transition-colors active:scale-95",
+        "relative flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-medium transition-colors active:scale-95 sm:text-sm",
         active ? "text-primary" : "text-muted-foreground"
       )}
     >
       <span className="relative">
-        <Icon className={cn("size-5", active && "stroke-[2.5px]")} />
+        <Icon className={cn("size-6", active && "stroke-[2.5px]")} />
         {!!count && count > 0 && (
-          <span className="absolute -end-1.5 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+          <span className="absolute -end-1.5 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
             {count > 9 ? "9+" : count}
           </span>
         )}

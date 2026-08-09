@@ -12,7 +12,7 @@ const HEALTH_META: Record<HealthStatus, { label: string; dot: string }> = {
 export function HealthBadge({ health, className }: { health: HealthStatus; className?: string }) {
   const meta = HEALTH_META[health];
   return (
-    <span className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 text-sm text-muted-foreground", className)}>
       <span className={cn("size-1.5 rounded-full", meta.dot)} />
       {meta.label}
     </span>
@@ -29,7 +29,7 @@ const MOMENTUM_META: Record<Momentum, { label: string; icon: string }> = {
 export function MomentumBadge({ momentum, className }: { momentum: Momentum; className?: string }) {
   const meta = MOMENTUM_META[momentum];
   return (
-    <span className={cn("inline-flex items-center gap-1 text-xs text-muted-foreground", className)}>
+    <span className={cn("inline-flex items-center gap-1 text-sm text-muted-foreground", className)}>
       <span>{meta.icon}</span>
       {meta.label}
     </span>

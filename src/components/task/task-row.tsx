@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, PlayCircle, Clock, Ban, CalendarClock, Trash2, Archive } from "lucide-react";
+import { MoreHorizontal, PlayCircle, Clock, Ban, CalendarClock, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskCheckbox } from "@/components/task/task-checkbox";
 import { PriorityDot } from "@/components/task/priority-dot";
@@ -81,7 +81,7 @@ export function TaskRow({
         >
           <span
             className={cn(
-              "block text-sm leading-snug transition-smooth",
+              "block text-base leading-snug transition-smooth",
               done ? "text-muted-foreground line-through" : "text-foreground"
             )}
           >
@@ -92,7 +92,7 @@ export function TaskRow({
             <StatusBadge status={task.status} className="md:hidden" showIcon={false} />
             {showProject && task.project && (
               <span
-                className="inline-flex max-w-[140px] items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
+                className="inline-flex max-w-[140px] items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                 style={{ color: task.project.color }}
               >
                 {ProjectIcon && <ProjectIcon className="size-3 shrink-0" />}
@@ -100,7 +100,7 @@ export function TaskRow({
               </span>
             )}
             {task.subtasks.length > 0 && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {task.subtasks.filter((s) => s.status === "DONE").length}/{task.subtasks.length}
               </span>
             )}
@@ -110,7 +110,7 @@ export function TaskRow({
               </span>
             )}
             {task.status === "WAITING" && task.waitingFor && (
-              <span className="text-[11px] text-status-yellow md:hidden">
+              <span className="text-xs text-status-yellow md:hidden">
                 {he.task.waitingFor}: {task.waitingFor}
               </span>
             )}
@@ -158,9 +158,6 @@ export function TaskRow({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setStatus("BLOCKED")}>
                 <Ban className="size-4" /> {he.task.markBlocked}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatus("SOMEDAY")}>
-                <Archive className="size-4" /> {he.task.someday}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>

@@ -18,14 +18,20 @@ export function EnumSelect<T extends string>({
   className?: string;
   renderItem?: (opt: { value: T; label: string }) => React.ReactNode;
 }) {
+  const hasValue = value != null && options.some((opt) => opt.value === value);
+
   return (
-    <Select value={value ?? undefined} onValueChange={(v) => onChange(v as T)}>
-      <SelectTrigger size="sm" className={cn("h-8 text-xs", className)}>
+    <Select
+      value={hasValue ? value : null}
+      onValueChange={(v) => onChange(v as T)}
+      items={options.map((opt) => ({ value: opt.value, label: opt.label }))}
+    >
+      <SelectTrigger size="sm" className={cn("h-11 w-full min-h-11 text-start text-base sm:h-8 sm:min-h-8 sm:text-sm", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent align="start" className="z-[100] max-h-[min(16rem,50dvh)] w-[var(--anchor-width)]">
         {options.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
+          <SelectItem key={opt.value} value={opt.value} className="min-h-11 text-start text-base sm:min-h-8 sm:text-sm">
             {renderItem ? renderItem(opt) : opt.label}
           </SelectItem>
         ))}
