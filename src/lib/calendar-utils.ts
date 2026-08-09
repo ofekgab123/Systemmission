@@ -1,9 +1,83 @@
-import { startOfDay, format } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, addDays, addWeeks, addMonths, isSameMonth } from "date-fns";
 import type { TaskWithRelations } from "@/types";
 import type { Urgency, Priority } from "@/generated/prisma/enums";
 import { PRIORITY_META, STATUS_COLOR_CLASSES, type StatusColor } from "@/lib/task-meta";
 
 export type CalendarColorMode = "combined" | "project" | "urgency" | "priority";
+export type CalendarViewMode = "day" | "week" | "month";
+
+export function getCalendarRange(anchor: Date, mode: CalendarViewMode): { start: Date; end: Date } {
+  if (mode === "day") {
+    return { start: startOfDay(anchor), end: endOfDay(anchor) };
+  }
+  if (mode === "week") {
+    return {
+      start: startOfWeek(anchor, { weekStartsOn: 0 }),
+      end: endOfWeek(anchor, { weekStartsOn: 0 }),
+    };
+  }
+  return {
+    start: startOfWeek(startOfMonth(anchor), { weekStartsOn: 0 }),
+    end: endOfWeek(endOfMonth(anchor), { weekStartsOn: 0 }),
+  };
+}
+
+export function shiftCalendarAnchor(
+  anchor: Date,
+  mode: CalendarViewMode,
+  direction: -1 | 1
+): Date {
+  if (mode === "day") return addDays(anchor, direction);
+  if (mode === "week") return addWeeks(anchor, direction);
+  return addMonths(startOfMonth(anchor), direction);
+}
+
+export function formatCalendarPeriodLabel(anchor: Date, mode: CalendarViewMode): string {
+  if (mode === "day") {
+    return new Intl.DateTimeFormat("he-IL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(anchor);
+  }
+  if (mode === "week") {
+    const start = startOfWeek(anchor, { weekStartsOn: 0 });
+    const end = endOfWeek(anchor, { weekStartsOn: 0 });
+    const monthYear = new Intl.DateTimeFormat("he-IL", { month: "long", year: "numeric" }).format(start);
+    if (isSameMonth(start, end)) {
+      return `${start.getDate()}–${end.getDate()} ${monthYear}`;
+    }
+    const startLabel = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" }).format(start);
+    const endLabel = new Intl.DateTimeFormat("he-IL", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(end);
+    return `${startLabel} – ${endLabel}`;
+  }
+  return new Intl.DateTimeFormat("he-IL", { month: "long", year: "numeric" }).format(anchor);
+}
+
+export function groupTasksByDay(
+  tasks: TaskWithRelations[],
+  showDone: boolean
+): Map<string, TaskWithRelations[]> {
+  const map = new Map<string, TaskWithRelations[]>();
+  for (const task of tasks) {
+    if (!showDone && task.status === "DONE") continue;
+    const d = getTaskCalendarDate(task);
+    if (!d) continue;
+    const key = dayKey(d);
+    const list = map.get(key) ?? [];
+    list.push(task);
+    map.set(key, list);
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight);
+  }
+  return map;
+}
 
 const URGENCY_COLORS: Record<Urgency, StatusColor> = {
   HIGH: "red",

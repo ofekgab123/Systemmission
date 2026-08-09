@@ -2,25 +2,22 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowRight, Ban, Clock, AlertTriangle, TrendingDown, Sparkles } from "lucide-react";
+import { ArrowRight, Ban, Clock, AlertTriangle, PlayCircle } from "lucide-react";
 import { useTasks } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
-import { sortByScore } from "@/lib/task-score";
 import { computeAttentionScore } from "@/lib/project-insights";
-import { countStaleProjects, countLongWaiting, buildInsightSentences } from "@/lib/dashboard-insights";
+import { countLongWaiting, buildInsightSentences } from "@/lib/dashboard-insights";
 import { greetingForNow, formatFullDate } from "@/lib/date-utils";
-import { TaskRow } from "@/components/task/task-row";
-import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
+import { TaskListSkeleton, EmptyState, TaskList } from "@/components/task/task-list";
 import { ProjectCard } from "@/components/project/project-card";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
-import { Button } from "@/components/ui/button";
 import { he } from "@/lib/i18n/he";
 
 export default function HomePage() {
-  const { data: activeTasks, isLoading: loadingActive } = useTasks({
-    excludeStatus: "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED,INBOX",
+  const { data: inProgressTasks, isLoading: loadingInProgress } = useTasks({
+    status: "IN_PROGRESS",
     topLevel: true,
-    limit: 300,
+    limit: 50,
   });
   const { data: waitingTasks } = useTasks({ view: "waiting" });
   const { data: blockedTasks } = useTasks({ view: "blocked" });
@@ -28,10 +25,6 @@ export default function HomePage() {
   const { data: projects, isLoading: loadingProjects } = useProjects();
 
   const now = new Date();
-
-  const ranked = useMemo(() => (activeTasks ? sortByScore(activeTasks) : []), [activeTasks]);
-  const nowTask = ranked[0];
-  const nextTasks = ranked.slice(1, 4);
 
   const activeProjects = useMemo(
     () => (projects ?? []).filter((p) => p.status === "ACTIVE"),
@@ -47,15 +40,13 @@ export default function HomePage() {
       .slice(0, 4);
   }, [projects]);
 
-  const staleProjectsCount = countStaleProjects(projects ?? []);
   const longWaitingCount = countLongWaiting(waitingTasks ?? []);
-  const overdueCount = (activeTasks ?? []).filter(
+  const overdueCount = (inProgressTasks ?? []).filter(
     (t) => t.dueDate && new Date(t.dueDate) < now
   ).length;
 
   const insights = buildInsightSentences({
     activeProjectsCount: activeProjects.length,
-    staleProjectsCount,
     waitingCount: (waitingTasks ?? []).length,
     overdueCount,
     overdueDevelopmentShare: 0.6,
@@ -63,46 +54,47 @@ export default function HomePage() {
 
   return (
     <div className="page-shell">
-      <div className="mb-6 flex items-start justify-between gap-3 md:mb-8">
+      <div className="mb-6 flex items-center justify-between gap-3 md:mb-8">
         <div className="min-w-0">
           <h1 className="font-heading text-xl font-semibold tracking-tight md:text-2xl">{greetingForNow()}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{formatFullDate()}</p>
         </div>
-        <AddTaskButton className="gap-1.5" label={he.actions.new} />
+        <AddTaskButton className="gap-1.5" label={he.actions.new} size="sm" />
       </div>
 
       <div className="mb-10">
-        <h2 className="mb-4 font-heading text-lg font-medium">{he.home.attentionQuestion}</h2>
+        <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-medium">
+          <PlayCircle className="size-5 text-primary" />
+          {he.home.inProgress}
+        </h2>
 
-        {loadingActive ? (
-          <TaskListSkeleton rows={3} />
-        ) : nowTask ? (
-          <div className="flex flex-col gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 to-transparent p-5">
-            <div>
-              <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-primary">
-                <Sparkles className="size-3.5" /> {he.home.now}
-              </p>
-              <TaskRow task={nowTask} />
-            </div>
-            {nextTasks.length > 0 && (
-              <div className="border-t pt-3">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {he.home.next}
-                </p>
-                <div className="flex flex-col gap-0.5">
-                  {nextTasks.map((task) => (
-                    <TaskRow key={task.id} task={task} dense />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+        {loadingInProgress ? (
+          <TaskListSkeleton rows={4} />
+        ) : inProgressTasks && inProgressTasks.length > 0 ? (
+          <TaskList tasks={inProgressTasks} />
         ) : (
           <EmptyState
-            title={he.empty.allCaughtUp}
-            description={he.empty.allCaughtUpDesc}
+            title={he.home.inProgressEmpty}
+            description={he.home.inProgressEmptyDesc}
             action={<AddTaskButton variant="outline" className="gap-2" />}
           />
+        )}
+      </div>
+
+      <div className="mb-10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-heading text-lg font-medium">{he.home.upcoming}</h2>
+          <Link
+            href="/tasks?view=upcoming"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
+          </Link>
+        </div>
+        {upcomingTasks && upcomingTasks.length > 0 ? (
+          <TaskList tasks={upcomingTasks.slice(0, 8)} />
+        ) : (
+          <EmptyState title={he.empty.nothingScheduled} />
         )}
       </div>
 
@@ -132,7 +124,7 @@ export default function HomePage() {
 
       <div className="mb-10">
         <h2 className="mb-4 font-heading text-lg font-medium">{he.attention.title}</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <AttentionTile
             href="/blocked"
             icon={<Ban className="size-4" />}
@@ -153,13 +145,6 @@ export default function HomePage() {
             color="text-status-yellow"
             count={longWaitingCount}
             label={he.attention.waitingLong}
-          />
-          <AttentionTile
-            href="/projects"
-            icon={<TrendingDown className="size-4" />}
-            color="text-status-blue"
-            count={staleProjectsCount}
-            label={he.attention.staleProjects}
           />
         </div>
       </div>
@@ -186,24 +171,6 @@ export default function HomePage() {
           </div>
         </div>
       )}
-
-      <div className="mb-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-heading text-lg font-medium">{he.home.upcoming}</h2>
-          <Link href="/tasks" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
-          </Link>
-        </div>
-        {upcomingTasks && upcomingTasks.length > 0 ? (
-          <div className="flex flex-col gap-0.5 rounded-xl border bg-card p-1.5">
-            {upcomingTasks.slice(0, 8).map((task) => (
-              <TaskRow key={task.id} task={task} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title={he.empty.nothingScheduled} />
-        )}
-      </div>
 
       {insights.length > 0 && (
         <div className="mb-10 rounded-xl border bg-muted/40 p-4">

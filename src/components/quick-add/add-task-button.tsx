@@ -20,7 +20,7 @@ export function AddTaskButton({
   tab = "quick",
   label = he.actions.addTask,
   variant = "default",
-  size = "default",
+  size = "sm",
   className,
   children,
   ...props
@@ -38,7 +38,7 @@ export function AddTaskButton({
     >
       {children ?? (
         <>
-          <Plus className="size-4" />
+          <Plus className={size === "sm" ? "size-3.5" : "size-4"} />
           {label}
         </>
       )}

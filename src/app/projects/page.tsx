@@ -20,8 +20,8 @@ export default function ProjectsPage() {
         title={he.nav.projects}
         description={he.category.pageDescription}
         actions={
-          <Button onClick={() => setNewProjectOpen(true)} className="gap-2">
-            <Plus className="size-4" />
+          <Button size="sm" onClick={() => setNewProjectOpen(true)} className="gap-1.5">
+            <Plus className="size-3.5" />
             {he.category.addNew}
           </Button>
         }

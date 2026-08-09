@@ -18,7 +18,6 @@ import {
   Sun,
   Inbox as InboxIcon,
   Folder,
-  Layers,
   Clock,
   Ban,
   Plus,
@@ -124,9 +123,6 @@ export function CommandBar() {
             <CommandItem onSelect={() => go("/projects")}>
               <Folder className="size-4" /> {he.nav.projects}
             </CommandItem>
-            <CommandItem onSelect={() => go("/areas")}>
-              <Layers className="size-4" /> {he.nav.areas}
-            </CommandItem>
             <CommandItem onSelect={() => go("/waiting")}>
               <Clock className="size-4" /> {he.nav.waiting}
             </CommandItem>
@@ -182,21 +178,6 @@ export function CommandBar() {
           </>
         )}
 
-        {results && results.areas.length > 0 && (
-          <>
-            <CommandSeparator />
-            <CommandGroup heading={he.command.areas}>
-              {results.areas.slice(0, 6).map((area) => {
-                const Icon = resolveIcon(area.icon);
-                return (
-                  <CommandItem key={area.id} onSelect={() => go(`/areas/${area.id}`)}>
-                    <Icon className="size-4" /> {area.name}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </>
-        )}
       </CommandList>
     </CommandDialog>
   );

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Clock, Tag as TagIcon, Sparkles, ClipboardList } from "lucide-react";
+import { CalendarDays, Clock, Sparkles, ClipboardList } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -102,7 +102,6 @@ export function QuickAddModal() {
         dueDate: parsed.dueDate ?? undefined,
         priority: (priorityOverride ?? parsed.priority ?? undefined) as never,
         projectId: projectId ?? matchedProject?.id ?? undefined,
-        tagNames: parsed.tagNames,
         status: "INBOX",
       },
       {
@@ -201,11 +200,6 @@ export function QuickAddModal() {
               {parsed.hasTime && !parsed.dueDate && (
                 <Chip icon={<Clock className="size-3" />}>{he.quickAdd.timeDetected}</Chip>
               )}
-              {parsed.tagNames.map((t) => (
-                <Chip key={t} icon={<TagIcon className="size-3" />}>
-                  #{t}
-                </Chip>
-              ))}
               {matchedProject && <Chip>{matchedProject.name}</Chip>}
             </div>
 

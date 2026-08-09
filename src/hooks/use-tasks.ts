@@ -74,10 +74,12 @@ export function useCreateTask() {
       if (!res.ok) throw new Error("Failed to create task");
       return res.json() as Promise<TaskWithRelations>;
     },
-    onSuccess: () => {
+    onSuccess: (_task, variables) => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
-      qc.invalidateQueries({ queryKey: ["areas"] });
+      if (variables.parentTaskId) {
+        qc.invalidateQueries({ queryKey: ["task", variables.parentTaskId] });
+      }
     },
   });
 }
@@ -90,7 +92,7 @@ export function useUpdateTask() {
       data,
     }: {
       id: string;
-      data: Partial<TaskWithRelations> & { tagNames?: string[] };
+      data: Partial<TaskWithRelations> & { tagNames?: string[]; note?: string };
     }) => {
       const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
@@ -104,7 +106,6 @@ export function useUpdateTask() {
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["task", task.id] });
       qc.invalidateQueries({ queryKey: ["projects"] });
-      qc.invalidateQueries({ queryKey: ["areas"] });
     },
   });
 }
@@ -120,7 +121,6 @@ export function useDeleteTask() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
-      qc.invalidateQueries({ queryKey: ["areas"] });
     },
   });
 }

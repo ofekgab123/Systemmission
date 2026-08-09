@@ -8,7 +8,6 @@ import {
   Inbox as InboxIcon,
   ListTodo,
   Folder,
-  Layers,
   CalendarDays,
   Clock,
   Ban,
@@ -18,8 +17,6 @@ import {
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAreas } from "@/hooks/use-areas";
-import { resolveIcon } from "@/lib/icons";
 import { useUIStore } from "@/store/ui-store";
 import { Button } from "@/components/ui/button";
 import { useTasks } from "@/hooks/use-tasks";
@@ -39,7 +36,6 @@ const mainNav = [
 
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { data: areas } = useAreas();
   const { data: inboxTasks } = useTasks({ view: "inbox" });
   const { data: waitingTasks } = useTasks({ view: "waiting" });
   const { data: blockedTasks } = useTasks({ view: "blocked" });
@@ -85,78 +81,33 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
-        <nav className="flex flex-col gap-0.5 px-3">
-        {mainNav.map((item) => {
-          const active = pathname === item.href;
-          const count = counts[item.href];
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-base transition-smooth active:scale-[0.98]",
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/60"
-              )}
-            >
-              <item.icon className="size-5" />
-              {item.label}
-              {!!count && (
-                <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                  {count}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-        </nav>
-
-        <div className="mx-3 my-3 border-t border-sidebar-border" />
-
-        <div className="px-3 pb-4">
-          <div className="mb-1 px-3">
-            <span className="text-xs font-medium text-muted-foreground">{he.nav.areas}</span>
-          </div>
-          <div className="flex flex-col gap-0.5">
-          {(areas ?? []).map((area) => {
-            const Icon = resolveIcon(area.icon);
-            const active = pathname === `/areas/${area.id}`;
-            const openTasks = area.tasks.filter(
-              (t) => t.status !== "DONE" && t.status !== "CANCELLED"
-            ).length;
+        <nav className="flex flex-col gap-0.5 px-3 pb-4">
+          {mainNav.map((item) => {
+            const active = pathname === item.href;
+            const count = counts[item.href];
             return (
               <Link
-                key={area.id}
-                href={`/areas/${area.id}`}
+                key={item.href}
+                href={item.href}
                 onClick={onNavigate}
                 className={cn(
                   "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-base transition-smooth active:scale-[0.98]",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 active:bg-sidebar-accent/60"
                 )}
               >
-                <Icon className="size-5" style={{ color: area.color }} />
-                <span className="truncate">{area.name}</span>
-                {openTasks > 0 && (
+                <item.icon className="size-5" />
+                {item.label}
+                {!!count && (
                   <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    {openTasks}
+                    {count}
                   </span>
                 )}
               </Link>
             );
           })}
-          <Link
-            href="/areas"
-            onClick={onNavigate}
-            className="flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-smooth hover:bg-sidebar-accent/60"
-          >
-            <Layers className="size-4" /> {he.nav.allAreas}
-          </Link>
-          </div>
-        </div>
+        </nav>
       </div>
 
       <div className="shrink-0 border-t border-sidebar-border px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

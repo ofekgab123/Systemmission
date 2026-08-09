@@ -5,6 +5,7 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { TaskPanel } from "@/components/task/task-panel";
+import { TaskEditSheet } from "@/components/task/task-edit-sheet";
 import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { CommandBar } from "@/components/command/command-bar";
 import { NewCategoryModal } from "@/components/category/new-category-modal";
@@ -24,6 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MobileBottomNav />
       <MobileDrawer />
       <TaskPanel />
+      <TaskEditSheet />
       <QuickAddModal />
       <NewCategoryModal />
       <CommandBar />

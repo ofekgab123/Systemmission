@@ -12,117 +12,48 @@ import {
   format,
   isToday,
 } from "date-fns";
-import { ChevronRight, ChevronLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TaskWithRelations } from "@/types";
 import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
+import { CalendarWeekdayHeader } from "@/components/calendar/calendar-toolbar";
 import {
   dayKey,
-  getTaskCalendarDate,
-  type CalendarColorMode,
+  groupTasksByDay,
 } from "@/lib/calendar-utils";
-import { PRIORITY_META } from "@/lib/task-meta";
 import { he } from "@/lib/i18n/he";
 
-const WEEKDAYS = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
 const MAX_CHIPS_MOBILE = 2;
 const MAX_CHIPS_DESKTOP = 4;
 
 interface MonthCalendarProps {
-  month: Date;
-  onMonthChange: (date: Date) => void;
+  anchorDate: Date;
   tasks: TaskWithRelations[];
   selectedDay: Date | null;
   onSelectDay: (day: Date) => void;
-  colorMode: CalendarColorMode;
   onTaskClick: (taskId: string) => void;
-  showDone: boolean;
 }
 
 export function MonthCalendar({
-  month,
-  onMonthChange,
+  anchorDate,
   tasks,
   selectedDay,
   onSelectDay,
-  colorMode,
   onTaskClick,
-  showDone,
 }: MonthCalendarProps) {
+  const month = startOfMonth(anchorDate);
+
   const days = useMemo(() => {
-    const start = startOfWeek(startOfMonth(month), { weekStartsOn: 0 });
+    const start = startOfWeek(month, { weekStartsOn: 0 });
     const end = endOfWeek(endOfMonth(month), { weekStartsOn: 0 });
     return eachDayOfInterval({ start, end });
   }, [month]);
 
-  const tasksByDay = useMemo(() => {
-    const map = new Map<string, TaskWithRelations[]>();
-    for (const task of tasks) {
-      if (!showDone && task.status === "DONE") continue;
-      const d = getTaskCalendarDate(task);
-      if (!d) continue;
-      const key = dayKey(d);
-      const list = map.get(key) ?? [];
-      list.push(task);
-      map.set(key, list);
-    }
-    for (const list of map.values()) {
-      list.sort(
-        (a, b) =>
-          PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight
-      );
-    }
-    return map;
-  }, [tasks, showDone]);
-
-  const monthLabelHe = new Intl.DateTimeFormat("he-IL", {
-    month: "long",
-    year: "numeric",
-  }).format(month);
+  const tasksByDay = useMemo(() => groupTasksByDay(tasks, true), [tasks]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() =>
-            onMonthChange(
-              new Date(month.getFullYear(), month.getMonth() - 1, 1)
-            )
-          }
-          aria-label={he.calendar.prevMonth}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-        <h2 className="font-heading text-base font-medium capitalize md:text-lg">
-          {monthLabelHe}
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() =>
-            onMonthChange(
-              new Date(month.getFullYear(), month.getMonth() + 1, 1)
-            )
-          }
-          aria-label={he.calendar.nextMonth}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border bg-border">
-        {WEEKDAYS.map((d) => (
-          <div
-            key={d}
-            className="bg-muted/50 py-2 text-center text-xs font-medium text-muted-foreground md:text-sm"
-          >
-            {d}
-          </div>
-        ))}
-
+    <div className="overflow-hidden rounded-xl border bg-border">
+      <CalendarWeekdayHeader />
+      <div className="grid grid-cols-7 gap-px">
         {days.map((day) => {
           const key = dayKey(day);
           const dayTasks = tasksByDay.get(key) ?? [];
@@ -157,7 +88,6 @@ export function MonthCalendar({
                   <CalendarTaskChip
                     key={task.id}
                     task={task}
-                    colorMode={colorMode}
                     onClick={() => onTaskClick(task.id)}
                   />
                 ))}
@@ -173,7 +103,6 @@ export function MonthCalendar({
                   <CalendarTaskChip
                     key={task.id}
                     task={task}
-                    colorMode={colorMode}
                     onClick={() => onTaskClick(task.id)}
                   />
                 ))}

@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import type { TaskWithRelations, ProjectWithRelations, AreaWithCounts } from "@/types";
+import type { TaskWithRelations, ProjectWithRelations } from "@/types";
 
 export interface SearchResults {
   tasks: TaskWithRelations[];
   projects: ProjectWithRelations[];
-  areas: AreaWithCounts[];
 }
 
 export function useSearch(q: string) {

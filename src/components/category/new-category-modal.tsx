@@ -13,9 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store/ui-store";
 import { useCreateProject } from "@/hooks/use-projects";
-import { useAreas } from "@/hooks/use-areas";
 import { AREA_COLOR_OPTIONS, ICON_OPTIONS } from "@/lib/icons";
-import { FieldSelect } from "@/components/ui/field-select";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 
@@ -23,13 +21,11 @@ export function NewCategoryModal() {
   const open = useUIStore((s) => s.newProjectOpen);
   const setOpen = useUIStore((s) => s.setNewProjectOpen);
   const createProject = useCreateProject();
-  const { data: areas } = useAreas();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(AREA_COLOR_OPTIONS[0]);
   const [icon, setIcon] = useState("Folder");
-  const [areaId, setAreaId] = useState<string>("");
 
   useEffect(() => {
     if (open) {
@@ -37,7 +33,6 @@ export function NewCategoryModal() {
       setDescription("");
       setColor(AREA_COLOR_OPTIONS[0]);
       setIcon("Folder");
-      setAreaId("");
     }
   }, [open]);
 
@@ -52,7 +47,6 @@ export function NewCategoryModal() {
         color,
         icon,
         status: "ACTIVE",
-        areaId: areaId || null,
       },
       {
         onSuccess: () => {
@@ -122,17 +116,6 @@ export function NewCategoryModal() {
               ))}
             </div>
           </Field>
-
-          {areas && areas.length > 0 && (
-            <Field label={he.task.area}>
-              <FieldSelect
-                value={areaId}
-                onChange={setAreaId}
-                options={areas.map((a) => ({ value: a.id, label: a.name }))}
-                placeholder={he.task.noArea}
-              />
-            </Field>
-          )}
 
           <Field label={he.category.description}>
             <Textarea

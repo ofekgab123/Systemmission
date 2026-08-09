@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, PlayCircle, Clock, Ban, CalendarClock, Trash2 } from "lucide-react";
+import { MoreHorizontal, PlayCircle, Clock, Ban, CalendarClock, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskCheckbox } from "@/components/task/task-checkbox";
-import { PriorityDot } from "@/components/task/priority-dot";
+import { PriorityBadge } from "@/components/task/priority-badge";
 import { DueDateLabel } from "@/components/task/due-date-label";
-import { EnergyBadge } from "@/components/task/energy-badge";
 import { StatusBadge } from "@/components/task/status-badge";
 import { resolveIcon } from "@/lib/icons";
 import { useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
@@ -22,12 +21,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { he } from "@/lib/i18n/he";
-import { formatMinutes } from "@/lib/task-meta";
 
 export function TaskRow({
   task,
   showProject = true,
-  showEnergy = false,
   dense = false,
 }: {
   task: TaskWithRelations;
@@ -36,12 +33,15 @@ export function TaskRow({
   dense?: boolean;
 }) {
   const [optimisticDone, setOptimisticDone] = useState(task.status === "DONE");
+  const [optimisticStarted, setOptimisticStarted] = useState(task.status === "IN_PROGRESS");
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const openTaskPanel = useUIStore((s) => s.openTaskPanel);
+  const openTaskEdit = useUIStore((s) => s.openTaskEdit);
 
   const ProjectIcon = task.project ? resolveIcon(task.project.icon) : null;
   const done = task.status === "DONE" || optimisticDone;
+  const started = task.status === "IN_PROGRESS" || optimisticStarted;
 
   const handleToggleDone = (checked: boolean) => {
     setOptimisticDone(checked);
@@ -53,8 +53,22 @@ export function TaskRow({
     );
   };
 
+  const handleToggleStarted = () => {
+    if (done) return;
+    const next = !started;
+    setOptimisticStarted(next);
+    updateTask.mutate(
+      { id: task.id, data: { status: next ? "IN_PROGRESS" : "READY" } },
+      {
+        onError: () => setOptimisticStarted(!next),
+      }
+    );
+  };
+
   const setStatus = (status: TaskWithRelations["status"], extra?: Record<string, unknown>) => {
     updateTask.mutate({ id: task.id, data: { status, ...extra } });
+    if (status === "IN_PROGRESS") setOptimisticStarted(true);
+    else if (status !== "DONE") setOptimisticStarted(false);
   };
 
   const handleDelete = () => {
@@ -65,116 +79,130 @@ export function TaskRow({
   return (
     <div
       className={cn(
-        "group rounded-xl px-2.5 transition-smooth active:bg-accent/60 md:hover:bg-accent/60",
-        dense ? "py-2" : "py-2.5"
+        "group flex items-start gap-3 px-3 transition-colors hover:bg-accent/30 active:bg-accent/50",
+        started && !done && "bg-primary/[0.03]",
+        dense ? "py-2.5" : "py-3"
       )}
     >
-      <div className="flex items-start gap-3">
-        <div className="pt-0.5">
-          <TaskCheckbox checked={done} onCheckedChange={handleToggleDone} />
-        </div>
+      <div className="shrink-0 pt-0.5">
+        <TaskCheckbox checked={done} onCheckedChange={handleToggleDone} />
+      </div>
 
+      <div className="min-w-0 flex-1">
         <button
           type="button"
           onClick={() => openTaskPanel(task.id)}
-          className="min-w-0 flex-1 text-start"
+          className="w-full text-start"
         >
           <span
             className={cn(
-              "block text-base leading-snug transition-smooth",
+              "block text-base leading-snug font-medium transition-smooth",
               done ? "text-muted-foreground line-through" : "text-foreground"
             )}
           >
             {task.title}
           </span>
-
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <StatusBadge status={task.status} className="md:hidden" showIcon={false} />
-            {showProject && task.project && (
-              <span
-                className="inline-flex max-w-[140px] items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                style={{ color: task.project.color }}
-              >
-                {ProjectIcon && <ProjectIcon className="size-3 shrink-0" />}
-                <span className="truncate">{task.project.name}</span>
-              </span>
-            )}
-            {task.subtasks.length > 0 && (
-              <span className="text-xs text-muted-foreground">
-                {task.subtasks.filter((s) => s.status === "DONE").length}/{task.subtasks.length}
-              </span>
-            )}
-            {task.dueDate && (
-              <span className="md:hidden">
-                <DueDateLabel date={task.dueDate} />
-              </span>
-            )}
-            {task.status === "WAITING" && task.waitingFor && (
-              <span className="text-xs text-status-yellow md:hidden">
-                {he.task.waitingFor}: {task.waitingFor}
-              </span>
-            )}
-          </div>
         </button>
 
-        <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
-          <div className="hidden items-center gap-2 md:flex">
-            {task.status === "WAITING" && task.waitingFor && (
-              <span className="max-w-[120px] truncate text-xs text-status-yellow">
-                {he.task.waitingFor}: {task.waitingFor}
-              </span>
-            )}
-            {task.status === "BLOCKED" && task.blockedReason && (
-              <span className="max-w-[140px] truncate text-xs text-status-red">
-                {task.blockedReason}
-              </span>
-            )}
-            {showEnergy && task.energy && <EnergyBadge energy={task.energy} />}
-            {task.estimatedMinutes ? (
-              <span className="text-xs text-muted-foreground">{formatMinutes(task.estimatedMinutes)}</span>
-            ) : null}
-            <DueDateLabel date={task.dueDate} />
-          </div>
-          <PriorityDot priority={task.priority} />
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <PriorityBadge priority={task.priority} />
+          <StatusBadge status={task.status} showIcon={false} className="text-xs" />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9 opacity-100 md:size-7 md:opacity-0 md:group-hover:opacity-100"
-                />
+          {showProject && task.project && (
+            <span
+              className="inline-flex max-w-[9rem] items-center gap-1 rounded-full border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground"
+              style={{ borderColor: `${task.project.color}44`, color: task.project.color }}
+            >
+              {ProjectIcon && <ProjectIcon className="size-3 shrink-0" />}
+              <span className="truncate">{task.project.name}</span>
+            </span>
+          )}
+
+          {task.dueDate && <DueDateLabel date={task.dueDate} />}
+
+          {task.subtasks.length > 0 && (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">
+              {task.subtasks.filter((s) => s.status === "DONE").length}/{task.subtasks.length}
+            </span>
+          )}
+
+          {task.status === "WAITING" && task.waitingFor && (
+            <span className="max-w-[10rem] truncate rounded-full bg-status-yellow/10 px-2 py-0.5 text-xs text-status-yellow">
+              {he.task.waitingFor}: {task.waitingFor}
+            </span>
+          )}
+
+          {task.status === "BLOCKED" && task.blockedReason && (
+            <span className="max-w-[10rem] truncate rounded-full bg-status-red/10 px-2 py-0.5 text-xs text-status-red">
+              {task.blockedReason}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-1 pt-0.5">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-9 rounded-lg text-muted-foreground opacity-100 md:opacity-70 md:group-hover:opacity-100"
+          aria-label={he.task.editTask}
+          onClick={() => openTaskEdit(task.id)}
+        >
+          <Pencil className="size-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant={started && !done ? "default" : "outline"}
+          size="sm"
+          className={cn(
+            "h-9 shrink-0 gap-1 rounded-full px-3 text-xs font-medium",
+            started && !done && "shadow-sm"
+          )}
+          onClick={handleToggleStarted}
+          disabled={done}
+          aria-pressed={started && !done}
+        >
+          <PlayCircle className="size-3.5" />
+          {he.task.started}
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-9 rounded-lg text-muted-foreground opacity-100 md:opacity-70 md:group-hover:opacity-100"
+                aria-label={he.actions.more}
+              />
+            }
+          >
+            <MoreHorizontal className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="min-w-44">
+            <DropdownMenuItem onClick={() => setStatus("WAITING")}>
+              <Clock className="size-4" /> {he.task.markWaiting}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatus("BLOCKED")}>
+              <Ban className="size-4" /> {he.task.markBlocked}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                setStatus("SCHEDULED", {
+                  dueDate: new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
+                })
               }
             >
-              <MoreHorizontal className="size-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-44">
-              <DropdownMenuItem onClick={() => setStatus("IN_PROGRESS")}>
-                <PlayCircle className="size-4" /> {he.actions.start}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatus("WAITING")}>
-                <Clock className="size-4" /> {he.task.markWaiting}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatus("BLOCKED")}>
-                <Ban className="size-4" /> {he.task.markBlocked}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setStatus("SCHEDULED", {
-                    dueDate: new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
-                  })
-                }
-              >
-                <CalendarClock className="size-4" /> {he.task.scheduleTomorrow}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onClick={handleDelete}>
-                <Trash2 className="size-4" /> {he.actions.delete}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              <CalendarClock className="size-4" /> {he.task.scheduleTomorrow}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleDelete}>
+              <Trash2 className="size-4" /> {he.actions.delete}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

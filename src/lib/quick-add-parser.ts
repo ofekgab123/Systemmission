@@ -6,7 +6,6 @@ export interface ParsedQuickAdd {
   dueDate: Date | null;
   hasTime: boolean;
   priority: Priority | null;
-  tagNames: string[];
   projectHint: string | null;
 }
 
@@ -32,7 +31,7 @@ const EN_WEEKDAYS: Record<string, Day> = {
 
 /**
  * Lightweight heuristic parser (no LLM) for the Universal Quick Add box.
- * Understands Hebrew + English relative dates, clock times, #tags, @project
+ * Understands Hebrew + English relative dates, clock times, @project
  * mentions, and !p0-!p3 priority shorthand. Anything it can't confidently
  * parse is left in the title for the user to refine manually.
  */
@@ -41,7 +40,6 @@ export function parseQuickAdd(raw: string): ParsedQuickAdd {
   let dueDate: Date | null = null;
   let hasTime = false;
   let priority: Priority | null = null;
-  const tagNames: string[] = [];
   let projectHint: string | null = null;
 
   const consume = (re: RegExp) => {
@@ -53,14 +51,6 @@ export function parseQuickAdd(raw: string): ParsedQuickAdd {
   // Priority shorthand: !p0 .. !p3
   const priorityMatch = consume(/!p([0-3])/i);
   if (priorityMatch) priority = `P${priorityMatch[1]}` as Priority;
-
-  // #tag
-  let tagMatch: RegExpMatchArray | null;
-  const tagRe = /#([\p{L}\p{N}_-]+)/u;
-  while ((tagMatch = text.match(tagRe))) {
-    tagNames.push(tagMatch[1]);
-    text = text.replace(tagRe, " ");
-  }
 
   // @project
   const projectMatch = consume(/@([\p{L}\p{N}_-]+)/u);
@@ -132,5 +122,5 @@ export function parseQuickAdd(raw: string): ParsedQuickAdd {
 
   const title = text.replace(/\s+/g, " ").trim();
 
-  return { title: title || raw.trim(), dueDate, hasTime, priority, tagNames, projectHint };
+  return { title: title || raw.trim(), dueDate, hasTime, priority, projectHint };
 }

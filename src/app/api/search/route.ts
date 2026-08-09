@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
-  if (!q) return NextResponse.json({ tasks: [], projects: [], areas: [] });
+  if (!q) return NextResponse.json({ tasks: [], projects: [] });
 
-  const [tasks, projects, areas] = await Promise.all([
+  const [tasks, projects] = await Promise.all([
     prisma.task.findMany({
       where: {
         OR: [
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
           { waitingFor: { contains: q, mode: "insensitive" } },
         ],
       },
-      include: { project: true, area: true, tags: true },
+      include: { project: true, tags: true },
       take: 20,
       orderBy: { updatedAt: "desc" },
     }),
@@ -25,15 +25,10 @@ export async function GET(req: NextRequest) {
           { description: { contains: q, mode: "insensitive" } },
         ],
       },
-      include: { area: true, tasks: true },
+      include: { tasks: true },
       take: 10,
-    }),
-    prisma.area.findMany({
-      where: { name: { contains: q, mode: "insensitive" } },
-      take: 10,
-      include: { projects: true, tasks: true },
     }),
   ]);
 
-  return NextResponse.json({ tasks, projects, areas });
+  return NextResponse.json({ tasks, projects });
 }

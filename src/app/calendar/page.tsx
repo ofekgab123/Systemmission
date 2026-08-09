@@ -1,15 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  isSameDay,
-} from "date-fns";
+import { isSameDay, startOfToday } from "date-fns";
 import { PageHeader } from "@/components/layout/page-header";
 import { MonthCalendar } from "@/components/calendar/month-calendar";
+import { WeekCalendar } from "@/components/calendar/week-calendar";
+import { DayCalendar } from "@/components/calendar/day-calendar";
+import { CalendarToolbar } from "@/components/calendar/calendar-toolbar";
 import { CalendarLegend } from "@/components/calendar/calendar-legend";
 import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
@@ -19,36 +16,39 @@ import { useProjects } from "@/hooks/use-projects";
 import { he } from "@/lib/i18n/he";
 import {
   dayKey,
+  getCalendarRange,
   getTaskCalendarDate,
-  type CalendarColorMode,
+  shiftCalendarAnchor,
+  type CalendarViewMode,
 } from "@/lib/calendar-utils";
 import { PRIORITY_META } from "@/lib/task-meta";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
 import type { TaskWithRelations } from "@/types";
+import type { TaskStatus } from "@/generated/prisma/enums";
 
-const COLOR_MODES: { id: CalendarColorMode; label: string }[] = [
-  { id: "combined", label: he.calendar.combined },
-  { id: "project", label: he.calendar.byProject },
-  { id: "urgency", label: he.calendar.byUrgency },
-  { id: "priority", label: he.calendar.byPriority },
+type CalendarStatusFilter = Extract<TaskStatus, "DONE" | "BLOCKED" | "WAITING">;
+
+const STATUS_FILTERS: { id: CalendarStatusFilter; label: string }[] = [
+  { id: "DONE", label: he.views.completed },
+  { id: "BLOCKED", label: he.views.blocked },
+  { id: "WAITING", label: he.views.waiting },
 ];
 
 export default function CalendarPage() {
-  const [month, setMonth] = useState(() => startOfMonth(new Date()));
-  const [selectedDay, setSelectedDay] = useState<Date | null>(() => new Date());
-  const [colorMode, setColorMode] = useState<CalendarColorMode>("combined");
-  const [showDone, setShowDone] = useState(false);
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
+  const [anchorDate, setAnchorDate] = useState(() => startOfToday());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(() => startOfToday());
+  const [statusFilters, setStatusFilters] = useState<Set<CalendarStatusFilter>>(new Set());
   const openTaskPanel = useUIStore((s) => s.openTaskPanel);
 
-  const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 0 });
-  const gridEnd = endOfWeek(endOfMonth(month), { weekStartsOn: 0 });
+  const range = useMemo(() => getCalendarRange(anchorDate, viewMode), [anchorDate, viewMode]);
 
   const { data: tasks, isLoading } = useTasks({
     view: "calendar",
-    from: gridStart.toISOString(),
-    to: gridEnd.toISOString(),
+    from: range.start.toISOString(),
+    to: range.end.toISOString(),
     topLevel: true,
     limit: 500,
   });
@@ -57,13 +57,17 @@ export default function CalendarPage() {
 
   const visibleTasks = useMemo(() => {
     if (!tasks) return [];
-    return showDone ? tasks : tasks.filter((t) => t.status !== "DONE");
-  }, [tasks, showDone]);
+    return tasks.filter((t) => {
+      if (t.status === "CANCELLED") return false;
+      if (statusFilters.size === 0) return t.status !== "DONE";
+      return statusFilters.has(t.status as CalendarStatusFilter);
+    });
+  }, [tasks, statusFilters]);
 
   const noDateTasks = useMemo(() => {
     if (!tasks) return [];
-    return tasks.filter((t) => !getTaskCalendarDate(t) && t.status !== "CANCELLED");
-  }, [tasks]);
+    return visibleTasks.filter((t) => !getTaskCalendarDate(t));
+  }, [visibleTasks]);
 
   const selectedDayTasks = useMemo(() => {
     if (!selectedDay) return [];
@@ -87,6 +91,34 @@ export default function CalendarPage() {
       }).format(selectedDay)
     : "";
 
+  const toggleStatusFilter = (status: CalendarStatusFilter) => {
+    setStatusFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status);
+      else next.add(status);
+      return next;
+    });
+  };
+
+  const handleJumpToDate = (date: Date) => {
+    setAnchorDate(date);
+    setSelectedDay(date);
+  };
+
+  const handleToday = () => {
+    const today = startOfToday();
+    setAnchorDate(today);
+    setSelectedDay(today);
+  };
+
+  const handleNavigate = (direction: -1 | 1) => {
+    const next = shiftCalendarAnchor(anchorDate, viewMode, direction);
+    setAnchorDate(next);
+    if (viewMode === "day") {
+      setSelectedDay(next);
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -95,55 +127,56 @@ export default function CalendarPage() {
         actions={<AddTaskButton className="gap-2" />}
       />
       <div className="page-content flex flex-col gap-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-1">
-            <span className="me-2 self-center text-xs text-muted-foreground">
-              {he.calendar.colorBy}
-            </span>
-            {COLOR_MODES.map((mode) => (
-              <Button
-                key={mode.id}
-                variant={colorMode === mode.id ? "secondary" : "ghost"}
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => setColorMode(mode.id)}
-              >
-                {mode.label}
-              </Button>
-            ))}
-          </div>
-          <Button
-            variant={showDone ? "secondary" : "outline"}
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => setShowDone((v) => !v)}
-          >
-            {he.calendar.showDone}
-          </Button>
+        <CalendarToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          anchorDate={anchorDate}
+          onJumpToDate={handleJumpToDate}
+          onPrev={() => handleNavigate(-1)}
+          onNext={() => handleNavigate(1)}
+          onToday={handleToday}
+        />
+
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="me-2 text-xs text-muted-foreground">{he.calendar.filterBy}</span>
+          {STATUS_FILTERS.map((filter) => (
+            <Button
+              key={filter.id}
+              variant={statusFilters.has(filter.id) ? "secondary" : "outline"}
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => toggleStatusFilter(filter.id)}
+            >
+              {filter.label}
+            </Button>
+          ))}
         </div>
 
-        {colorMode === "combined" && (
-          <p className="text-xs text-muted-foreground">{he.calendar.combinedHint}</p>
-        )}
-
-        <CalendarLegend tasks={visibleTasks} colorMode={colorMode} />
+        <CalendarLegend tasks={visibleTasks} onTaskClick={openTaskPanel} />
 
         {isLoading ? (
           <TaskListSkeleton rows={8} />
-        ) : (
-          <MonthCalendar
-            month={month}
-            onMonthChange={setMonth}
+        ) : viewMode === "day" ? (
+          <DayCalendar day={anchorDate} tasks={visibleTasks} onTaskClick={openTaskPanel} />
+        ) : viewMode === "week" ? (
+          <WeekCalendar
+            anchorDate={anchorDate}
             tasks={visibleTasks}
             selectedDay={selectedDay}
             onSelectDay={setSelectedDay}
-            colorMode={colorMode}
             onTaskClick={openTaskPanel}
-            showDone={showDone}
+          />
+        ) : (
+          <MonthCalendar
+            anchorDate={anchorDate}
+            tasks={visibleTasks}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+            onTaskClick={openTaskPanel}
           />
         )}
 
-        {selectedDay && (
+        {viewMode === "month" && selectedDay && (
           <section className="rounded-xl border bg-card p-4">
             <h3 className="mb-3 font-heading text-sm font-medium capitalize">
               {selectedDayLabelHe}
@@ -159,7 +192,6 @@ export default function CalendarPage() {
                   <CalendarTaskChip
                     key={task.id}
                     task={task}
-                    colorMode={colorMode}
                     onClick={() => openTaskPanel(task.id)}
                   />
                 ))}

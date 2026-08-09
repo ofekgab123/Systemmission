@@ -114,7 +114,7 @@ export const TASK_STATUS_META: Record<
     description: "מחכה לאדם אחר",
   },
   BLOCKED: {
-    label: "חסום",
+    label: "תקוע",
     color: "red",
     icon: Ban,
     description: "לא ניתן להתקדם",
@@ -222,7 +222,7 @@ export const PROJECT_STATUS_META: Record<
   ACTIVE: { label: "פעיל", color: "blue" },
   ON_HOLD: { label: "מושהה", color: "yellow" },
   WAITING: { label: "ממתין", color: "yellow" },
-  BLOCKED: { label: "חסום", color: "red" },
+  BLOCKED: { label: "תקוע", color: "red" },
   COMPLETED: { label: "הושלם", color: "green" },
   ARCHIVED: { label: "בארכיון", color: "gray" },
 };

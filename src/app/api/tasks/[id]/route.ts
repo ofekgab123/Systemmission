@@ -93,6 +93,10 @@ export async function PATCH(
     }
   }
 
+  if ("note" in body && typeof body.note === "string" && body.note.trim()) {
+    activities.push({ type: "NOTE_ADDED", message: body.note.trim() });
+  }
+
   if ("tagNames" in body) {
     const tagNames: string[] = body.tagNames ?? [];
     const tags = tagNames.length
@@ -112,7 +116,10 @@ export async function PATCH(
   const task = await prisma.task.update({
     where: { id },
     data,
-    include: taskInclude,
+    include: {
+      ...taskInclude,
+      activities: { orderBy: { createdAt: "desc" }, take: 30 },
+    },
   });
 
   return NextResponse.json(task);

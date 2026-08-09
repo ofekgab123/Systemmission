@@ -1,94 +1,132 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import type { TaskWithRelations } from "@/types";
-import {
-  type CalendarColorMode,
-  getUrgencyColor,
-} from "@/lib/calendar-utils";
-import { PRIORITY_META, STATUS_COLOR_CLASSES } from "@/lib/task-meta";
-import type { Urgency } from "@/generated/prisma/enums";
+import { PRIORITY_META } from "@/lib/task-meta";
+import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
+import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 
-const URGENCY_LABELS: Record<Urgency, string> = {
-  HIGH: he.task.urgencyHigh,
-  MEDIUM: he.task.urgencyMedium,
-  LOW: he.task.urgencyLow,
-};
+const NO_PROJECT_ID = "__none__";
 
-export function CalendarLegend({
-  tasks,
-  colorMode,
-}: {
+interface ProjectGroup {
+  id: string;
+  name: string;
+  color: string;
   tasks: TaskWithRelations[];
-  colorMode: CalendarColorMode;
-}) {
-  const projects = useMemo(() => {
-    const map = new Map<string, { name: string; color: string }>();
-    for (const task of tasks) {
-      if (task.project) {
-        map.set(task.project.id, {
-          name: task.project.name,
-          color: task.project.color,
-        });
-      }
+}
+
+function sortTasks(tasks: TaskWithRelations[]) {
+  return [...tasks].sort(
+    (a, b) => PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight
+  );
+}
+
+function groupTasksByProject(tasks: TaskWithRelations[]): ProjectGroup[] {
+  const map = new Map<string, ProjectGroup>();
+
+  for (const task of tasks) {
+    const id = task.project?.id ?? NO_PROJECT_ID;
+    const existing = map.get(id);
+    if (existing) {
+      existing.tasks.push(task);
+      continue;
     }
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "he"));
-  }, [tasks]);
-
-  if (colorMode === "project" || colorMode === "combined") {
-    if (projects.length === 0) return null;
-    return (
-      <div className="flex flex-wrap gap-x-4 gap-y-2">
-        <span className="w-full text-xs font-medium text-muted-foreground md:w-auto">
-          {he.calendar.legendProjects}
-        </span>
-        {projects.map((p) => (
-          <span key={p.name} className="inline-flex items-center gap-1.5 text-xs">
-            <span
-              className="size-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: p.color }}
-            />
-            {p.name}
-          </span>
-        ))}
-      </div>
-    );
+    map.set(id, {
+      id,
+      name: task.project?.name ?? he.task.noProject,
+      color: task.project?.color ?? "#94a3b8",
+      tasks: [task],
+    });
   }
 
-  if (colorMode === "urgency") {
-    return (
-      <div className="flex flex-wrap gap-x-4 gap-y-2">
-        <span className="w-full text-xs font-medium text-muted-foreground md:w-auto">
-          {he.calendar.legendUrgency}
-        </span>
-        {(["HIGH", "MEDIUM", "LOW"] as Urgency[]).map((u) => {
-          const color = STATUS_COLOR_CLASSES[getUrgencyColor(u, "P3")];
-          return (
-            <span key={u} className="inline-flex items-center gap-1.5 text-xs">
-              <span className={`size-2.5 shrink-0 rounded-full ${color.dot}`} />
-              {URGENCY_LABELS[u]}
-            </span>
-          );
-        })}
-      </div>
-    );
-  }
+  return [...map.values()]
+    .map((group) => ({ ...group, tasks: sortTasks(group.tasks) }))
+    .sort((a, b) => {
+      if (a.id === NO_PROJECT_ID) return 1;
+      if (b.id === NO_PROJECT_ID) return -1;
+      return a.name.localeCompare(b.name, "he");
+    });
+}
+
+function CategoryCollapseList({
+  groups,
+  onTaskClick,
+}: {
+  groups: ProjectGroup[];
+  onTaskClick: (taskId: string) => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-2">
-      <span className="w-full text-xs font-medium text-muted-foreground md:w-auto">
-        {he.calendar.legendPriority}
-      </span>
-      {(["P0", "P1", "P2", "P3"] as const).map((p) => {
-        const color = STATUS_COLOR_CLASSES[PRIORITY_META[p].color];
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">
+        {he.calendar.legendProjects}
+      </div>
+      {groups.map((group) => {
+        const open = expanded.has(group.id);
         return (
-          <span key={p} className="inline-flex items-center gap-1.5 text-xs">
-            <span className={`size-2.5 shrink-0 rounded-full ${color.dot}`} />
-            {PRIORITY_META[p].short}
-          </span>
+          <div key={group.id} className="border-b last:border-b-0">
+            <button
+              type="button"
+              onClick={() => toggle(group.id)}
+              aria-expanded={open}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
+            >
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: group.color }}
+              />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{group.name}</span>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                {he.calendar.taskCount(group.tasks.length)}
+              </span>
+              <ChevronDown
+                className={cn(
+                  "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                  open && "rotate-180"
+                )}
+              />
+            </button>
+            {open && (
+              <div className="flex flex-col gap-1 border-t bg-muted/20 px-3 py-2">
+                {group.tasks.map((task) => (
+                  <CalendarTaskChip
+                    key={task.id}
+                    task={task}
+                    showDate
+                    onClick={() => onTaskClick(task.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         );
       })}
     </div>
   );
+}
+
+export function CalendarLegend({
+  tasks,
+  onTaskClick,
+}: {
+  tasks: TaskWithRelations[];
+  onTaskClick: (taskId: string) => void;
+}) {
+  const projectGroups = useMemo(() => groupTasksByProject(tasks), [tasks]);
+
+  if (projectGroups.length === 0) return null;
+
+  return <CategoryCollapseList groups={projectGroups} onTaskClick={onTaskClick} />;
 }

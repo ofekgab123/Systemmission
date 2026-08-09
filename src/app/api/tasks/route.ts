@@ -56,9 +56,6 @@ export async function GET(req: NextRequest) {
   } else if (view === "no-deadline") {
     where.dueDate = null;
     where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY"] };
-  } else if (view === "stale") {
-    where.updatedAt = { lt: nextNDays(-7) };
-    where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY", "INBOX"] };
   } else if (view === "completed") {
     where.status = "DONE";
   } else if (view === "calendar") {

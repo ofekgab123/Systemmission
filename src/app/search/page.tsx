@@ -65,30 +65,7 @@ export default function SearchPage() {
               </section>
             )}
 
-            {results.areas.length > 0 && (
-              <section>
-                <h2 className="mb-3 text-sm font-medium text-muted-foreground">{he.command.areas}</h2>
-                <div className="flex flex-col gap-1">
-                  {results.areas.map((area) => {
-                    const Icon = resolveIcon(area.icon);
-                    return (
-                      <Link
-                        key={area.id}
-                        href={`/areas/${area.id}`}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent"
-                      >
-                        <Icon className="size-4" style={{ color: area.color }} />
-                        {area.name}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {results.tasks.length === 0 &&
-              results.projects.length === 0 &&
-              results.areas.length === 0 && (
+            {results.tasks.length === 0 && results.projects.length === 0 && (
                 <p className="text-sm text-muted-foreground">{he.empty.noResults}</p>
               )}
           </div>

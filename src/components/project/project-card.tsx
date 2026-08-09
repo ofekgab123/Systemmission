@@ -2,7 +2,7 @@ import Link from "next/link";
 import { resolveIcon } from "@/lib/icons";
 import { computeProgress, computeHealth, computeMomentum } from "@/lib/project-insights";
 import { HealthBadge, MomentumBadge } from "@/components/project/health-badge";
-import { PriorityDot } from "@/components/task/priority-dot";
+import { PriorityDot } from "@/components/task/priority-badge";
 import type { ProjectWithRelations } from "@/types";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
@@ -40,9 +40,6 @@ export function ProjectCard({
 
       <div>
         <p className="truncate text-base font-medium">{project.name}</p>
-        {project.area && (
-          <p className="truncate text-sm text-muted-foreground">{project.area.name}</p>
-        )}
       </div>
 
       <div className="flex flex-col gap-1.5">

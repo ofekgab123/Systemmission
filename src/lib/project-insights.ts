@@ -91,7 +91,7 @@ export function computeAttentionScore(project: {
   const blockedCount = project.tasks.filter((t) => t.status === "BLOCKED").length;
   if (blockedCount > 0) {
     score += blockedCount * 15;
-    reasons.push(`${blockedCount} משימות חסומות`);
+    reasons.push(`${blockedCount} משימות תקועות`);
   }
 
   const overdueCount = project.tasks.filter(

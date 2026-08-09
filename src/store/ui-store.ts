@@ -5,6 +5,10 @@ interface UIState {
   openTaskPanel: (id: string) => void;
   closeTaskPanel: () => void;
 
+  taskEditId: string | null;
+  openTaskEdit: (id: string) => void;
+  closeTaskEdit: () => void;
+
   quickAddOpen: boolean;
   quickAddInitialText: string;
   quickAddInitialTab: "quick" | "form";
@@ -17,9 +21,6 @@ interface UIState {
   newProjectOpen: boolean;
   setNewProjectOpen: (open: boolean) => void;
 
-  newAreaOpen: boolean;
-  setNewAreaOpen: (open: boolean) => void;
-
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
 }
@@ -28,6 +29,10 @@ export const useUIStore = create<UIState>((set) => ({
   taskPanelId: null,
   openTaskPanel: (id) => set({ taskPanelId: id }),
   closeTaskPanel: () => set({ taskPanelId: null }),
+
+  taskEditId: null,
+  openTaskEdit: (id) => set({ taskEditId: id }),
+  closeTaskEdit: () => set({ taskEditId: null }),
 
   quickAddOpen: false,
   quickAddInitialText: "",
@@ -42,9 +47,6 @@ export const useUIStore = create<UIState>((set) => ({
 
   newProjectOpen: false,
   setNewProjectOpen: (open) => set({ newProjectOpen: open }),
-
-  newAreaOpen: false,
-  setNewAreaOpen: (open) => set({ newAreaOpen: open }),
 
   mobileMenuOpen: false,
   setMobileMenuOpen: (open) => set({ mobileMenuOpen: open }),
