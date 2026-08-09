@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     prisma.task.findMany({
       where: {
         ...areaFilter,
+        status: { not: "INBOX" },
         OR: [
           { title: { contains: q, mode: "insensitive" } },
           { description: { contains: q, mode: "insensitive" } },

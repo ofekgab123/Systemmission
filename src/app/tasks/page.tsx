@@ -53,7 +53,7 @@ function TasksContent() {
   const isAll = view === "all";
   const { data: tasks, isLoading } = useTasks(
     isAll
-      ? { topLevel: true, excludeStatus: "CANCELLED", limit: 500 }
+      ? { topLevel: true, excludeStatus: "CANCELLED,INBOX", limit: 500 }
       : { view, topLevel: true, limit: 500 }
   );
 

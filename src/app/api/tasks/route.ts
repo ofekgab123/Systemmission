@@ -37,21 +37,23 @@ export async function GET(req: NextRequest) {
   if (params.get("topLevel") === "true") where.parentTaskId = null;
 
   const view = params.get("view");
-  if (view === "today") {
+  if (view === "needs-review") {
+    where.status = "INBOX";
+  } else if (view === "today") {
     where.OR = [
       { dueDate: { gte: startOfToday(), lte: endOfToday() } },
       { scheduledAt: { gte: startOfToday(), lte: endOfToday() } },
     ];
-    where.status = { notIn: ["DONE", "CANCELLED"] };
+    where.status = { notIn: ["DONE", "CANCELLED", "INBOX"] };
   } else if (view === "overdue") {
     where.dueDate = { lt: startOfToday() };
-    where.status = { notIn: ["DONE", "CANCELLED"] };
+    where.status = { notIn: ["DONE", "CANCELLED", "INBOX"] };
   } else if (view === "upcoming") {
     where.dueDate = { gte: startOfToday(), lte: nextNDays(7) };
-    where.status = { notIn: ["DONE", "CANCELLED"] };
+    where.status = { notIn: ["DONE", "CANCELLED", "INBOX"] };
   } else if (view === "no-deadline") {
     where.dueDate = null;
-    where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY"] };
+    where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY", "INBOX"] };
   } else if (view === "calendar") {
     const from = params.get("from");
     const to = params.get("to");
@@ -61,7 +63,7 @@ export async function GET(req: NextRequest) {
         { scheduledAt: { gte: new Date(from), lte: new Date(to) } },
       ];
     }
-    where.status = { notIn: ["CANCELLED"] };
+    where.status = { notIn: ["CANCELLED", "INBOX"] };
   } else if (view) {
     const statusFromView = taskStatusFromViewSlug(view);
     if (statusFromView) {

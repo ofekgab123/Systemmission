@@ -8,7 +8,7 @@ export type TaskMissingField =
   | "waitingFor"
   | "blockedReason";
 
-const REVIEW_EXCLUDED_STATUSES = new Set(["DONE", "CANCELLED"]);
+const REVIEW_EXCLUDED_STATUSES = new Set(["DONE", "CANCELLED", "INBOX"]);
 
 export function getTaskMissingFields(
   task: Pick<

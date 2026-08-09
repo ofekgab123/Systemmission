@@ -14,7 +14,7 @@ import { greetingForNow, formatFullDate } from "@/lib/date-utils";
 import { Clock, AlertTriangle, CalendarClock, Target, ListOrdered } from "lucide-react";
 import { he } from "@/lib/i18n/he";
 
-const WORKABLE_EXCLUDE = "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED";
+const WORKABLE_EXCLUDE = "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED,INBOX";
 
 function TodayPageContent() {
   const router = useRouter();

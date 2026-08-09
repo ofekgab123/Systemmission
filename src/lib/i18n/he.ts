@@ -115,6 +115,9 @@ export const he = {
     missingDetails: "חסרים פרטים",
     missingPrefix: "חסר",
     addedForReview: "המשימה נוספה לרשימת האישור — חסרים פרטים",
+    approve: "אישור",
+    approved: "המשימה אושרה",
+    approveFailed: "לא הצליח לאשר את המשימה",
   },
   recurrence: {
     enabled: "משימה מחזורית",
@@ -159,7 +162,7 @@ export const he = {
     nothingScheduled: "אין תזמון לשבוע הקרוב",
     nothingRecommended: "אין המלצות נוספות כרגע",
     noReviewTasks: "אין משימות ממתינות לאישור",
-    noReviewTasksDesc: "משימות עם פרטים חסרים יופיעו כאן אחרי שמירה.",
+    noReviewTasksDesc: "משימות חדשות ממתינות לאישור יופיעו כאן.",
   },
   image: {
     add: "הוסף תמונה",
@@ -420,7 +423,7 @@ export const he = {
   },
   needsReview: {
     title: "משימות לאישור",
-    description: "משימות עם פרטים חסרים — השלימי לפני שמתחילים לעבוד.",
+    description: "משימות חדשות שממתינות לאישור — השלימי פרטים ולחצי אישור.",
   },
   search: {
     title: "חיפוש",
