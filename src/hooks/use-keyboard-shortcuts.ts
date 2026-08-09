@@ -6,7 +6,7 @@ import { useUIStore } from "@/store/ui-store";
 
 const ROUTE_SHORTCUTS: Record<string, string> = {
   t: "/today",
-  i: "/inbox",
+  i: "/dont-forget",
   p: "/projects",
 };
 

@@ -401,7 +401,8 @@ export const ModelName = {
   Project: 'Project',
   Tag: 'Tag',
   Task: 'Task',
-  Activity: 'Activity'
+  Activity: 'Activity',
+  StickyNote: 'StickyNote'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "area" | "project" | "tag" | "task" | "activity"
+    modelProps: "area" | "project" | "tag" | "task" | "activity" | "stickyNote"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -791,6 +792,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StickyNote: {
+      payload: Prisma.$StickyNotePayload<ExtArgs>
+      fields: Prisma.StickyNoteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StickyNoteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StickyNoteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>
+        }
+        findFirst: {
+          args: Prisma.StickyNoteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StickyNoteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>
+        }
+        findMany: {
+          args: Prisma.StickyNoteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>[]
+        }
+        create: {
+          args: Prisma.StickyNoteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>
+        }
+        createMany: {
+          args: Prisma.StickyNoteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StickyNoteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>[]
+        }
+        delete: {
+          args: Prisma.StickyNoteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>
+        }
+        update: {
+          args: Prisma.StickyNoteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>
+        }
+        deleteMany: {
+          args: Prisma.StickyNoteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StickyNoteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StickyNoteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>[]
+        }
+        upsert: {
+          args: Prisma.StickyNoteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StickyNotePayload>
+        }
+        aggregate: {
+          args: Prisma.StickyNoteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStickyNote>
+        }
+        groupBy: {
+          args: Prisma.StickyNoteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StickyNoteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StickyNoteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StickyNoteCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -915,6 +990,19 @@ export const ActivityScalarFieldEnum = {
 } as const
 
 export type ActivityScalarFieldEnum = (typeof ActivityScalarFieldEnum)[keyof typeof ActivityScalarFieldEnum]
+
+
+export const StickyNoteScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  color: 'color',
+  dismissed: 'dismissed',
+  nextAlertAt: 'nextAlertAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StickyNoteScalarFieldEnum = (typeof StickyNoteScalarFieldEnum)[keyof typeof StickyNoteScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1291,6 +1379,7 @@ export type GlobalOmitConfig = {
   tag?: Prisma.TagOmit
   task?: Prisma.TaskOmit
   activity?: Prisma.ActivityOmit
+  stickyNote?: Prisma.StickyNoteOmit
 }
 
 /* Types for Logging */

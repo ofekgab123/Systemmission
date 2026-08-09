@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowRight, Ban, Clock, AlertTriangle, PlayCircle } from "lucide-react";
+import { ArrowRight, Ban, Clock, AlertTriangle, PlayCircle, StickyNote } from "lucide-react";
 import { useTasks } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { computeAttentionScore } from "@/lib/project-insights";
 import { countLongWaiting, buildInsightSentences } from "@/lib/dashboard-insights";
 import { greetingForNow, formatFullDate } from "@/lib/date-utils";
 import { TaskListSkeleton, EmptyState, TaskList } from "@/components/task/task-list";
-import { ProjectCard } from "@/components/project/project-card";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
+import { StickyNoteCapture, StickyNotesGrid } from "@/components/sticky-notes/sticky-notes-grid";
 import { he } from "@/lib/i18n/he";
 
 export default function HomePage() {
@@ -22,7 +22,7 @@ export default function HomePage() {
   const { data: waitingTasks } = useTasks({ view: "waiting" });
   const { data: blockedTasks } = useTasks({ view: "blocked" });
   const { data: upcomingTasks } = useTasks({ view: "upcoming" });
-  const { data: projects, isLoading: loadingProjects } = useProjects();
+  const { data: projects } = useProjects();
 
   const now = new Date();
 
@@ -63,6 +63,23 @@ export default function HomePage() {
       </div>
 
       <div className="mb-10">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-medium">
+            <StickyNote className="size-5 text-status-yellow" />
+            {he.home.dontForget}
+          </h2>
+          <Link
+            href="/dont-forget"
+            className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
+          </Link>
+        </div>
+        <StickyNoteCapture className="mb-4" />
+        <StickyNotesGrid compact limit={3} />
+      </div>
+
+      <div className="mb-10">
         <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-medium">
           <PlayCircle className="size-5 text-primary" />
           {he.home.inProgress}
@@ -95,30 +112,6 @@ export default function HomePage() {
           <TaskList tasks={upcomingTasks.slice(0, 8)} />
         ) : (
           <EmptyState title={he.empty.nothingScheduled} />
-        )}
-      </div>
-
-      <div className="mb-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-heading text-lg font-medium">{he.project.activeProjects}</h2>
-          <Link href="/projects" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            {he.actions.viewAll} <ArrowRight className="size-3.5 rotate-180" />
-          </Link>
-        </div>
-        {loadingProjects ? (
-          <div className="flex gap-3 overflow-hidden">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-40 w-64 shrink-0 animate-pulse rounded-xl bg-muted" />
-            ))}
-          </div>
-        ) : activeProjects.length > 0 ? (
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {activeProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title={he.empty.noProjects} description={he.empty.noProjectsDesc} />
         )}
       </div>
 

@@ -102,7 +102,7 @@ export function QuickAddModal() {
         dueDate: parsed.dueDate ?? undefined,
         priority: (priorityOverride ?? parsed.priority ?? undefined) as never,
         projectId: projectId ?? matchedProject?.id ?? undefined,
-        status: "INBOX",
+        status: "READY",
       },
       {
         onSuccess: () => toast.success(he.task.addedToInbox),
@@ -125,7 +125,7 @@ export function QuickAddModal() {
         createdAt: formNoDeadline ? (formCreatedDate ?? startOfToday()) : undefined,
         projectId: formProjectId,
         priority: (formPriority ?? undefined) as never,
-        status: "INBOX",
+        status: "READY",
       },
       {
         onSuccess: () => toast.success(he.task.addedToInbox),

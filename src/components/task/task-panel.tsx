@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Trash2, ListTree, StickyNote, ArrowRight } from "lucide-react";
 import {
@@ -54,14 +54,25 @@ export function TaskPanel() {
   const [subtaskSubmitted, setSubtaskSubmitted] = useState(false);
 
   const [noteText, setNoteText] = useState("");
+  const autoWaitingRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!taskId) {
       setMode(null);
       resetSubtaskForm();
       setNoteText("");
+      autoWaitingRef.current = null;
     }
   }, [taskId]);
+
+  useEffect(() => {
+    if (!taskId || !task) return;
+    if (["WAITING", "DONE", "CANCELLED", "IN_PROGRESS"].includes(task.status)) return;
+    if (autoWaitingRef.current === taskId) return;
+
+    autoWaitingRef.current = taskId;
+    updateTask.mutate({ id: task.id, data: { status: "WAITING" } });
+  }, [taskId, task, updateTask]);
 
   const resetSubtaskForm = () => {
     setSubtaskTitle("");

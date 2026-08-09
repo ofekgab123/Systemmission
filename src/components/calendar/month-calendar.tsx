@@ -62,12 +62,19 @@ export function MonthCalendar({
           const today = isToday(day);
 
           return (
-            <button
+            <div
               key={key}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => onSelectDay(day)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectDay(day);
+                }
+              }}
               className={cn(
-                "flex min-h-[72px] flex-col gap-0.5 bg-card p-1 text-start transition-colors md:min-h-[100px] md:p-1.5",
+                "flex min-h-[72px] cursor-pointer flex-col gap-0.5 bg-card p-1 text-start transition-colors md:min-h-[100px] md:p-1.5",
                 !inMonth && "bg-muted/20 text-muted-foreground/60",
                 selected && "ring-2 ring-inset ring-primary",
                 today && !selected && "bg-primary/5"
@@ -118,7 +125,7 @@ export function MonthCalendar({
                   {he.calendar.taskCount(dayTasks.length)}
                 </span>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

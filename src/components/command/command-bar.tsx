@@ -16,7 +16,7 @@ import { useSearch } from "@/hooks/use-search";
 import {
   Home,
   Sun,
-  Inbox as InboxIcon,
+  StickyNote,
   Folder,
   Clock,
   Ban,
@@ -111,8 +111,8 @@ export function CommandBar() {
             <CommandItem onSelect={() => go("/today")}>
               <Sun className="size-4" /> {he.nav.today}
             </CommandItem>
-            <CommandItem onSelect={() => go("/inbox")}>
-              <InboxIcon className="size-4" /> {he.nav.inbox}
+            <CommandItem onSelect={() => go("/dont-forget")}>
+              <StickyNote className="size-4" /> {he.nav.inbox}
             </CommandItem>
             <CommandItem onSelect={() => go("/tasks")}>
               <ListTodo className="size-4" /> {he.nav.myTasks}

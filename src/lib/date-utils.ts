@@ -10,6 +10,7 @@ import {
   startOfDay,
   endOfDay,
   addDays,
+  formatDistanceToNow as _formatDistanceToNow,
 } from "date-fns";
 import { he } from "date-fns/locale";
 
@@ -88,4 +89,10 @@ export function formatFullDate(date: Date = new Date()): string {
 export function formatDateTime(date: Date | string, withTime = false): string {
   const d = new Date(date);
   return format(d, withTime ? "d בMMM, HH:mm" : "d בMMM", { locale: he });
+}
+
+export function formatDistanceToNow(date: Date | string): string {
+  const d = new Date(date);
+  if (d.getTime() <= Date.now()) return "עכשיו";
+  return _formatDistanceToNow(d, { addSuffix: true, locale: he });
 }

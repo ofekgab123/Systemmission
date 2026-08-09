@@ -85,11 +85,18 @@ export function DayCalendarMini({
   });
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(day)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(day);
+        }
+      }}
       className={cn(
-        "flex min-h-[72px] flex-col gap-1 bg-card p-1.5 text-start transition-colors md:min-h-[100px] md:p-2",
+        "flex min-h-[72px] cursor-pointer flex-col gap-1 bg-card p-1.5 text-start transition-colors md:min-h-[100px] md:p-2",
         selected && "ring-2 ring-inset ring-primary",
         isToday(day) && !selected && "bg-primary/5"
       )}
@@ -114,6 +121,6 @@ export function DayCalendarMini({
           <span className="text-xs text-muted-foreground">+{dayTasks.length - 4}</span>
         )}
       </div>
-    </button>
+    </div>
   );
 }

@@ -55,7 +55,8 @@ export const ModelName = {
   Project: 'Project',
   Tag: 'Tag',
   Task: 'Task',
-  Activity: 'Activity'
+  Activity: 'Activity',
+  StickyNote: 'StickyNote'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -159,6 +160,19 @@ export const ActivityScalarFieldEnum = {
 } as const
 
 export type ActivityScalarFieldEnum = (typeof ActivityScalarFieldEnum)[keyof typeof ActivityScalarFieldEnum]
+
+
+export const StickyNoteScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  color: 'color',
+  dismissed: 'dismissed',
+  nextAlertAt: 'nextAlertAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StickyNoteScalarFieldEnum = (typeof StickyNoteScalarFieldEnum)[keyof typeof StickyNoteScalarFieldEnum]
 
 
 export const SortOrder = {

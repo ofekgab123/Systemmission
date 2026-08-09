@@ -9,6 +9,7 @@ import { TaskEditSheet } from "@/components/task/task-edit-sheet";
 import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { CommandBar } from "@/components/command/command-bar";
 import { NewCategoryModal } from "@/components/category/new-category-modal";
+import { StickyNoteAlerts } from "@/components/sticky-notes/sticky-note-alerts";
 import { FontScaleControl } from "@/components/accessibility/font-scale-control";
 import { useGlobalKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
@@ -29,6 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <QuickAddModal />
       <NewCategoryModal />
       <CommandBar />
+      <StickyNoteAlerts />
       <FontScaleControl />
     </div>
   );

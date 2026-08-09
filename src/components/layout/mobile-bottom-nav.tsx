@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sun, Inbox as InboxIcon, Folder, Search as SearchIcon, Plus } from "lucide-react";
+import { Sun, StickyNote, Folder, Search as SearchIcon, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
-import { useTasks } from "@/hooks/use-tasks";
+import { useStickyNotes } from "@/hooks/use-sticky-notes";
 import { he } from "@/lib/i18n/he";
 
 const tabs = [
   { href: "/today", label: he.nav.today, icon: Sun },
-  { href: "/inbox", label: he.nav.inbox, icon: InboxIcon, countKey: "/inbox" as const },
+  { href: "/dont-forget", label: he.nav.inbox, icon: StickyNote, countKey: "/dont-forget" as const },
   { href: "/projects", label: he.nav.projects, icon: Folder },
   { href: "/search", label: he.nav.search, icon: SearchIcon },
 ];
@@ -18,10 +18,10 @@ const tabs = [
 export function MobileBottomNav() {
   const pathname = usePathname();
   const openQuickAdd = useUIStore((s) => s.openQuickAdd);
-  const { data: inboxTasks } = useTasks({ view: "inbox" });
+  const { data: stickyNotes } = useStickyNotes({ active: true });
 
   const counts: Record<string, number | undefined> = {
-    "/inbox": inboxTasks?.length,
+    "/dont-forget": stickyNotes?.length,
   };
 
   return (

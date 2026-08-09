@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   Sun,
-  Inbox as InboxIcon,
+  StickyNote,
   ListTodo,
   Folder,
   CalendarDays,
@@ -19,13 +19,14 @@ import {
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { Button } from "@/components/ui/button";
+import { useStickyNotes } from "@/hooks/use-sticky-notes";
 import { useTasks } from "@/hooks/use-tasks";
 import { he } from "@/lib/i18n/he";
 
 const mainNav = [
   { href: "/", label: he.nav.home, icon: Home },
   { href: "/today", label: he.nav.today, icon: Sun },
-  { href: "/inbox", label: he.nav.inbox, icon: InboxIcon },
+  { href: "/dont-forget", label: he.nav.inbox, icon: StickyNote },
   { href: "/tasks", label: he.nav.myTasks, icon: ListTodo },
   { href: "/calendar", label: he.nav.calendar, icon: CalendarDays },
   { href: "/projects", label: he.nav.projects, icon: Folder },
@@ -36,14 +37,14 @@ const mainNav = [
 
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { data: inboxTasks } = useTasks({ view: "inbox" });
+  const { data: stickyNotes } = useStickyNotes({ active: true });
   const { data: waitingTasks } = useTasks({ view: "waiting" });
   const { data: blockedTasks } = useTasks({ view: "blocked" });
   const openQuickAdd = useUIStore((s) => s.openQuickAdd);
   const setCommandOpen = useUIStore((s) => s.setCommandOpen);
 
   const counts: Record<string, number | undefined> = {
-    "/inbox": inboxTasks?.length,
+    "/dont-forget": stickyNotes?.length,
     "/waiting": waitingTasks?.length,
     "/blocked": blockedTasks?.length,
   };

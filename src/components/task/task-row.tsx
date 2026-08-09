@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, PlayCircle, Clock, Ban, CalendarClock, Trash2, Pencil } from "lucide-react";
+import { MoreHorizontal, PlayCircle, StopCircle, Clock, Ban, CalendarClock, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskCheckbox } from "@/components/task/task-checkbox";
 import { PriorityBadge } from "@/components/task/priority-badge";
@@ -53,14 +53,29 @@ export function TaskRow({
     );
   };
 
-  const handleToggleStarted = () => {
+  const handlePlayStop = () => {
     if (done) return;
-    const next = !started;
-    setOptimisticStarted(next);
+
+    if (started) {
+      setOptimisticDone(true);
+      setOptimisticStarted(false);
+      updateTask.mutate(
+        { id: task.id, data: { status: "DONE" } },
+        {
+          onError: () => {
+            setOptimisticDone(false);
+            setOptimisticStarted(true);
+          },
+        }
+      );
+      return;
+    }
+
+    setOptimisticStarted(true);
     updateTask.mutate(
-      { id: task.id, data: { status: next ? "IN_PROGRESS" : "READY" } },
+      { id: task.id, data: { status: "IN_PROGRESS" } },
       {
-        onError: () => setOptimisticStarted(!next),
+        onError: () => setOptimisticStarted(false),
       }
     );
   };
@@ -79,12 +94,12 @@ export function TaskRow({
   return (
     <div
       className={cn(
-        "group flex items-start gap-3 px-3 transition-colors hover:bg-accent/30 active:bg-accent/50",
+        "group flex items-start gap-2 px-3 transition-colors hover:bg-accent/30 active:bg-accent/50",
         started && !done && "bg-primary/[0.03]",
         dense ? "py-2.5" : "py-3"
       )}
     >
-      <div className="shrink-0 pt-0.5">
+      <div className="mt-1 shrink-0">
         <TaskCheckbox checked={done} onCheckedChange={handleToggleDone} />
       </div>
 
@@ -92,11 +107,11 @@ export function TaskRow({
         <button
           type="button"
           onClick={() => openTaskPanel(task.id)}
-          className="w-full text-start"
+          className="w-full min-w-0 text-start"
         >
           <span
             className={cn(
-              "block text-base leading-snug font-medium transition-smooth",
+              "block truncate text-base leading-snug font-medium transition-smooth",
               done ? "text-muted-foreground line-through" : "text-foreground"
             )}
           >
@@ -140,12 +155,12 @@ export function TaskRow({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 pt-0.5">
+      <div className="flex shrink-0 flex-nowrap items-center gap-0.5 self-start pt-0.5">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="size-9 rounded-lg text-muted-foreground opacity-100 md:opacity-70 md:group-hover:opacity-100"
+          className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
           aria-label={he.task.editTask}
           onClick={() => openTaskEdit(task.id)}
         >
@@ -157,15 +172,22 @@ export function TaskRow({
           variant={started && !done ? "default" : "outline"}
           size="sm"
           className={cn(
-            "h-9 shrink-0 gap-1 rounded-full px-3 text-xs font-medium",
+            "h-8 shrink-0 gap-1 rounded-full px-2 text-xs font-medium sm:h-9 sm:px-3",
             started && !done && "shadow-sm"
           )}
-          onClick={handleToggleStarted}
+          onClick={handlePlayStop}
           disabled={done}
           aria-pressed={started && !done}
+          aria-label={started && !done ? he.task.stopAndComplete : he.task.started}
         >
-          <PlayCircle className="size-3.5" />
-          {he.task.started}
+          {started && !done ? (
+            <StopCircle className="size-3.5 shrink-0" />
+          ) : (
+            <PlayCircle className="size-3.5 shrink-0" />
+          )}
+          <span className="hidden sm:inline">
+            {started && !done ? he.task.stopAndComplete : he.task.started}
+          </span>
         </Button>
 
         <DropdownMenu>
@@ -174,7 +196,7 @@ export function TaskRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-9 rounded-lg text-muted-foreground opacity-100 md:opacity-70 md:group-hover:opacity-100"
+                className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
                 aria-label={he.actions.more}
               />
             }

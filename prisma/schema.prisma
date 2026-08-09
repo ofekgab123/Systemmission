@@ -204,3 +204,16 @@ model Activity {
   @@index([projectId])
   @@index([createdAt])
 }
+
+model StickyNote {
+  id          String   @id @default(cuid())
+  content     String
+  color       String   @default("#fef08a")
+  dismissed   Boolean  @default(false)
+  nextAlertAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([dismissed])
+  @@index([nextAlertAt])
+}

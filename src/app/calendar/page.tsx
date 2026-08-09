@@ -6,8 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { MonthCalendar } from "@/components/calendar/month-calendar";
 import { WeekCalendar } from "@/components/calendar/week-calendar";
 import { DayCalendar } from "@/components/calendar/day-calendar";
-import { CalendarToolbar } from "@/components/calendar/calendar-toolbar";
-import { CalendarLegend } from "@/components/calendar/calendar-legend";
+import { CalendarControls } from "@/components/calendar/calendar-controls";
 import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
@@ -22,19 +21,12 @@ import {
   type CalendarViewMode,
 } from "@/lib/calendar-utils";
 import { PRIORITY_META } from "@/lib/task-meta";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
 import type { TaskWithRelations } from "@/types";
 import type { TaskStatus } from "@/generated/prisma/enums";
 
 type CalendarStatusFilter = Extract<TaskStatus, "DONE" | "BLOCKED" | "WAITING">;
-
-const STATUS_FILTERS: { id: CalendarStatusFilter; label: string }[] = [
-  { id: "DONE", label: he.views.completed },
-  { id: "BLOCKED", label: he.views.blocked },
-  { id: "WAITING", label: he.views.waiting },
-];
 
 export default function CalendarPage() {
   const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
@@ -127,7 +119,7 @@ export default function CalendarPage() {
         actions={<AddTaskButton className="gap-2" />}
       />
       <div className="page-content flex flex-col gap-6">
-        <CalendarToolbar
+        <CalendarControls
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           anchorDate={anchorDate}
@@ -135,24 +127,11 @@ export default function CalendarPage() {
           onPrev={() => handleNavigate(-1)}
           onNext={() => handleNavigate(1)}
           onToday={handleToday}
+          statusFilters={statusFilters}
+          onToggleStatusFilter={toggleStatusFilter}
+          tasks={visibleTasks}
+          onTaskClick={openTaskPanel}
         />
-
-        <div className="flex flex-wrap items-center gap-1">
-          <span className="me-2 text-xs text-muted-foreground">{he.calendar.filterBy}</span>
-          {STATUS_FILTERS.map((filter) => (
-            <Button
-              key={filter.id}
-              variant={statusFilters.has(filter.id) ? "secondary" : "outline"}
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => toggleStatusFilter(filter.id)}
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
-
-        <CalendarLegend tasks={visibleTasks} onTaskClick={openTaskPanel} />
 
         {isLoading ? (
           <TaskListSkeleton rows={8} />

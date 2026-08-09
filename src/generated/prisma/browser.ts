@@ -42,3 +42,8 @@ export type Task = Prisma.TaskModel
  * 
  */
 export type Activity = Prisma.ActivityModel
+/**
+ * Model StickyNote
+ * 
+ */
+export type StickyNote = Prisma.StickyNoteModel

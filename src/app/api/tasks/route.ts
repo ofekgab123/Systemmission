@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     data: {
       title: body.title,
       description: body.description ?? null,
-      status: body.status ?? "INBOX",
+      status: body.status ?? "READY",
       priority: body.priority ?? "P3",
       impact: body.impact ?? null,
       urgency: body.urgency ?? null,
