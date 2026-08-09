@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Trash2, ListTree, StickyNote, ArrowRight } from "lucide-react";
 import {
@@ -39,6 +39,8 @@ type ActionMode = null | "subtask" | "note";
 
 export function TaskPanel() {
   const taskId = useUIStore((s) => s.taskPanelId);
+  const taskPanelMode = useUIStore((s) => s.taskPanelMode);
+  const setTaskPanelMode = useUIStore((s) => s.setTaskPanelMode);
   const close = useUIStore((s) => s.closeTaskPanel);
   const { data: task, isLoading } = useTask(taskId);
   const updateTask = useUpdateTask();
@@ -54,25 +56,18 @@ export function TaskPanel() {
   const [subtaskSubmitted, setSubtaskSubmitted] = useState(false);
 
   const [noteText, setNoteText] = useState("");
-  const autoWaitingRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!taskId) {
       setMode(null);
       resetSubtaskForm();
       setNoteText("");
-      autoWaitingRef.current = null;
+      return;
     }
-  }, [taskId]);
 
-  useEffect(() => {
-    if (!taskId || !task) return;
-    if (["WAITING", "DONE", "CANCELLED", "IN_PROGRESS"].includes(task.status)) return;
-    if (autoWaitingRef.current === taskId) return;
-
-    autoWaitingRef.current = taskId;
-    updateTask.mutate({ id: task.id, data: { status: "WAITING" } });
-  }, [taskId, task, updateTask]);
+    setMode(taskPanelMode);
+    if (taskPanelMode !== "note") setNoteText("");
+  }, [taskId, taskPanelMode]);
 
   const resetSubtaskForm = () => {
     setSubtaskTitle("");
@@ -218,12 +213,18 @@ export function TaskPanel() {
                   <ActionTile
                     icon={ListTree}
                     label={he.task.addSubtaskAction}
-                    onClick={() => setMode("subtask")}
+                    onClick={() => {
+                      setTaskPanelMode("subtask");
+                      setMode("subtask");
+                    }}
                   />
                   <ActionTile
                     icon={StickyNote}
                     label={he.task.addNote}
-                    onClick={() => setMode("note")}
+                    onClick={() => {
+                      setTaskPanelMode("note");
+                      setMode("note");
+                    }}
                   />
                 </div>
               </div>
@@ -237,6 +238,7 @@ export function TaskPanel() {
                   size="sm"
                   className="w-fit gap-1 px-0 text-muted-foreground hover:bg-transparent"
                   onClick={() => {
+                    setTaskPanelMode(null);
                     setMode(null);
                     resetSubtaskForm();
                   }}
@@ -290,6 +292,7 @@ export function TaskPanel() {
                   size="sm"
                   className="w-fit gap-1 px-0 text-muted-foreground hover:bg-transparent"
                   onClick={() => {
+                    setTaskPanelMode(null);
                     setMode(null);
                     setNoteText("");
                   }}
@@ -299,6 +302,25 @@ export function TaskPanel() {
                 </Button>
 
                 <div className="flex flex-col gap-3">
+                  {notes.length > 0 && (
+                    <div className="flex max-h-40 flex-col gap-2 overflow-y-auto">
+                      {notes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="rounded-lg border bg-muted/30 px-3 py-2 text-sm"
+                        >
+                          <p>{note.message}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(note.createdAt), {
+                              addSuffix: true,
+                              locale: dateHe,
+                            })}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <Label className="text-sm font-medium">{he.task.addNoteTitle}</Label>
                   <Textarea
                     value={noteText}

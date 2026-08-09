@@ -2,7 +2,9 @@ import { create } from "zustand";
 
 interface UIState {
   taskPanelId: string | null;
-  openTaskPanel: (id: string) => void;
+  taskPanelMode: "subtask" | "note" | null;
+  openTaskPanel: (id: string, mode?: "subtask" | "note") => void;
+  setTaskPanelMode: (mode: "subtask" | "note" | null) => void;
   closeTaskPanel: () => void;
 
   taskEditId: string | null;
@@ -27,8 +29,10 @@ interface UIState {
 
 export const useUIStore = create<UIState>((set) => ({
   taskPanelId: null,
-  openTaskPanel: (id) => set({ taskPanelId: id }),
-  closeTaskPanel: () => set({ taskPanelId: null }),
+  taskPanelMode: null,
+  openTaskPanel: (id, mode = null) => set({ taskPanelId: id, taskPanelMode: mode }),
+  setTaskPanelMode: (mode) => set({ taskPanelMode: mode }),
+  closeTaskPanel: () => set({ taskPanelId: null, taskPanelMode: null }),
 
   taskEditId: null,
   openTaskEdit: (id) => set({ taskEditId: id }),

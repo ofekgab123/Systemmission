@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, PlayCircle, StopCircle, Clock, Ban, CalendarClock, Trash2, Pencil } from "lucide-react";
+import { MoreHorizontal, PlayCircle, StopCircle, Clock, Ban, CalendarClock, Trash2, Pencil, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskCheckbox } from "@/components/task/task-checkbox";
 import { PriorityBadge } from "@/components/task/priority-badge";
@@ -156,6 +156,17 @@ export function TaskRow({
       </div>
 
       <div className="flex shrink-0 flex-nowrap items-center gap-0.5 self-start pt-0.5">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-8 rounded-lg text-muted-foreground sm:size-9 opacity-100 md:opacity-70 md:group-hover:opacity-100"
+          aria-label={he.task.addNote}
+          onClick={() => openTaskPanel(task.id, "note")}
+        >
+          <StickyNote className="size-4" />
+        </Button>
+
         <Button
           type="button"
           variant="ghost"

@@ -239,6 +239,12 @@ export const he = {
   },
   project: {
     open: "פתוחות",
+    tasks: "משימות",
+    backToProjects: "חזרה לקטגוריות",
+    notFound: "קטגוריה לא נמצאה",
+    notFoundDesc: "ייתכן שהקטגוריה נמחקה או שהקישור שגוי.",
+    noTasks: "אין משימות בקטגוריה",
+    noTasksDesc: "הוסף משימה ראשונה לקטגוריה זו.",
     activeProjects: "קטגוריות פעילות",
     atRisk: "קטגוריות בסיכון",
     noActivity: "ללא פעילות",
