@@ -7,6 +7,7 @@ import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { TaskPanel } from "@/components/task/task-panel";
 import { TaskEditSheet } from "@/components/task/task-edit-sheet";
 import { StatusContextPrompt } from "@/components/task/status-context-prompt";
+import { SomedayStatusPrompt } from "@/components/task/someday-status-prompt";
 import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { CommandBar } from "@/components/command/command-bar";
 import { NewCategoryModal } from "@/components/category/new-category-modal";
@@ -31,6 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <TaskPanel />
       <TaskEditSheet />
       <StatusContextPrompt />
+      <SomedayStatusPrompt />
       <QuickAddModal />
       <NewCategoryModal />
       <CommandBar />

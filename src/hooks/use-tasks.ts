@@ -154,11 +154,12 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete task");
+      if (!res.ok) throw new Error("Failed to cancel task");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["task", id] });
       qc.invalidateQueries({ queryKey: ["projects"] });
     },
   });

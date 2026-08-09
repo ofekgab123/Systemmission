@@ -4,6 +4,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { TaskCheckbox } from "@/components/task/task-checkbox";
 import { TaskRowActions } from "@/components/task/task-row-actions";
+import { TaskIncompleteIndicator } from "@/components/task/task-incomplete-indicator";
+import { TaskRecurrenceBadge } from "@/components/task/task-recurrence-badge";
 import { PriorityBadge } from "@/components/task/priority-badge";
 import { DueDateLabel } from "@/components/task/due-date-label";
 import { StatusBadge } from "@/components/task/status-badge";
@@ -63,14 +65,18 @@ export function TaskRow({
       </div>
 
       <div className="min-w-0 flex-1">
-        <span
-          className={cn(
-            "block truncate text-base leading-snug font-medium transition-smooth",
-            done ? "text-muted-foreground line-through" : "text-foreground"
-          )}
-        >
-          {task.title}
-        </span>
+        <div className="flex items-start gap-1.5">
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate text-base leading-snug font-medium transition-smooth",
+              done ? "text-muted-foreground line-through" : "text-foreground"
+            )}
+          >
+            {task.title}
+          </span>
+          {!done && <TaskIncompleteIndicator task={task} className="mt-0.5" />}
+          <TaskRecurrenceBadge task={task} className="mt-0.5" />
+        </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <PriorityBadge priority={task.priority} />
@@ -103,6 +109,12 @@ export function TaskRow({
           {task.status === "BLOCKED" && task.blockedReason && (
             <span className="max-w-[10rem] truncate rounded-full bg-status-red/10 px-2 py-0.5 text-xs text-status-red">
               {task.blockedReason}
+            </span>
+          )}
+
+          {task.status === "SOMEDAY" && task.somedayReason && (
+            <span className="max-w-[10rem] truncate rounded-full bg-status-gray/10 px-2 py-0.5 text-xs text-status-gray">
+              {task.somedayReason}
             </span>
           )}
         </div>

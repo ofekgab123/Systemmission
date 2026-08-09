@@ -115,3 +115,15 @@ export const ActivityType = {
 } as const
 
 export type ActivityType = (typeof ActivityType)[keyof typeof ActivityType]
+
+
+export const RecurrencePattern = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  BIWEEKLY: 'BIWEEKLY',
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY',
+  WEEKDAY: 'WEEKDAY'
+} as const
+
+export type RecurrencePattern = (typeof RecurrencePattern)[keyof typeof RecurrencePattern]

@@ -9,6 +9,7 @@ import type { TaskWithRelations } from "@/types";
 export function useTaskStatusChange() {
   const updateTask = useUpdateTask();
   const openStatusPrompt = useUIStore((s) => s.openStatusPrompt);
+  const openSomedayPrompt = useUIStore((s) => s.openSomedayPrompt);
 
   return useCallback(
     (
@@ -17,11 +18,16 @@ export function useTaskStatusChange() {
       currentStatus?: TaskWithRelations["status"],
       extra?: Record<string, unknown>
     ) => {
+      if (currentStatus !== newStatus && newStatus === "SOMEDAY") {
+        openSomedayPrompt(taskId);
+        return;
+      }
+
       updateTask.mutate({ id: taskId, data: { status: newStatus, ...extra } });
       if (currentStatus !== newStatus && statusNeedsContextPrompt(newStatus)) {
         openStatusPrompt(taskId, newStatus);
       }
     },
-    [updateTask, openStatusPrompt]
+    [updateTask, openStatusPrompt, openSomedayPrompt]
   );
 }

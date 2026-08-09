@@ -7,6 +7,7 @@ import {
   Sun,
   StickyNote,
   ListTodo,
+  ClipboardCheck,
   Folder,
   CalendarDays,
   CircleDot,
@@ -22,6 +23,7 @@ import { useUIStore } from "@/store/ui-store";
 import { Button } from "@/components/ui/button";
 import { useStickyNotes } from "@/hooks/use-sticky-notes";
 import { useTasks } from "@/hooks/use-tasks";
+import { useReviewTasks } from "@/hooks/use-review-tasks";
 import { DomainSwitcher } from "@/components/areas/domain-switcher";
 import { he } from "@/lib/i18n/he";
 
@@ -30,6 +32,7 @@ const mainNav = [
   { href: "/today", label: he.nav.today, icon: Sun },
   { href: "/dont-forget", label: he.nav.inbox, icon: StickyNote },
   { href: "/tasks", label: he.nav.myTasks, icon: ListTodo },
+  { href: "/needs-review", label: he.nav.needsReview, icon: ClipboardCheck, badge: "primary" as const },
   { href: "/calendar", label: he.nav.calendar, icon: CalendarDays },
   { href: "/projects", label: he.nav.projects, icon: Folder },
   { href: "/ready", label: he.nav.ready, icon: CircleDot },
@@ -44,11 +47,13 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { data: readyTasks } = useTasks({ view: "ready" });
   const { data: waitingTasks } = useTasks({ view: "waiting" });
   const { data: blockedTasks } = useTasks({ view: "blocked" });
+  const { count: reviewCount } = useReviewTasks();
   const openQuickAdd = useUIStore((s) => s.openQuickAdd);
   const setCommandOpen = useUIStore((s) => s.setCommandOpen);
 
   const counts: Record<string, number | undefined> = {
     "/dont-forget": stickyNotes?.length,
+    "/needs-review": reviewCount,
     "/ready": readyTasks?.length,
     "/waiting": waitingTasks?.length,
     "/blocked": blockedTasks?.length,
@@ -92,6 +97,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           {mainNav.map((item) => {
             const active = pathname === item.href;
             const count = counts[item.href];
+            const showPrimaryBadge = "badge" in item && item.badge === "primary" && !!count;
             return (
               <Link
                 key={item.href}
@@ -106,10 +112,16 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <item.icon className="size-5" />
                 {item.label}
-                {!!count && (
-                  <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    {count}
+                {showPrimaryBadge ? (
+                  <span className="ms-auto flex size-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-foreground">
+                    {count > 99 ? "99+" : count}
                   </span>
+                ) : (
+                  !!count && (
+                    <span className="ms-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {count}
+                    </span>
+                  )
                 )}
               </Link>
             );

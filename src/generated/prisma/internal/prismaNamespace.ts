@@ -1042,9 +1042,12 @@ export const TaskScalarFieldEnum = {
   startDate: 'startDate',
   dueDate: 'dueDate',
   scheduledAt: 'scheduledAt',
+  recurrencePattern: 'recurrencePattern',
+  recurrenceWeekday: 'recurrenceWeekday',
   waitingFor: 'waitingFor',
   followUpDate: 'followUpDate',
   blockedReason: 'blockedReason',
+  somedayReason: 'somedayReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   completedAt: 'completedAt',
@@ -1296,6 +1299,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RecurrencePattern'
+ */
+export type EnumRecurrencePatternFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurrencePattern'>
+    
+
+
+/**
+ * Reference to a field of type 'RecurrencePattern[]'
+ */
+export type ListEnumRecurrencePatternFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurrencePattern[]'>
     
 
 

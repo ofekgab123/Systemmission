@@ -25,6 +25,8 @@ import {
   TASK_STATUS_META,
   PRIORITY_META,
   SELECTABLE_PRIORITIES,
+  EDITABLE_TASK_STATUSES,
+  normalizeTaskStatus,
 } from "@/lib/task-meta";
 import { useTask, useUpdateTask, useDeleteTask, useCreateTask, useUpdateActivity } from "@/hooks/use-tasks";
 import { useTaskStatusChange } from "@/hooks/use-task-status-change";
@@ -39,6 +41,9 @@ import { AddImagePicker } from "@/components/ui/add-image-picker";
 import { TaskImageGallery } from "@/components/task/task-image-gallery";
 import { pendingImagePayload, revokePendingImages, type PendingImage } from "@/lib/image-utils";
 import type { TaskAttachment } from "@/types";
+import { TaskRecurrenceFields } from "@/components/task/task-recurrence-fields";
+import type { RecurrencePattern } from "@/generated/prisma/enums";
+import { isRecurrenceValid, recurrencePayload } from "@/lib/task-recurrence";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,12 +56,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const statusOptions = Object.entries(TASK_STATUS_META)
-  .filter(([value]) => value !== "SOMEDAY")
-  .map(([value, meta]) => ({
-    value: value as keyof typeof TASK_STATUS_META,
-    label: meta.label,
-  }));
+const statusOptions = EDITABLE_TASK_STATUSES.map((value) => ({
+  value,
+  label: TASK_STATUS_META[value].label,
+}));
 const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
   value,
   label: PRIORITY_META[value].label,
@@ -80,6 +83,9 @@ export function TaskEditSheet() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [recurring, setRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern | null>(null);
+  const [recurrenceWeekday, setRecurrenceWeekday] = useState<number | null>(null);
   const [tab, setTab] = useState<EditTab>("edit");
 
   useEffect(() => {
@@ -90,8 +96,20 @@ export function TaskEditSheet() {
     if (task) {
       setTitle(task.title);
       setDescription(task.description ?? "");
+      setRecurring(!!task.recurrencePattern);
+      setRecurrencePattern(task.recurrencePattern ?? null);
+      setRecurrenceWeekday(task.recurrenceWeekday ?? null);
     }
-  }, [task?.id, task?.title, task?.description]);
+  }, [task?.id, task?.title, task?.description, task?.recurrencePattern, task?.recurrenceWeekday]);
+
+  const applyRecurrence = (
+    enabled: boolean,
+    pattern: RecurrencePattern | null,
+    weekday: number | null
+  ) => {
+    if (!isRecurrenceValid(enabled, pattern, weekday)) return;
+    patch(recurrencePayload(enabled, pattern, weekday));
+  };
 
   if (!taskId) return null;
 
@@ -199,7 +217,7 @@ export function TaskEditSheet() {
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Field label={he.task.status}>
                       <EnumSelect
-                        value={task.status}
+                        value={normalizeTaskStatus(task.status)}
                         onChange={(v) => changeStatus(taskId, v, task.status)}
                         options={statusOptions}
                       />
@@ -232,6 +250,32 @@ export function TaskEditSheet() {
                     </Field>
                   </div>
 
+                  <Field label={he.quickAdd.formRecurring}>
+                    <TaskRecurrenceFields
+                      enabled={recurring}
+                      onEnabledChange={(enabled) => {
+                        const nextPattern = enabled ? recurrencePattern ?? "WEEKLY" : null;
+                        setRecurring(enabled);
+                        if (enabled && !recurrencePattern) setRecurrencePattern("WEEKLY");
+                        if (!enabled) {
+                          setRecurrencePattern(null);
+                          setRecurrenceWeekday(null);
+                        }
+                        applyRecurrence(enabled, nextPattern, enabled ? recurrenceWeekday : null);
+                      }}
+                      pattern={recurrencePattern}
+                      onPatternChange={(pattern) => {
+                        setRecurrencePattern(pattern);
+                        applyRecurrence(recurring, pattern, recurrenceWeekday);
+                      }}
+                      weekday={recurrenceWeekday}
+                      onWeekdayChange={(weekday) => {
+                        setRecurrenceWeekday(weekday);
+                        applyRecurrence(recurring, recurrencePattern, weekday);
+                      }}
+                    />
+                  </Field>
+
                   {task.status === "WAITING" && (
                     <div className="grid grid-cols-2 gap-3 rounded-lg border border-status-yellow/20 bg-status-yellow/5 p-3">
                       <Field label={he.task.waitingFor}>
@@ -256,6 +300,19 @@ export function TaskEditSheet() {
                           placeholder={he.task.blockedReasonPlaceholder}
                           className="h-8 text-xs"
                           onBlur={(e) => patch({ blockedReason: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                  )}
+
+                  {task.status === "SOMEDAY" && (
+                    <div className="rounded-lg border border-status-gray/20 bg-status-gray/5 p-3">
+                      <Field label={he.task.somedayReason}>
+                        <Input
+                          defaultValue={task.somedayReason ?? ""}
+                          placeholder={he.task.somedayReasonPlaceholder}
+                          className="h-8 text-xs"
+                          onBlur={(e) => patch({ somedayReason: e.target.value || null })}
                         />
                       </Field>
                     </div>

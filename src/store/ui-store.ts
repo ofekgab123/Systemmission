@@ -33,6 +33,10 @@ interface UIState {
   statusPrompt: { taskId: string; status: StatusContextType } | null;
   openStatusPrompt: (taskId: string, status: StatusContextType) => void;
   closeStatusPrompt: () => void;
+
+  somedayPrompt: { taskId: string } | null;
+  openSomedayPrompt: (taskId: string) => void;
+  closeSomedayPrompt: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -74,4 +78,8 @@ export const useUIStore = create<UIState>((set) => ({
   statusPrompt: null,
   openStatusPrompt: (taskId, status) => set({ statusPrompt: { taskId, status } }),
   closeStatusPrompt: () => set({ statusPrompt: null }),
+
+  somedayPrompt: null,
+  openSomedayPrompt: (taskId) => set({ somedayPrompt: { taskId } }),
+  closeSomedayPrompt: () => set({ somedayPrompt: null }),
 }));

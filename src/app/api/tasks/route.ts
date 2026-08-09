@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { startOfToday, endOfToday, nextNDays } from "@/lib/date-utils";
 import { attachmentCreates, parseImageUploads } from "@/lib/task-attachments";
+import { taskStatusFromViewSlug } from "@/lib/task-meta";
 
 const taskInclude = {
   project: { include: { area: true } },
@@ -48,19 +49,9 @@ export async function GET(req: NextRequest) {
   } else if (view === "upcoming") {
     where.dueDate = { gte: startOfToday(), lte: nextNDays(7) };
     where.status = { notIn: ["DONE", "CANCELLED"] };
-  } else if (view === "ready") {
-    where.status = "READY";
-  } else if (view === "waiting") {
-    where.status = "WAITING";
-  } else if (view === "blocked") {
-    where.status = "BLOCKED";
-  } else if (view === "inbox") {
-    where.status = "INBOX";
   } else if (view === "no-deadline") {
     where.dueDate = null;
     where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY"] };
-  } else if (view === "completed") {
-    where.status = "DONE";
   } else if (view === "calendar") {
     const from = params.get("from");
     const to = params.get("to");
@@ -71,6 +62,11 @@ export async function GET(req: NextRequest) {
       ];
     }
     where.status = { notIn: ["CANCELLED"] };
+  } else if (view) {
+    const statusFromView = taskStatusFromViewSlug(view);
+    if (statusFromView) {
+      where.status = statusFromView;
+    }
   }
 
   const q = params.get("q");
@@ -133,6 +129,8 @@ export async function POST(req: NextRequest) {
       projectId: body.projectId ?? null,
       areaId: body.areaId ?? null,
       parentTaskId: body.parentTaskId ?? null,
+      recurrencePattern: body.recurrencePattern ?? null,
+      recurrenceWeekday: body.recurrencePattern === "WEEKDAY" ? (body.recurrenceWeekday ?? null) : null,
       ...(body.createdAt ? { createdAt: new Date(body.createdAt) } : {}),
       tags: tags.length ? { connect: tags.map((t) => ({ id: t.id })) } : undefined,
       activities: {

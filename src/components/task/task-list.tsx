@@ -3,8 +3,7 @@
 import { TaskRow } from "@/components/task/task-row";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TaskWithRelations } from "@/types";
-import { TASK_STATUS_META, STATUS_COLOR_CLASSES } from "@/lib/task-meta";
-import type { TaskStatus } from "@/generated/prisma/enums";
+import { TASK_STATUS_META, STATUS_COLOR_CLASSES, USER_TASK_STATUSES, normalizeTaskStatus } from "@/lib/task-meta";
 import { he } from "@/lib/i18n/he";
 import { cn } from "@/lib/utils";
 
@@ -98,21 +97,12 @@ export function GroupedTaskList({
   emptyAction?: React.ReactNode;
 }) {
   void groupBy;
-  const order: TaskStatus[] = [
-    "IN_PROGRESS",
-    "READY",
-    "PLANNED",
-    "SCHEDULED",
-    "WAITING",
-    "BLOCKED",
-    "REVIEW",
-    "INBOX",
-    "SOMEDAY",
-    "DONE",
-    "CANCELLED",
-  ];
+  const order = USER_TASK_STATUSES;
   const groups = order
-    .map((status) => ({ status, items: tasks.filter((t) => t.status === status) }))
+    .map((status) => ({
+      status,
+      items: tasks.filter((t) => normalizeTaskStatus(t.status) === status),
+    }))
     .filter((g) => g.items.length > 0);
 
   if (groups.length === 0) {

@@ -8,14 +8,10 @@ import {
   ProjectStatus,
 } from "@/generated/prisma/enums";
 import {
-  Inbox,
-  CalendarClock,
   CircleDot,
   PlayCircle,
   Clock,
   Ban,
-  Eye,
-  CalendarDays,
   Archive,
   CheckCircle2,
   XCircle,
@@ -30,6 +26,22 @@ export type StatusColor =
   | "blue"
   | "purple"
   | "gray";
+
+export type UserTaskStatus = Extract<
+  TaskStatus,
+  "READY" | "IN_PROGRESS" | "WAITING" | "BLOCKED" | "SOMEDAY" | "DONE" | "CANCELLED"
+>;
+
+/** הסטטוסים הזמינים בממשק */
+export const USER_TASK_STATUSES: UserTaskStatus[] = [
+  "READY",
+  "IN_PROGRESS",
+  "WAITING",
+  "BLOCKED",
+  "SOMEDAY",
+  "DONE",
+  "CANCELLED",
+];
 
 export const STATUS_COLOR_CLASSES: Record<
   StatusColor,
@@ -80,21 +92,9 @@ export const STATUS_COLOR_CLASSES: Record<
 };
 
 export const TASK_STATUS_META: Record<
-  TaskStatus,
+  UserTaskStatus,
   { label: string; color: StatusColor; icon: LucideIcon; description: string }
 > = {
-  INBOX: {
-    label: "תיבת נכנס",
-    color: "gray",
-    icon: Inbox,
-    description: "עדיין לא סודר",
-  },
-  PLANNED: {
-    label: "מתוכנן",
-    color: "gray",
-    icon: CalendarClock,
-    description: "מתוכנן, טרם התחיל",
-  },
   READY: {
     label: "מוכן",
     color: "blue",
@@ -119,18 +119,6 @@ export const TASK_STATUS_META: Record<
     icon: Ban,
     description: "לא ניתן להתקדם",
   },
-  REVIEW: {
-    label: "בבדיקה",
-    color: "purple",
-    icon: Eye,
-    description: "הושלם, דורש בדיקה",
-  },
-  SCHEDULED: {
-    label: "מתוזמן",
-    color: "blue",
-    icon: CalendarDays,
-    description: "מתוזמן לזמן מסוים",
-  },
   SOMEDAY: {
     label: "מושהה",
     color: "gray",
@@ -151,19 +139,58 @@ export const TASK_STATUS_META: Record<
   },
 };
 
-export const ACTIVE_TASK_STATUSES: TaskStatus[] = [
-  "INBOX",
-  "PLANNED",
+export const ACTIVE_TASK_STATUSES: UserTaskStatus[] = [
   "READY",
   "IN_PROGRESS",
   "WAITING",
   "BLOCKED",
-  "REVIEW",
-  "SCHEDULED",
 ];
 
-/** סטטוסים לבחירה ב-UI (ללא SOMEDAY) */
-export const SELECTABLE_TASK_STATUSES: TaskStatus[] = ACTIVE_TASK_STATUSES;
+/** סטטוסים לבחירה בעריכת משימה */
+export const EDITABLE_TASK_STATUSES: UserTaskStatus[] = USER_TASK_STATUSES;
+
+/** סדר תצוגה במסנן "לפי סטטוס" בעמוד המשימות */
+export const TASK_FILTER_STATUSES: UserTaskStatus[] = USER_TASK_STATUSES;
+
+/** @deprecated use EDITABLE_TASK_STATUSES */
+export const SELECTABLE_TASK_STATUSES: UserTaskStatus[] = ACTIVE_TASK_STATUSES;
+
+const LEGACY_STATUS_MAP: Partial<Record<TaskStatus, UserTaskStatus>> = {
+  INBOX: "READY",
+  PLANNED: "READY",
+  SCHEDULED: "READY",
+  REVIEW: "DONE",
+};
+
+const LEGACY_VIEW_MAP: Record<string, UserTaskStatus> = {
+  inbox: "READY",
+  planned: "READY",
+  scheduled: "READY",
+  review: "DONE",
+  completed: "DONE",
+};
+
+export function normalizeTaskStatus(status: TaskStatus): UserTaskStatus {
+  if (USER_TASK_STATUSES.includes(status as UserTaskStatus)) {
+    return status as UserTaskStatus;
+  }
+  return LEGACY_STATUS_MAP[status] ?? "READY";
+}
+
+export function getTaskStatusMeta(status: TaskStatus) {
+  return TASK_STATUS_META[normalizeTaskStatus(status)];
+}
+
+export function taskStatusToViewSlug(status: UserTaskStatus): string {
+  return status.toLowerCase();
+}
+
+export function taskStatusFromViewSlug(view: string): UserTaskStatus | null {
+  const legacy = LEGACY_VIEW_MAP[view];
+  if (legacy) return legacy;
+  const status = view.toUpperCase() as UserTaskStatus;
+  return USER_TASK_STATUSES.includes(status) ? status : null;
+}
 
 export const SELECTABLE_PRIORITIES: Priority[] = ["P0", "P1", "P2", "P3"];
 

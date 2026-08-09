@@ -6,7 +6,7 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-const PRISMA_CLIENT_VERSION = 2;
+const PRISMA_CLIENT_VERSION = 4;
 
 function createPrismaClient() {
   const adapter = new PrismaPg({

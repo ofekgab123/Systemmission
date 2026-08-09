@@ -29,11 +29,13 @@ export type AggregateTask = {
 export type TaskAvgAggregateOutputType = {
   estimatedMinutes: number | null
   actualMinutes: number | null
+  recurrenceWeekday: number | null
 }
 
 export type TaskSumAggregateOutputType = {
   estimatedMinutes: number | null
   actualMinutes: number | null
+  recurrenceWeekday: number | null
 }
 
 export type TaskMinAggregateOutputType = {
@@ -51,9 +53,12 @@ export type TaskMinAggregateOutputType = {
   startDate: Date | null
   dueDate: Date | null
   scheduledAt: Date | null
+  recurrencePattern: $Enums.RecurrencePattern | null
+  recurrenceWeekday: number | null
   waitingFor: string | null
   followUpDate: Date | null
   blockedReason: string | null
+  somedayReason: string | null
   createdAt: Date | null
   updatedAt: Date | null
   completedAt: Date | null
@@ -77,9 +82,12 @@ export type TaskMaxAggregateOutputType = {
   startDate: Date | null
   dueDate: Date | null
   scheduledAt: Date | null
+  recurrencePattern: $Enums.RecurrencePattern | null
+  recurrenceWeekday: number | null
   waitingFor: string | null
   followUpDate: Date | null
   blockedReason: string | null
+  somedayReason: string | null
   createdAt: Date | null
   updatedAt: Date | null
   completedAt: Date | null
@@ -103,9 +111,12 @@ export type TaskCountAggregateOutputType = {
   startDate: number
   dueDate: number
   scheduledAt: number
+  recurrencePattern: number
+  recurrenceWeekday: number
   waitingFor: number
   followUpDate: number
   blockedReason: number
+  somedayReason: number
   createdAt: number
   updatedAt: number
   completedAt: number
@@ -119,11 +130,13 @@ export type TaskCountAggregateOutputType = {
 export type TaskAvgAggregateInputType = {
   estimatedMinutes?: true
   actualMinutes?: true
+  recurrenceWeekday?: true
 }
 
 export type TaskSumAggregateInputType = {
   estimatedMinutes?: true
   actualMinutes?: true
+  recurrenceWeekday?: true
 }
 
 export type TaskMinAggregateInputType = {
@@ -141,9 +154,12 @@ export type TaskMinAggregateInputType = {
   startDate?: true
   dueDate?: true
   scheduledAt?: true
+  recurrencePattern?: true
+  recurrenceWeekday?: true
   waitingFor?: true
   followUpDate?: true
   blockedReason?: true
+  somedayReason?: true
   createdAt?: true
   updatedAt?: true
   completedAt?: true
@@ -167,9 +183,12 @@ export type TaskMaxAggregateInputType = {
   startDate?: true
   dueDate?: true
   scheduledAt?: true
+  recurrencePattern?: true
+  recurrenceWeekday?: true
   waitingFor?: true
   followUpDate?: true
   blockedReason?: true
+  somedayReason?: true
   createdAt?: true
   updatedAt?: true
   completedAt?: true
@@ -193,9 +212,12 @@ export type TaskCountAggregateInputType = {
   startDate?: true
   dueDate?: true
   scheduledAt?: true
+  recurrencePattern?: true
+  recurrenceWeekday?: true
   waitingFor?: true
   followUpDate?: true
   blockedReason?: true
+  somedayReason?: true
   createdAt?: true
   updatedAt?: true
   completedAt?: true
@@ -306,9 +328,12 @@ export type TaskGroupByOutputType = {
   startDate: Date | null
   dueDate: Date | null
   scheduledAt: Date | null
+  recurrencePattern: $Enums.RecurrencePattern | null
+  recurrenceWeekday: number | null
   waitingFor: string | null
   followUpDate: Date | null
   blockedReason: string | null
+  somedayReason: string | null
   createdAt: Date
   updatedAt: Date
   completedAt: Date | null
@@ -355,9 +380,12 @@ export type TaskWhereInput = {
   startDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   dueDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   scheduledAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
+  recurrencePattern?: Prisma.EnumRecurrencePatternNullableFilter<"Task"> | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.IntNullableFilter<"Task"> | number | null
   waitingFor?: Prisma.StringNullableFilter<"Task"> | string | null
   followUpDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   blockedReason?: Prisma.StringNullableFilter<"Task"> | string | null
+  somedayReason?: Prisma.StringNullableFilter<"Task"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
@@ -389,9 +417,12 @@ export type TaskOrderByWithRelationInput = {
   startDate?: Prisma.SortOrderInput | Prisma.SortOrder
   dueDate?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  recurrencePattern?: Prisma.SortOrderInput | Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrderInput | Prisma.SortOrder
   waitingFor?: Prisma.SortOrderInput | Prisma.SortOrder
   followUpDate?: Prisma.SortOrderInput | Prisma.SortOrder
   blockedReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  somedayReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -426,9 +457,12 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
   startDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   dueDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   scheduledAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
+  recurrencePattern?: Prisma.EnumRecurrencePatternNullableFilter<"Task"> | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.IntNullableFilter<"Task"> | number | null
   waitingFor?: Prisma.StringNullableFilter<"Task"> | string | null
   followUpDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   blockedReason?: Prisma.StringNullableFilter<"Task"> | string | null
+  somedayReason?: Prisma.StringNullableFilter<"Task"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
@@ -460,9 +494,12 @@ export type TaskOrderByWithAggregationInput = {
   startDate?: Prisma.SortOrderInput | Prisma.SortOrder
   dueDate?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  recurrencePattern?: Prisma.SortOrderInput | Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrderInput | Prisma.SortOrder
   waitingFor?: Prisma.SortOrderInput | Prisma.SortOrder
   followUpDate?: Prisma.SortOrderInput | Prisma.SortOrder
   blockedReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  somedayReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -494,9 +531,12 @@ export type TaskScalarWhereWithAggregatesInput = {
   startDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
   dueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
   scheduledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
+  recurrencePattern?: Prisma.EnumRecurrencePatternNullableWithAggregatesFilter<"Task"> | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.IntNullableWithAggregatesFilter<"Task"> | number | null
   waitingFor?: Prisma.StringNullableWithAggregatesFilter<"Task"> | string | null
   followUpDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
   blockedReason?: Prisma.StringNullableWithAggregatesFilter<"Task"> | string | null
+  somedayReason?: Prisma.StringNullableWithAggregatesFilter<"Task"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Task"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Task"> | Date | string
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
@@ -520,9 +560,12 @@ export type TaskCreateInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -551,9 +594,12 @@ export type TaskUncheckedCreateInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -582,9 +628,12 @@ export type TaskUpdateInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -613,9 +662,12 @@ export type TaskUncheckedUpdateInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -644,9 +696,12 @@ export type TaskCreateManyInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -670,9 +725,12 @@ export type TaskUpdateManyMutationInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -693,9 +751,12 @@ export type TaskUncheckedUpdateManyInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -734,9 +795,12 @@ export type TaskCountOrderByAggregateInput = {
   startDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
   scheduledAt?: Prisma.SortOrder
+  recurrencePattern?: Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrder
   waitingFor?: Prisma.SortOrder
   followUpDate?: Prisma.SortOrder
   blockedReason?: Prisma.SortOrder
+  somedayReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -748,6 +812,7 @@ export type TaskCountOrderByAggregateInput = {
 export type TaskAvgOrderByAggregateInput = {
   estimatedMinutes?: Prisma.SortOrder
   actualMinutes?: Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrder
 }
 
 export type TaskMaxOrderByAggregateInput = {
@@ -765,9 +830,12 @@ export type TaskMaxOrderByAggregateInput = {
   startDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
   scheduledAt?: Prisma.SortOrder
+  recurrencePattern?: Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrder
   waitingFor?: Prisma.SortOrder
   followUpDate?: Prisma.SortOrder
   blockedReason?: Prisma.SortOrder
+  somedayReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -791,9 +859,12 @@ export type TaskMinOrderByAggregateInput = {
   startDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
   scheduledAt?: Prisma.SortOrder
+  recurrencePattern?: Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrder
   waitingFor?: Prisma.SortOrder
   followUpDate?: Prisma.SortOrder
   blockedReason?: Prisma.SortOrder
+  somedayReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -805,6 +876,7 @@ export type TaskMinOrderByAggregateInput = {
 export type TaskSumOrderByAggregateInput = {
   estimatedMinutes?: Prisma.SortOrder
   actualMinutes?: Prisma.SortOrder
+  recurrenceWeekday?: Prisma.SortOrder
 }
 
 export type TaskScalarRelationFilter = {
@@ -998,6 +1070,10 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type NullableEnumRecurrencePatternFieldUpdateOperationsInput = {
+  set?: $Enums.RecurrencePattern | null
+}
+
 export type TaskUpdateOneWithoutSubtasksNestedInput = {
   create?: Prisma.XOR<Prisma.TaskCreateWithoutSubtasksInput, Prisma.TaskUncheckedCreateWithoutSubtasksInput>
   connectOrCreate?: Prisma.TaskCreateOrConnectWithoutSubtasksInput
@@ -1081,9 +1157,12 @@ export type TaskCreateWithoutAreaInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1111,9 +1190,12 @@ export type TaskUncheckedCreateWithoutAreaInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1170,9 +1252,12 @@ export type TaskScalarWhereInput = {
   startDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   dueDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   scheduledAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
+  recurrencePattern?: Prisma.EnumRecurrencePatternNullableFilter<"Task"> | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.IntNullableFilter<"Task"> | number | null
   waitingFor?: Prisma.StringNullableFilter<"Task"> | string | null
   followUpDate?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   blockedReason?: Prisma.StringNullableFilter<"Task"> | string | null
+  somedayReason?: Prisma.StringNullableFilter<"Task"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
@@ -1196,9 +1281,12 @@ export type TaskCreateWithoutIsNextActionForInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1226,9 +1314,12 @@ export type TaskUncheckedCreateWithoutIsNextActionForInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1261,9 +1352,12 @@ export type TaskCreateWithoutProjectInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1291,9 +1385,12 @@ export type TaskUncheckedCreateWithoutProjectInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1342,9 +1439,12 @@ export type TaskUpdateWithoutIsNextActionForInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1372,9 +1472,12 @@ export type TaskUncheckedUpdateWithoutIsNextActionForInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1418,9 +1521,12 @@ export type TaskCreateWithoutTagsInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1448,9 +1554,12 @@ export type TaskUncheckedCreateWithoutTagsInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1499,9 +1608,12 @@ export type TaskCreateWithoutSubtasksInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1529,9 +1641,12 @@ export type TaskUncheckedCreateWithoutSubtasksInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1564,9 +1679,12 @@ export type TaskCreateWithoutParentTaskInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1594,9 +1712,12 @@ export type TaskUncheckedCreateWithoutParentTaskInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1645,9 +1766,12 @@ export type TaskUpdateWithoutSubtasksInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1675,9 +1799,12 @@ export type TaskUncheckedUpdateWithoutSubtasksInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1721,9 +1848,12 @@ export type TaskCreateWithoutAttachmentsInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1751,9 +1881,12 @@ export type TaskUncheckedCreateWithoutAttachmentsInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1797,9 +1930,12 @@ export type TaskUpdateWithoutAttachmentsInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1827,9 +1963,12 @@ export type TaskUncheckedUpdateWithoutAttachmentsInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1857,9 +1996,12 @@ export type TaskCreateWithoutActivitiesInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1887,9 +2029,12 @@ export type TaskUncheckedCreateWithoutActivitiesInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -1933,9 +2078,12 @@ export type TaskUpdateWithoutActivitiesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1963,9 +2111,12 @@ export type TaskUncheckedUpdateWithoutActivitiesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1993,9 +2144,12 @@ export type TaskCreateManyAreaInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -2018,9 +2172,12 @@ export type TaskUpdateWithoutAreaInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2048,9 +2205,12 @@ export type TaskUncheckedUpdateWithoutAreaInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2078,9 +2238,12 @@ export type TaskUncheckedUpdateManyWithoutAreaInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2103,9 +2266,12 @@ export type TaskCreateManyProjectInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -2128,9 +2294,12 @@ export type TaskUpdateWithoutProjectInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2158,9 +2327,12 @@ export type TaskUncheckedUpdateWithoutProjectInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2188,9 +2360,12 @@ export type TaskUncheckedUpdateManyWithoutProjectInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2213,9 +2388,12 @@ export type TaskUpdateWithoutTagsInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2243,9 +2421,12 @@ export type TaskUncheckedUpdateWithoutTagsInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2273,9 +2454,12 @@ export type TaskUncheckedUpdateManyWithoutTagsInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2299,9 +2483,12 @@ export type TaskCreateManyParentTaskInput = {
   startDate?: Date | string | null
   dueDate?: Date | string | null
   scheduledAt?: Date | string | null
+  recurrencePattern?: $Enums.RecurrencePattern | null
+  recurrenceWeekday?: number | null
   waitingFor?: string | null
   followUpDate?: Date | string | null
   blockedReason?: string | null
+  somedayReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
@@ -2324,9 +2511,12 @@ export type TaskUpdateWithoutParentTaskInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2354,9 +2544,12 @@ export type TaskUncheckedUpdateWithoutParentTaskInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2384,9 +2577,12 @@ export type TaskUncheckedUpdateManyWithoutParentTaskInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recurrencePattern?: Prisma.NullableEnumRecurrencePatternFieldUpdateOperationsInput | $Enums.RecurrencePattern | null
+  recurrenceWeekday?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   waitingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  somedayReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2467,9 +2663,12 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   startDate?: boolean
   dueDate?: boolean
   scheduledAt?: boolean
+  recurrencePattern?: boolean
+  recurrenceWeekday?: boolean
   waitingFor?: boolean
   followUpDate?: boolean
   blockedReason?: boolean
+  somedayReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   completedAt?: boolean
@@ -2502,9 +2701,12 @@ export type TaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   startDate?: boolean
   dueDate?: boolean
   scheduledAt?: boolean
+  recurrencePattern?: boolean
+  recurrenceWeekday?: boolean
   waitingFor?: boolean
   followUpDate?: boolean
   blockedReason?: boolean
+  somedayReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   completedAt?: boolean
@@ -2531,9 +2733,12 @@ export type TaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   startDate?: boolean
   dueDate?: boolean
   scheduledAt?: boolean
+  recurrencePattern?: boolean
+  recurrenceWeekday?: boolean
   waitingFor?: boolean
   followUpDate?: boolean
   blockedReason?: boolean
+  somedayReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   completedAt?: boolean
@@ -2560,9 +2765,12 @@ export type TaskSelectScalar = {
   startDate?: boolean
   dueDate?: boolean
   scheduledAt?: boolean
+  recurrencePattern?: boolean
+  recurrenceWeekday?: boolean
   waitingFor?: boolean
   followUpDate?: boolean
   blockedReason?: boolean
+  somedayReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   completedAt?: boolean
@@ -2571,7 +2779,7 @@ export type TaskSelectScalar = {
   parentTaskId?: boolean
 }
 
-export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "status" | "priority" | "impact" | "urgency" | "energy" | "category" | "estimatedMinutes" | "actualMinutes" | "startDate" | "dueDate" | "scheduledAt" | "waitingFor" | "followUpDate" | "blockedReason" | "createdAt" | "updatedAt" | "completedAt" | "projectId" | "areaId" | "parentTaskId", ExtArgs["result"]["task"]>
+export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "status" | "priority" | "impact" | "urgency" | "energy" | "category" | "estimatedMinutes" | "actualMinutes" | "startDate" | "dueDate" | "scheduledAt" | "recurrencePattern" | "recurrenceWeekday" | "waitingFor" | "followUpDate" | "blockedReason" | "somedayReason" | "createdAt" | "updatedAt" | "completedAt" | "projectId" | "areaId" | "parentTaskId", ExtArgs["result"]["task"]>
 export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.Task$projectArgs<ExtArgs>
   area?: boolean | Prisma.Task$areaArgs<ExtArgs>
@@ -2621,9 +2829,12 @@ export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     startDate: Date | null
     dueDate: Date | null
     scheduledAt: Date | null
+    recurrencePattern: $Enums.RecurrencePattern | null
+    recurrenceWeekday: number | null
     waitingFor: string | null
     followUpDate: Date | null
     blockedReason: string | null
+    somedayReason: string | null
     createdAt: Date
     updatedAt: Date
     completedAt: Date | null
@@ -3075,9 +3286,12 @@ export interface TaskFieldRefs {
   readonly startDate: Prisma.FieldRef<"Task", 'DateTime'>
   readonly dueDate: Prisma.FieldRef<"Task", 'DateTime'>
   readonly scheduledAt: Prisma.FieldRef<"Task", 'DateTime'>
+  readonly recurrencePattern: Prisma.FieldRef<"Task", 'RecurrencePattern'>
+  readonly recurrenceWeekday: Prisma.FieldRef<"Task", 'Int'>
   readonly waitingFor: Prisma.FieldRef<"Task", 'String'>
   readonly followUpDate: Prisma.FieldRef<"Task", 'DateTime'>
   readonly blockedReason: Prisma.FieldRef<"Task", 'String'>
+  readonly somedayReason: Prisma.FieldRef<"Task", 'String'>
   readonly createdAt: Prisma.FieldRef<"Task", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Task", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"Task", 'DateTime'>

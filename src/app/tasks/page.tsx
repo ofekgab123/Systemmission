@@ -1,12 +1,17 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks } from "@/hooks/use-tasks";
 import { GroupedTaskList, TaskList, TaskListSkeleton } from "@/components/task/task-list";
+import {
+  TASK_FILTER_STATUSES,
+  TASK_STATUS_META,
+  taskStatusToViewSlug,
+} from "@/lib/task-meta";
 import { he } from "@/lib/i18n/he";
 
 const VIEW_GROUPS = [
@@ -22,12 +27,10 @@ const VIEW_GROUPS = [
   },
   {
     label: he.tasks.filters.status,
-    views: [
-      { value: "ready", label: he.views.ready },
-      { value: "waiting", label: he.views.waiting },
-      { value: "blocked", label: he.views.blocked },
-      { value: "completed", label: he.views.completed },
-    ],
+    views: TASK_FILTER_STATUSES.map((status) => ({
+      value: taskStatusToViewSlug(status),
+      label: TASK_STATUS_META[status].label,
+    })),
   },
 ] as const;
 
@@ -35,6 +38,17 @@ function TasksContent() {
   const router = useRouter();
   const params = useSearchParams();
   const view = params.get("view") ?? "all";
+
+  useEffect(() => {
+    const currentView = params.get("view");
+    if (currentView === "needs-review") {
+      router.replace("/needs-review");
+      return;
+    }
+    if (currentView === "completed") {
+      router.replace("/tasks?view=done");
+    }
+  }, [params, router]);
 
   const isAll = view === "all";
   const { data: tasks, isLoading } = useTasks(
@@ -53,19 +67,17 @@ function TasksContent() {
         {VIEW_GROUPS.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
             <span className="px-1 text-xs font-medium text-muted-foreground">{group.label}</span>
-            <div className="-mx-1 overflow-x-auto px-1 pb-0.5">
-              <TabsList className="inline-flex h-auto min-w-min gap-1.5 rounded-xl bg-muted/50 p-1.5">
-                {group.views.map((v) => (
-                  <TabsTrigger
-                    key={v.value}
-                    value={v.value}
-                    className="h-9 shrink-0 rounded-lg px-3.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                  >
-                    {v.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+            <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-1.5 rounded-xl border bg-muted/50 p-1.5">
+              {group.views.map((v) => (
+                <TabsTrigger
+                  key={v.value}
+                  value={v.value}
+                  className="h-9 flex-none shrink-0 rounded-lg px-3.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
+                  {v.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </div>
         ))}
       </Tabs>

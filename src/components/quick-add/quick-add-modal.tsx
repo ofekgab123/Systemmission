@@ -20,6 +20,7 @@ import { useUIStore } from "@/store/ui-store";
 import { useCreateTask } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { parseQuickAdd } from "@/lib/quick-add-parser";
+import { taskNeedsReview } from "@/lib/task-completeness";
 import { formatDateTime, startOfToday } from "@/lib/date-utils";
 import { EnumSelect } from "@/components/ui/enum-select";
 import { PRIORITY_META, SELECTABLE_PRIORITIES } from "@/lib/task-meta";
@@ -27,6 +28,12 @@ import { he } from "@/lib/i18n/he";
 import { QuickAddHelp } from "@/components/quick-add/quick-add-help";
 import { AddImagePicker } from "@/components/ui/add-image-picker";
 import { pendingImagePayload, revokePendingImages, type PendingImage } from "@/lib/image-utils";
+import { TaskRecurrenceFields } from "@/components/task/task-recurrence-fields";
+import type { RecurrencePattern } from "@/generated/prisma/enums";
+import {
+  isRecurrenceValid,
+  recurrencePayload,
+} from "@/lib/task-recurrence";
 
 const priorityOptions = SELECTABLE_PRIORITIES.map((value) => ({
   value,
@@ -57,6 +64,12 @@ export function QuickAddModal() {
   const [formCreatedDate, setFormCreatedDate] = useState<Date | null>(null);
   const [formProjectId, setFormProjectId] = useState("");
   const [formPriority, setFormPriority] = useState<string | null>(null);
+  const [formRecurring, setFormRecurring] = useState(false);
+  const [formRecurrencePattern, setFormRecurrencePattern] = useState<RecurrencePattern | null>(null);
+  const [formRecurrenceWeekday, setFormRecurrenceWeekday] = useState<number | null>(null);
+  const [quickRecurring, setQuickRecurring] = useState(false);
+  const [quickRecurrencePattern, setQuickRecurrencePattern] = useState<RecurrencePattern | null>(null);
+  const [quickRecurrenceWeekday, setQuickRecurrenceWeekday] = useState<number | null>(null);
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -78,6 +91,12 @@ export function QuickAddModal() {
       setFormCreatedDate(null);
       setFormProjectId("");
       setFormPriority(null);
+      setFormRecurring(false);
+      setFormRecurrencePattern(null);
+      setFormRecurrenceWeekday(null);
+      setQuickRecurring(false);
+      setQuickRecurrencePattern(null);
+      setQuickRecurrenceWeekday(null);
       setPendingImages((prev) => {
         revokePendingImages(prev);
         return [];
@@ -99,6 +118,10 @@ export function QuickAddModal() {
 
   const handleQuickSubmit = () => {
     if (!parsed.title.trim()) return;
+    if (!isRecurrenceValid(quickRecurring, quickRecurrencePattern, quickRecurrenceWeekday)) {
+      toast.error(he.recurrence.selectFrequency);
+      return;
+    }
     createTask.mutate(
       {
         title: parsed.title,
@@ -107,10 +130,11 @@ export function QuickAddModal() {
         projectId: projectId ?? matchedProject?.id ?? undefined,
         status: "READY",
         images: pendingImagePayload(pendingImages),
+        ...recurrencePayload(quickRecurring, quickRecurrencePattern, quickRecurrenceWeekday),
       },
       {
-        onSuccess: () => {
-          toast.success(he.task.addedToInbox);
+        onSuccess: (task) => {
+          toast.success(taskNeedsReview(task) ? he.task.addedForReview : he.task.addedToInbox);
           clearPendingImages();
         },
       }
@@ -124,6 +148,11 @@ export function QuickAddModal() {
       formContent.trim().split("\n")[0]?.trim() ||
       he.quickAdd.defaultTitle;
 
+    if (!isRecurrenceValid(formRecurring, formRecurrencePattern, formRecurrenceWeekday)) {
+      toast.error(he.recurrence.selectFrequency);
+      return;
+    }
+
     createTask.mutate(
       {
         title,
@@ -134,10 +163,11 @@ export function QuickAddModal() {
         priority: (formPriority ?? undefined) as never,
         status: "READY",
         images: pendingImagePayload(pendingImages),
+        ...recurrencePayload(formRecurring, formRecurrencePattern, formRecurrenceWeekday),
       },
       {
-        onSuccess: () => {
-          toast.success(he.task.addedToInbox);
+        onSuccess: (task) => {
+          toast.success(taskNeedsReview(task) ? he.task.addedForReview : he.task.addedToInbox);
           clearPendingImages();
         },
       }
@@ -236,6 +266,16 @@ export function QuickAddModal() {
                 className="w-full"
               />
               <AddImagePicker images={pendingImages} onChange={setPendingImages} />
+              <FormField label={he.quickAdd.formRecurring}>
+                <TaskRecurrenceFields
+                  enabled={quickRecurring}
+                  onEnabledChange={setQuickRecurring}
+                  pattern={quickRecurrencePattern}
+                  onPatternChange={setQuickRecurrencePattern}
+                  weekday={quickRecurrenceWeekday}
+                  onWeekdayChange={setQuickRecurrenceWeekday}
+                />
+              </FormField>
               <Button
                 size="lg"
                 className="h-11 w-full"
@@ -306,6 +346,17 @@ export function QuickAddModal() {
                   options={priorityOptions}
                   placeholder={he.task.priority}
                   className="w-full"
+                />
+              </FormField>
+
+              <FormField label={he.quickAdd.formRecurring}>
+                <TaskRecurrenceFields
+                  enabled={formRecurring}
+                  onEnabledChange={setFormRecurring}
+                  pattern={formRecurrencePattern}
+                  onPatternChange={setFormRecurrencePattern}
+                  weekday={formRecurrenceWeekday}
+                  onWeekdayChange={setFormRecurrenceWeekday}
                 />
               </FormField>
             </div>

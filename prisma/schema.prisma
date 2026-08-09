@@ -88,6 +88,15 @@ enum ActivityType {
   REOPENED
 }
 
+enum RecurrencePattern {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  YEARLY
+  WEEKDAY
+}
+
 model Area {
   id          String   @id @default(cuid())
   name        String
@@ -146,7 +155,7 @@ model Task {
   title       String
   description String?
 
-  status   TaskStatus @default(INBOX)
+  status   TaskStatus @default(READY)
   priority Priority   @default(P3)
   impact   Impact?
   urgency  Urgency?
@@ -160,9 +169,13 @@ model Task {
   dueDate     DateTime?
   scheduledAt DateTime?
 
+  recurrencePattern  RecurrencePattern?
+  recurrenceWeekday  Int?
+
   waitingFor    String?
   followUpDate  DateTime?
   blockedReason String?
+  somedayReason String?
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

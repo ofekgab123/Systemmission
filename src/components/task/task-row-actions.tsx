@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   MoreHorizontal,
@@ -8,13 +8,13 @@ import {
   StopCircle,
   Clock,
   Ban,
-  CalendarClock,
+  Archive,
   Trash2,
   Pencil,
   StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
+import { useDeleteTask } from "@/hooks/use-tasks";
 import { useTaskStatusChange } from "@/hooks/use-task-status-change";
 import { useUIStore } from "@/store/ui-store";
 import type { TaskWithRelations } from "@/types";
@@ -36,7 +36,6 @@ export function TaskRowActions({
   className?: string;
 }) {
   const [optimisticStarted, setOptimisticStarted] = useState(task.status === "IN_PROGRESS");
-  const updateTask = useUpdateTask();
   const changeStatus = useTaskStatusChange();
   const deleteTask = useDeleteTask();
   const openTaskEdit = useUIStore((s) => s.openTaskEdit);
@@ -44,23 +43,21 @@ export function TaskRowActions({
   const done = task.status === "DONE";
   const started = task.status === "IN_PROGRESS" || optimisticStarted;
 
+  useEffect(() => {
+    setOptimisticStarted(task.status === "IN_PROGRESS");
+  }, [task.status]);
+
   const handlePlayStop = () => {
     if (done) return;
 
     if (started) {
       setOptimisticStarted(false);
-      updateTask.mutate(
-        { id: task.id, data: { status: "DONE" } },
-        { onError: () => setOptimisticStarted(true) }
-      );
+      changeStatus(task.id, "DONE", task.status);
       return;
     }
 
     setOptimisticStarted(true);
-    updateTask.mutate(
-      { id: task.id, data: { status: "IN_PROGRESS" } },
-      { onError: () => setOptimisticStarted(false) }
-    );
+    changeStatus(task.id, "IN_PROGRESS", task.status);
   };
 
   const setStatus = (status: TaskWithRelations["status"], extra?: Record<string, unknown>) => {
@@ -144,14 +141,8 @@ export function TaskRowActions({
           <DropdownMenuItem onClick={() => setStatus("BLOCKED")}>
             <Ban className="size-4" /> {he.task.markBlocked}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              setStatus("SCHEDULED", {
-                dueDate: new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
-              })
-            }
-          >
-            <CalendarClock className="size-4" /> {he.task.scheduleTomorrow}
+          <DropdownMenuItem onClick={() => setStatus("SOMEDAY")}>
+            <Archive className="size-4" /> {he.task.markSomeday}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={handleDelete}>

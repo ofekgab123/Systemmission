@@ -272,6 +272,13 @@ export type IntNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedIntNullableFilter<$PrismaModel> | number | null
 }
 
+export type EnumRecurrencePatternNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.RecurrencePattern | Prisma.EnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRecurrencePatternNullableFilter<$PrismaModel> | $Enums.RecurrencePattern | null
+}
+
 export type EnumTaskStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.TaskStatus | Prisma.EnumTaskStatusFieldRefInput<$PrismaModel>
   in?: $Enums.TaskStatus[] | Prisma.ListEnumTaskStatusFieldRefInput<$PrismaModel>
@@ -336,6 +343,16 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>
+}
+
+export type EnumRecurrencePatternNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RecurrencePattern | Prisma.EnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRecurrencePatternNullableWithAggregatesFilter<$PrismaModel> | $Enums.RecurrencePattern | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRecurrencePatternNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRecurrencePatternNullableFilter<$PrismaModel>
 }
 
 export type EnumActivityTypeFilter<$PrismaModel = never> = {
@@ -615,6 +632,13 @@ export type NestedEnumTaskCategoryNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumTaskCategoryNullableFilter<$PrismaModel> | $Enums.TaskCategory | null
 }
 
+export type NestedEnumRecurrencePatternNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.RecurrencePattern | Prisma.EnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRecurrencePatternNullableFilter<$PrismaModel> | $Enums.RecurrencePattern | null
+}
+
 export type NestedEnumTaskStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.TaskStatus | Prisma.EnumTaskStatusFieldRefInput<$PrismaModel>
   in?: $Enums.TaskStatus[] | Prisma.ListEnumTaskStatusFieldRefInput<$PrismaModel>
@@ -690,6 +714,16 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
+}
+
+export type NestedEnumRecurrencePatternNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RecurrencePattern | Prisma.EnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RecurrencePattern[] | Prisma.ListEnumRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRecurrencePatternNullableWithAggregatesFilter<$PrismaModel> | $Enums.RecurrencePattern | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRecurrencePatternNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRecurrencePatternNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumActivityTypeFilter<$PrismaModel = never> = {

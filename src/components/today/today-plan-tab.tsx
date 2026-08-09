@@ -24,6 +24,7 @@ import { TaskCheckbox } from "@/components/task/task-checkbox";
 import { TaskRowActions } from "@/components/task/task-row-actions";
 import { PriorityBadge } from "@/components/task/priority-badge";
 import { StatusBadge } from "@/components/task/status-badge";
+import { TaskIncompleteIndicator } from "@/components/task/task-incomplete-indicator";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
 import { useUpdateTask } from "@/hooks/use-tasks";
 import { useUIStore } from "@/store/ui-store";
@@ -116,6 +117,7 @@ function SortablePlanRow({
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <PriorityBadge priority={task.priority} />
           <StatusBadge status={task.status} showIcon={false} className="text-xs" />
+          {!done && <TaskIncompleteIndicator task={task} />}
         </div>
       </button>
 
