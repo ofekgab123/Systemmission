@@ -343,11 +343,15 @@ export const he = {
     themeDesc: "בהיר / כהה / מערכת",
   },
   a11y: {
+    panel: "נגישות",
+    toggle: "פתיחת תפריט נגישות",
     fontSize: "גודל טקסט",
+    theme: "ערכת נושא",
+    light: "בהיר",
+    dark: "כהה",
     increase: "הגדל טקסט",
     decrease: "הקטן טקסט",
     reset: "איפוס",
-    toggle: "נגישות — גודל טקסט",
   },
   api: {
     taskCreated: "המשימה נוצרה",
