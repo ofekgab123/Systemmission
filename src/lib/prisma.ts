@@ -13,8 +13,22 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalThis.__prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.__prisma = prisma;
+function isStaleClient(client: PrismaClient | undefined): client is undefined {
+  return !client || typeof client.stickyNote?.findMany !== "function";
 }
+
+function getPrismaClient() {
+  if (!isStaleClient(globalThis.__prisma)) {
+    return globalThis.__prisma;
+  }
+
+  const client = createPrismaClient();
+
+  if (process.env.NODE_ENV !== "production") {
+    globalThis.__prisma = client;
+  }
+
+  return client;
+}
+
+export const prisma = getPrismaClient();
