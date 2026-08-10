@@ -114,6 +114,7 @@ export const he = {
     setDate: "בחר תאריך",
     missingDetails: "חסרים פרטים",
     missingPrefix: "חסר",
+    fullTitle: "כותרת מלאה",
     addedForReview: "המשימה נוספה לרשימת האישור — חסרים פרטים",
     approve: "אישור",
     approved: "המשימה אושרה",

@@ -16,6 +16,7 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
     tags: true;
     subtasks: true;
     isNextActionFor: true;
+    activities: { select: { id: true } };
   };
 }>;
 

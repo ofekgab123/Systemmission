@@ -10,6 +10,10 @@ const taskInclude = {
   tags: true,
   subtasks: true,
   isNextActionFor: true,
+  activities: {
+    where: { type: "NOTE_ADDED" },
+    select: { id: true },
+  },
 } satisfies Prisma.TaskInclude;
 
 const taskDetailInclude = {

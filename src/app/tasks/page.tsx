@@ -35,6 +35,12 @@ const VIEW_GROUPS = [
   },
 ] as const;
 
+const filterTabsListClassName =
+  "flex !h-auto w-full flex-wrap items-center justify-start gap-1.5 bg-transparent p-0.5";
+
+const filterTabTriggerClassName =
+  "h-9 !flex-none shrink-0 rounded-lg px-3.5 text-sm text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:font-medium data-active:shadow-sm data-active:ring-1 data-active:ring-border/60";
+
 function TasksContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -67,13 +73,9 @@ function TasksContent() {
       >
         {VIEW_GROUPS.map((group) => (
           <CollapsibleFilterGroup key={group.label} title={group.label} defaultOpen>
-            <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-1.5 bg-transparent p-0.5">
+            <TabsList className={filterTabsListClassName}>
               {group.views.map((v) => (
-                <TabsTrigger
-                  key={v.value}
-                  value={v.value}
-                  className="h-9 flex-none shrink-0 rounded-lg px-3.5 text-sm text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:font-medium data-active:shadow-sm data-active:ring-1 data-active:ring-border/60"
-                >
+                <TabsTrigger key={v.value} value={v.value} className={filterTabTriggerClassName}>
                   {v.label}
                 </TabsTrigger>
               ))}
