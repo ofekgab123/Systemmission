@@ -88,10 +88,15 @@ export async function GET(req: NextRequest) {
 
   const limit = params.get("limit");
 
+  const orderBy: Prisma.TaskOrderByWithRelationInput[] =
+    view === "needs-review"
+      ? [{ createdAt: "desc" }]
+      : [{ dueDate: "asc" }, { createdAt: "desc" }];
+
   const tasks = await prisma.task.findMany({
     where,
     include: taskInclude,
-    orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
+    orderBy,
     take: limit ? parseInt(limit, 10) : undefined,
   });
 
