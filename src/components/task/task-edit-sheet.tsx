@@ -391,7 +391,7 @@ function NotesSection({
   attachments,
 }: {
   taskId: string;
-  notes: { id: string; message: string; createdAt: string }[];
+  notes: { id: string; message: string; createdAt: string | Date }[];
   attachments: TaskAttachment[];
 }) {
   const updateTask = useUpdateTask();
@@ -556,7 +556,7 @@ function EditableNoteItem({
   note,
   attachments,
 }: {
-  note: { id: string; message: string; createdAt: string };
+  note: { id: string; message: string; createdAt: string | Date };
   attachments: TaskAttachment[];
 }) {
   const updateActivity = useUpdateActivity();

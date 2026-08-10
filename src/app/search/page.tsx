@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSearch } from "@/hooks/use-search";
 import { TaskRow } from "@/components/task/task-row";
@@ -11,7 +12,8 @@ import { resolveIcon } from "@/lib/icons";
 import { he } from "@/lib/i18n/he";
 
 export default function SearchPage() {
-  const [q, setQ] = useState("");
+  const params = useSearchParams();
+  const [q, setQ] = useState(() => params.get("q") ?? "");
   const { data: results, isLoading } = useSearch(q);
 
   return (

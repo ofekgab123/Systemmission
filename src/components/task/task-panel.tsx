@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import { startOfToday } from "@/lib/date-utils";
 import { AddImagePicker } from "@/components/ui/add-image-picker";
+import { TaskImageGallery } from "@/components/task/task-image-gallery";
 import { pendingImagePayload, revokePendingImages, type PendingImage } from "@/lib/image-utils";
 import {
   AlertDialog,
@@ -205,9 +206,15 @@ export function TaskPanel() {
                     <Label className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <ListTree className="size-3.5" /> {he.task.subtasks}
                     </Label>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-2">
                       {task.subtasks.map((sub) => (
-                        <SubtaskRow key={sub.id} id={sub.id} title={sub.title} done={sub.status === "DONE"} />
+                        <SubtaskRow
+                          key={sub.id}
+                          id={sub.id}
+                          title={sub.title}
+                          done={sub.status === "DONE"}
+                          attachments={"attachments" in sub ? sub.attachments : undefined}
+                        />
                       ))}
                     </div>
                   </div>
@@ -401,17 +408,32 @@ function ActionTile({
   );
 }
 
-function SubtaskRow({ id, title, done }: { id: string; title: string; done: boolean }) {
+function SubtaskRow({
+  id,
+  title,
+  done,
+  attachments,
+}: {
+  id: string;
+  title: string;
+  done: boolean;
+  attachments?: { id: string; mimeType: string; data: string }[];
+}) {
   const updateTask = useUpdateTask();
   return (
-    <div className="flex items-center gap-2 py-1">
-      <TaskCheckbox
-        checked={done}
-        onCheckedChange={(checked) =>
-          updateTask.mutate({ id, data: { status: checked ? "DONE" : "READY" } })
-        }
-      />
-      <span className={cn("text-sm", done && "text-muted-foreground line-through")}>{title}</span>
+    <div className="flex flex-col gap-1.5 rounded-lg border bg-muted/20 px-2 py-1.5">
+      <div className="flex items-center gap-2">
+        <TaskCheckbox
+          checked={done}
+          onCheckedChange={(checked) =>
+            updateTask.mutate({ id, data: { status: checked ? "DONE" : "READY" } })
+          }
+        />
+        <span className={cn("text-sm", done && "text-muted-foreground line-through")}>{title}</span>
+      </div>
+      {attachments && attachments.length > 0 && (
+        <TaskImageGallery attachments={attachments} className="ms-7" />
+      )}
     </div>
   );
 }

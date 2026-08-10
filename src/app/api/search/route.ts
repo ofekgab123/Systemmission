@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
+
+const taskInclude = {
+  project: { include: { area: true } },
+  area: true,
+  tags: true,
+  subtasks: true,
+  isNextActionFor: true,
+  activities: {
+    where: { type: "NOTE_ADDED" },
+    select: { id: true },
+  },
+} satisfies Prisma.TaskInclude;
 
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
@@ -9,28 +22,37 @@ export async function GET(req: NextRequest) {
   const areaId = params.get("areaId");
   const areaFilter = areaId ? { areaId } : {};
 
+  const textFilter = { contains: q, mode: "insensitive" as const };
+
   const [tasks, projects] = await Promise.all([
     prisma.task.findMany({
       where: {
         ...areaFilter,
-        status: { not: "INBOX" },
+        status: { notIn: ["CANCELLED"] },
         OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
-          { waitingFor: { contains: q, mode: "insensitive" } },
+          { title: textFilter },
+          { description: textFilter },
+          { waitingFor: textFilter },
+          { blockedReason: textFilter },
+          { subtasks: { some: { title: textFilter } } },
+          {
+            activities: {
+              some: {
+                type: "NOTE_ADDED",
+                message: textFilter,
+              },
+            },
+          },
         ],
       },
-      include: { project: true, tags: true },
-      take: 20,
+      include: taskInclude,
+      take: 30,
       orderBy: { updatedAt: "desc" },
     }),
     prisma.project.findMany({
       where: {
         ...areaFilter,
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
-        ],
+        OR: [{ name: textFilter }, { description: textFilter }],
       },
       include: { tasks: true },
       take: 10,

@@ -1,13 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { TaskWithRelations, TaskAttachment } from "@/types";
+import type { TaskWithRelations, TaskAttachment, TaskDetail } from "@/types";
 import type { ImageUploadInput } from "@/lib/task-attachments";
 import { areaFilterForApi } from "@/lib/areas";
 import { useAreaStore } from "@/store/area-store";
 
-export type TaskDetail = TaskWithRelations & {
-  activities: { id: string; type: string; message: string; createdAt: string }[];
-  attachments: TaskAttachment[];
-};
+export type { TaskDetail };
 
 export interface TaskFilters {
   view?: string;

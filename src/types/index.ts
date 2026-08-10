@@ -9,6 +9,13 @@ export type TaskAttachment = {
   activityId: string | null;
 };
 
+export type TaskActivity = {
+  id: string;
+  type: string;
+  message: string;
+  createdAt: string | Date;
+};
+
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
     project: { include: { area: true } };
@@ -16,9 +23,20 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
     tags: true;
     subtasks: true;
     isNextActionFor: true;
-    activities: { select: { id: true } };
+    activities: {
+      where: { type: "NOTE_ADDED" };
+      select: { id: true };
+    };
   };
 }>;
+
+export type TaskDetail = Omit<TaskWithRelations, "activities" | "subtasks"> & {
+  activities: TaskActivity[];
+  attachments: TaskAttachment[];
+  subtasks: (TaskWithRelations["subtasks"][number] & {
+    attachments: TaskAttachment[];
+  })[];
+};
 
 export type ProjectWithRelations = Prisma.ProjectGetPayload<{
   include: {

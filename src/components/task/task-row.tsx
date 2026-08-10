@@ -107,7 +107,6 @@ export function TaskRow({
           </div>
 
           {(showProject && task.project) ||
-          task.subtasks.length > 0 ||
           (task.status === "WAITING" && task.waitingFor) ||
           (task.status === "BLOCKED" && task.blockedReason) ||
           (task.status === "SOMEDAY" && task.somedayReason) ? (
@@ -119,12 +118,6 @@ export function TaskRow({
                 >
                   {ProjectIcon && <ProjectIcon className="size-3 shrink-0" />}
                   <span className="truncate">{task.project.name}</span>
-                </span>
-              )}
-
-              {task.subtasks.length > 0 && (
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">
-                  {task.subtasks.filter((s) => s.status === "DONE").length}/{task.subtasks.length}
                 </span>
               )}
 
