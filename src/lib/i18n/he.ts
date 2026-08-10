@@ -299,6 +299,10 @@ export const he = {
     noProjectsHint: "הוסף קטגוריות עם צבעים כדי לראות הבחנה ויזואלית בלוח.",
     allDaySection: "כל היום",
     tasksSection: "משימות",
+    scheduleTask: "תזמן לשעה",
+    scheduleTaskHint: "גרור למשבצת שעה או בחר שעה",
+    openTask: "פתח משימה",
+    dragToSchedule: "גרור ללוח השעות לתזמון",
   },
   events: {
     newEvent: "אירוע חדש",

@@ -194,6 +194,16 @@ export default function CalendarPage() {
     moveOccurrence(occurrence, newStart, newEnd);
   };
 
+  const scheduleTaskAtTime = (task: TaskWithRelations, start: Date) => {
+    updateTask.mutate(
+      { id: task.id, data: { scheduledAt: start.toISOString() } as never },
+      {
+        onSuccess: () => toast.success(he.calendar.scheduleTask),
+        onError: () => toast.error(he.events.saveFailed),
+      }
+    );
+  };
+
   const moveTaskToDay = (task: TaskWithRelations, day: Date) => {
     const field = task.dueDate ? "dueDate" : "scheduledAt";
     const original = task.dueDate ?? task.scheduledAt;
@@ -258,6 +268,7 @@ export default function CalendarPage() {
             onTaskClick={openTaskPanel}
             onCreateRange={handleCreateRange}
             onMoveOccurrence={moveOccurrence}
+            onScheduleTask={scheduleTaskAtTime}
           />
         )}
 
