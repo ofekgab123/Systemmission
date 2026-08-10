@@ -183,6 +183,8 @@ export function dayKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
+export const CALENDAR_TASK_DRAG_MIME = "application/x-mission-task-id";
+
 export function getUrgencyColor(urgency: Urgency | null, priority: Priority): StatusColor {
   if (urgency) return URGENCY_COLORS[urgency];
   return PRIORITY_META[priority].color;

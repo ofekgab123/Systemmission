@@ -303,6 +303,10 @@ export const he = {
     scheduleTaskHint: "גרור למשבצת שעה או בחר שעה",
     openTask: "פתח משימה",
     dragToSchedule: "גרור ללוח השעות לתזמון",
+    dragToMove: "גרור לשינוי יום או שעה",
+    dragToAllDay: "גרור לכל היום להסרת שעה",
+    movedToAllDay: "המשימה הועברה לכל היום",
+    movedToDay: "המשימה הועברה",
   },
   events: {
     newEvent: "אירוע חדש",

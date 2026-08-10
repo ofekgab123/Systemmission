@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import {
   formatCalendarPeriodLabel,
+  CALENDAR_TASK_DRAG_MIME,
   type CalendarViewMode,
 } from "@/lib/calendar-utils";
 import { PRIORITY_META } from "@/lib/task-meta";
@@ -273,12 +274,22 @@ export function CalendarControls({
                 {open && (
                   <div className="flex flex-col gap-1 border-t bg-muted/20 px-3 py-2">
                     {group.tasks.map((task) => (
-                      <CalendarTaskChip
+                      <div
                         key={task.id}
-                        task={task}
-                        showDate
-                        onClick={() => onTaskClick(task.id)}
-                      />
+                        draggable
+                        title={he.calendar.dragToMove}
+                        className="cursor-grab active:cursor-grabbing"
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData(CALENDAR_TASK_DRAG_MIME, task.id);
+                          e.dataTransfer.effectAllowed = "move";
+                        }}
+                      >
+                        <CalendarTaskChip
+                          task={task}
+                          showDate
+                          onClick={() => onTaskClick(task.id)}
+                        />
+                      </div>
                     ))}
                   </div>
                 )}

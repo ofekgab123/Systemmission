@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { eachDayOfInterval, isSameDay, set, startOfToday } from "date-fns";
+import { eachDayOfInterval, isSameDay, set, startOfDay, startOfToday } from "date-fns";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { MonthCalendar } from "@/components/calendar/month-calendar";
@@ -195,10 +195,37 @@ export default function CalendarPage() {
   };
 
   const scheduleTaskAtTime = (task: TaskWithRelations, start: Date) => {
+    const data: { scheduledAt: string; dueDate?: string } = {
+      scheduledAt: start.toISOString(),
+    };
+    if (task.dueDate && dayKey(new Date(task.dueDate)) !== dayKey(start)) {
+      data.dueDate = startOfDay(start).toISOString();
+    }
     updateTask.mutate(
-      { id: task.id, data: { scheduledAt: start.toISOString() } as never },
+      { id: task.id, data: data as never },
       {
         onSuccess: () => toast.success(he.calendar.scheduleTask),
+        onError: () => toast.error(he.events.saveFailed),
+      }
+    );
+  };
+
+  const unscheduleTask = (task: TaskWithRelations, day: Date) => {
+    const dayStart = startOfDay(day);
+    const data: { scheduledAt: string | null; dueDate?: string } = { scheduledAt: null };
+
+    if (task.dueDate) {
+      if (dayKey(new Date(task.dueDate)) !== dayKey(day)) {
+        data.dueDate = dayStart.toISOString();
+      }
+    } else {
+      data.scheduledAt = dayStart.toISOString();
+    }
+
+    updateTask.mutate(
+      { id: task.id, data: data as never },
+      {
+        onSuccess: () => toast.success(he.calendar.movedToAllDay),
         onError: () => toast.error(he.events.saveFailed),
       }
     );
@@ -216,7 +243,10 @@ export default function CalendarPage() {
     });
     updateTask.mutate(
       { id: task.id, data: { [field]: newDate.toISOString() } as never },
-      { onError: () => toast.error(he.events.saveFailed) }
+      {
+        onSuccess: () => toast.success(he.calendar.movedToDay),
+        onError: () => toast.error(he.events.saveFailed),
+      }
     );
   };
 
@@ -269,6 +299,8 @@ export default function CalendarPage() {
             onCreateRange={handleCreateRange}
             onMoveOccurrence={moveOccurrence}
             onScheduleTask={scheduleTaskAtTime}
+            onUnscheduleTask={unscheduleTask}
+            onMoveTaskToDay={moveTaskToDay}
           />
         )}
 

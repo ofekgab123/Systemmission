@@ -18,8 +18,10 @@ import {
   dayKey,
   getCalendarTaskStyle,
   getTaskDurationMinutes,
+  hasTaskSpecificTime,
   layoutTimedTasks,
   splitTasksForDay,
+  CALENDAR_TASK_DRAG_MIME,
 } from "@/lib/calendar-utils";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 
@@ -77,6 +79,8 @@ export function TimeGrid({
   onCreateRange,
   onMoveOccurrence,
   onScheduleTask,
+  onUnscheduleTask,
+  onMoveTaskToDay,
 }: {
   days: Date[];
   events: EventOccurrence[];
@@ -86,13 +90,18 @@ export function TimeGrid({
   onCreateRange: (start: Date, end: Date, allDay?: boolean) => void;
   onMoveOccurrence: (occurrence: EventOccurrence, newStart: Date, newEnd: Date) => void;
   onScheduleTask: (task: TaskWithRelations, start: Date) => void;
+  onUnscheduleTask: (task: TaskWithRelations, day: Date) => void;
+  onMoveTaskToDay: (task: TaskWithRelations, day: Date) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const allDayRowRef = useRef<HTMLDivElement>(null);
+  const allDayColumnRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [now, setNow] = useState(() => new Date());
   const [createDrag, setCreateDrag] = useState<CreateDrag | null>(null);
   const [eventDrag, setEventDrag] = useState<EventDrag | null>(null);
   const [taskDrag, setTaskDrag] = useState<TaskDrag | null>(null);
+  const [taskDragOverAllDay, setTaskDragOverAllDay] = useState<number | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<{
     task: TaskWithRelations;
     day: Date;
@@ -136,6 +145,27 @@ export function TimeGrid({
     );
   };
 
+  const getAllDayDropIndex = (clientX: number, clientY: number): number | null => {
+    const row = allDayRowRef.current;
+    if (!row) return null;
+    const rowRect = row.getBoundingClientRect();
+    if (
+      clientY < rowRect.top ||
+      clientY > rowRect.bottom ||
+      clientX < rowRect.left ||
+      clientX > rowRect.right
+    ) {
+      return null;
+    }
+    for (let i = 0; i < allDayColumnRefs.current.length; i++) {
+      const col = allDayColumnRefs.current[i];
+      if (!col) continue;
+      const rect = col.getBoundingClientRect();
+      if (clientX >= rect.left && clientX <= rect.right) return i;
+    }
+    return null;
+  };
+
   const pointerToPosition = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
     const colWidth = rect.width / days.length;
@@ -145,6 +175,38 @@ export function TimeGrid({
     );
     const minute = clampMin(((clientY - rect.top) / HOUR_HEIGHT) * 60);
     return { dayIndex, minute };
+  };
+
+  const resolveExternalTask = (e: React.DragEvent) => {
+    const id = e.dataTransfer.getData(CALENDAR_TASK_DRAG_MIME);
+    if (!id) return null;
+    return tasks.find((t) => t.id === id) ?? null;
+  };
+
+  const handleExternalDragOver = (e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes(CALENDAR_TASK_DRAG_MIME)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleGridExternalDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const task = resolveExternalTask(e);
+    if (!task) return;
+    const { dayIndex, minute } = pointerToPosition(e.clientX, e.clientY);
+    onScheduleTask(task, addMinutes(startOfDay(days[dayIndex]), snap(minute)));
+  };
+
+  const handleAllDayExternalDrop = (e: React.DragEvent, dayIndex: number) => {
+    e.preventDefault();
+    const task = resolveExternalTask(e);
+    if (!task) return;
+    const day = days[dayIndex];
+    if (hasTaskSpecificTime(task)) {
+      onUnscheduleTask(task, day);
+    } else {
+      onMoveTaskToDay(task, day);
+    }
   };
 
   const handleCreatePointerDown = (e: React.PointerEvent) => {
@@ -303,8 +365,12 @@ export function TimeGrid({
     setTaskDrag(initial);
 
     const handleMove = (ev: PointerEvent) => {
-      if (!isOverGrid(ev.clientX, ev.clientY)) return;
-      const { dayIndex: curDay, minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
+      const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
+      setTaskDragOverAllDay(allDayIdx);
+
+      const overGrid = isOverGrid(ev.clientX, ev.clientY);
+      if (!overGrid && allDayIdx === null) return;
+
       setTaskDrag((prev) => {
         if (!prev) return prev;
         const moved =
@@ -312,7 +378,9 @@ export function TimeGrid({
           Math.abs(ev.clientX - prev.startClientX) > DRAG_THRESHOLD_PX ||
           Math.abs(ev.clientY - prev.startClientY) > DRAG_THRESHOLD_PX;
         if (!moved) return prev;
+        if (!overGrid) return { ...prev, moved: true };
 
+        const { dayIndex: curDay, minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
         const snapped = snap(cur - prev.grabOffsetMin);
         const newStart = clampMin(Math.min(snapped, DAY_MINUTES - duration));
         return {
@@ -328,12 +396,24 @@ export function TimeGrid({
     const handleUp = (ev: PointerEvent) => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+      setTaskDragOverAllDay(null);
       setTaskDrag((prev) => {
         if (!prev) return null;
 
-        if (prev.moved && isOverGrid(ev.clientX, ev.clientY)) {
+        const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
+
+        if (prev.moved && allDayIdx !== null && !prev.fromAllDay) {
+          onUnscheduleTask(prev.task, days[allDayIdx]);
+        } else if (prev.moved && isOverGrid(ev.clientX, ev.clientY)) {
           const day = startOfDay(days[prev.dayIndex]);
           onScheduleTask(prev.task, addMinutes(day, prev.startMin));
+        } else if (
+          prev.moved &&
+          prev.fromAllDay &&
+          allDayIdx !== null &&
+          allDayIdx !== prev.dayIndex
+        ) {
+          onMoveTaskToDay(prev.task, days[allDayIdx]);
         } else if (!prev.moved && prev.fromAllDay) {
           setScheduleTarget({ task: prev.task, day: days[dayIndex] });
         } else if (!prev.moved && !prev.fromAllDay) {
@@ -348,9 +428,11 @@ export function TimeGrid({
   };
 
   const nowMin = differenceInMinutes(now, startOfDay(now));
+  const hasTimedTasks = perDay.some(({ positionedTasks }) => positionedTasks.length > 0);
   const hasAllDayContent = perDay.some(
     ({ allDayEvents, allDayTasks }) => allDayEvents.length > 0 || allDayTasks.length > 0
   );
+  const showAllDayRow = hasAllDayContent || hasTimedTasks || taskDrag !== null;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border bg-card">
@@ -379,15 +461,23 @@ export function TimeGrid({
         })}
       </div>
 
-      {hasAllDayContent && (
-        <div className="flex border-b bg-muted/20">
+      {showAllDayRow && (
+        <div ref={allDayRowRef} className="flex border-b bg-muted/20">
           <div className="flex w-12 shrink-0 items-start justify-center pt-1.5 text-[10px] text-muted-foreground sm:w-14">
             {he.calendar.allDaySection}
           </div>
           {perDay.map(({ day, allDayEvents, allDayTasks }, dayIndex) => (
             <div
               key={dayKey(day)}
-              className="flex min-h-8 flex-1 flex-col gap-0.5 border-s p-1"
+              ref={(el) => {
+                allDayColumnRefs.current[dayIndex] = el;
+              }}
+              className={cn(
+                "flex min-h-8 flex-1 flex-col gap-0.5 border-s p-1 transition-colors",
+                taskDragOverAllDay === dayIndex && "bg-primary/15 ring-2 ring-inset ring-primary/40"
+              )}
+              onDragOver={handleExternalDragOver}
+              onDrop={(e) => handleAllDayExternalDrop(e, dayIndex)}
             >
               {allDayEvents.map((occ) => (
                 <EventChip
@@ -402,6 +492,7 @@ export function TimeGrid({
                   scheduleTarget?.task.id === task.id &&
                   dayKey(scheduleTarget.day) === dayKey(day);
                 const duration = getTaskDurationMinutes(task);
+                const isDragged = taskDrag?.moved && taskDrag.task.id === task.id;
                 return (
                   <TaskSchedulePopover
                     key={task.id}
@@ -415,8 +506,11 @@ export function TimeGrid({
                     onOpenTask={() => onTaskClick(task.id)}
                   >
                     <div
-                      className="cursor-grab touch-none active:cursor-grabbing"
-                      title={he.calendar.dragToSchedule}
+                      className={cn(
+                        "cursor-grab touch-none active:cursor-grabbing",
+                        isDragged && "opacity-30"
+                      )}
+                      title={he.calendar.dragToMove}
                       onPointerDown={(e) =>
                         beginTaskDrag(
                           e,
@@ -433,6 +527,19 @@ export function TimeGrid({
                   </TaskSchedulePopover>
                 );
               })}
+              {taskDrag?.moved &&
+                taskDragOverAllDay === dayIndex &&
+                (!taskDrag.fromAllDay || taskDrag.dayIndex !== dayIndex) && (
+                  <div
+                    className={cn(
+                      "pointer-events-none truncate rounded px-1.5 py-0.5 text-xs font-medium opacity-70",
+                      getCalendarTaskStyle(taskDrag.task, "combined").className
+                    )}
+                    style={getCalendarTaskStyle(taskDrag.task, "combined").style}
+                  >
+                    {taskDrag.task.title}
+                  </div>
+                )}
             </div>
           ))}
         </div>
@@ -457,6 +564,8 @@ export function TimeGrid({
             className="relative flex-1 cursor-pointer touch-pan-y select-none"
             style={{ height: 24 * HOUR_HEIGHT }}
             onPointerDown={handleCreatePointerDown}
+            onDragOver={handleExternalDragOver}
+            onDrop={handleGridExternalDrop}
           >
             {Array.from({ length: 24 }, (_, h) => (
               <div key={h}>
@@ -549,7 +658,7 @@ export function TimeGrid({
                     onPointerDown={(e) =>
                       beginTaskDrag(e, task, dayIndex, startMin, endMin, false)
                     }
-                    title={task.title}
+                    title={`${task.title} · ${he.calendar.dragToMove}`}
                   >
                     <p className="truncate font-medium">{task.title}</p>
                     {height >= 34 && (
@@ -581,7 +690,7 @@ export function TimeGrid({
               </div>
             )}
 
-            {taskDrag?.moved && (
+            {taskDrag?.moved && taskDragOverAllDay === null && (
               <div
                 className="pointer-events-none absolute z-20 overflow-hidden rounded-md px-1.5 py-1 text-xs leading-tight shadow-md ring-2 ring-primary/40"
                 style={{
