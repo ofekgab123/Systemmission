@@ -1,17 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { isSameDay, startOfToday } from "date-fns";
+import { eachDayOfInterval, isSameDay, set, startOfToday } from "date-fns";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { MonthCalendar } from "@/components/calendar/month-calendar";
-import { WeekCalendar } from "@/components/calendar/week-calendar";
-import { DayCalendar } from "@/components/calendar/day-calendar";
+import { TimeGrid } from "@/components/calendar/time-grid";
 import { CalendarControls } from "@/components/calendar/calendar-controls";
 import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
+import { EventChip } from "@/components/calendar/event-chip";
+import { EventFormDialog, type EventFormTarget } from "@/components/calendar/event-form-dialog";
+import { EventPeekDialog } from "@/components/calendar/event-peek";
+import { EventCategoriesManager } from "@/components/calendar/event-categories-manager";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
-import { useTasks } from "@/hooks/use-tasks";
+import { useTasks, useUpdateTask } from "@/hooks/use-tasks";
+import { useEvents, useUpdateEvent, type EventEditScope } from "@/hooks/use-events";
 import { useUIStore } from "@/store/ui-store";
-import { useProjects } from "@/hooks/use-projects";
 import { he } from "@/lib/i18n/he";
 import {
   dayKey,
@@ -20,24 +24,30 @@ import {
   shiftCalendarAnchor,
   type CalendarViewMode,
 } from "@/lib/calendar-utils";
+import { occurrencesForDay } from "@/lib/event-utils";
 import { PRIORITY_META } from "@/lib/task-meta";
 import { cn } from "@/lib/utils";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
-import type { TaskWithRelations } from "@/types";
+import type { EventOccurrence, TaskWithRelations } from "@/types";
 import type { TaskStatus } from "@/generated/prisma/enums";
 
 type CalendarStatusFilter = Extract<TaskStatus, "DONE" | "BLOCKED" | "WAITING">;
 
 export default function CalendarPage() {
-  const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
   const [anchorDate, setAnchorDate] = useState(() => startOfToday());
   const [selectedDay, setSelectedDay] = useState<Date | null>(() => startOfToday());
   const [statusFilters, setStatusFilters] = useState<Set<CalendarStatusFilter>>(new Set());
   const openTaskPanel = useUIStore((s) => s.openTaskPanel);
 
+  const [formOpen, setFormOpen] = useState(false);
+  const [formTarget, setFormTarget] = useState<EventFormTarget | null>(null);
+  const [peekOccurrence, setPeekOccurrence] = useState<EventOccurrence | null>(null);
+  const [categoriesManagerOpen, setCategoriesManagerOpen] = useState(false);
+
   const range = useMemo(() => getCalendarRange(anchorDate, viewMode), [anchorDate, viewMode]);
 
-  const { data: tasks, isLoading } = useTasks({
+  const { data: tasks, isLoading: tasksLoading } = useTasks({
     view: "calendar",
     from: range.start.toISOString(),
     to: range.end.toISOString(),
@@ -45,7 +55,16 @@ export default function CalendarPage() {
     limit: 500,
   });
 
-  const { data: projects } = useProjects();
+  const { data: events, isLoading: eventsLoading } = useEvents({
+    from: range.start.toISOString(),
+    to: range.end.toISOString(),
+  });
+
+  const updateEvent = useUpdateEvent();
+  const updateTask = useUpdateTask();
+
+  const isLoading = tasksLoading || eventsLoading;
+  const visibleEvents = useMemo(() => events ?? [], [events]);
 
   const visibleTasks = useMemo(() => {
     if (!tasks) return [];
@@ -56,10 +75,18 @@ export default function CalendarPage() {
     });
   }, [tasks, statusFilters]);
 
-  const noDateTasks = useMemo(() => {
-    if (!tasks) return [];
-    return visibleTasks.filter((t) => !getTaskCalendarDate(t));
-  }, [visibleTasks]);
+  const noDateTasks = useMemo(
+    () => visibleTasks.filter((t) => !getTaskCalendarDate(t)),
+    [visibleTasks]
+  );
+
+  const gridDays = useMemo(
+    () =>
+      viewMode === "day"
+        ? [anchorDate]
+        : eachDayOfInterval({ start: range.start, end: range.end }),
+    [viewMode, anchorDate, range]
+  );
 
   const selectedDayTasks = useMemo(() => {
     if (!selectedDay) return [];
@@ -69,11 +96,17 @@ export default function CalendarPage() {
         const d = getTaskCalendarDate(t);
         return d && dayKey(d) === key;
       })
-      .sort(
-        (a, b) =>
-          PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight
-      );
+      .sort((a, b) => PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight);
   }, [visibleTasks, selectedDay]);
+
+  const selectedDayEvents = useMemo(() => {
+    if (!selectedDay) return [];
+    const { allDay, timed } = occurrencesForDay(visibleEvents, selectedDay);
+    return [
+      ...allDay,
+      ...timed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+    ];
+  }, [visibleEvents, selectedDay]);
 
   const selectedDayLabelHe = selectedDay
     ? new Intl.DateTimeFormat("he-IL", {
@@ -111,6 +144,72 @@ export default function CalendarPage() {
     }
   };
 
+  const openCreate = (defaults?: EventFormTarget["defaults"]) => {
+    setFormTarget({ defaults });
+    setFormOpen(true);
+  };
+
+  const handleCreateRange = (start: Date, end: Date, allDay?: boolean) => {
+    openCreate({ start, end, allDay });
+  };
+
+  const handleCreateAtDay = (day: Date) => {
+    openCreate({
+      start: set(day, { hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }),
+      end: set(day, { hours: 9, minutes: 30, seconds: 0, milliseconds: 0 }),
+    });
+  };
+
+  const handleEditOccurrence = (occurrence: EventOccurrence, scope?: EventEditScope) => {
+    setPeekOccurrence(null);
+    setFormTarget({ occurrence, scope });
+    setFormOpen(true);
+  };
+
+  const moveOccurrence = (occurrence: EventOccurrence, newStart: Date, newEnd: Date) => {
+    updateEvent.mutate(
+      {
+        id: occurrence.id,
+        data: { start: newStart.toISOString(), end: newEnd.toISOString() },
+        scope: occurrence.isRecurring ? "occurrence" : undefined,
+        occurrenceStart: occurrence.isRecurring ? occurrence.occurrenceStart : undefined,
+      },
+      {
+        onSuccess: () => toast.success(he.events.eventUpdated),
+        onError: () => toast.error(he.events.saveFailed),
+      }
+    );
+  };
+
+  const moveOccurrenceToDay = (occurrence: EventOccurrence, day: Date) => {
+    const start = new Date(occurrence.start);
+    const end = new Date(occurrence.end);
+    const newStart = set(day, {
+      hours: start.getHours(),
+      minutes: start.getMinutes(),
+      seconds: 0,
+      milliseconds: 0,
+    });
+    const newEnd = new Date(newStart.getTime() + (end.getTime() - start.getTime()));
+    moveOccurrence(occurrence, newStart, newEnd);
+  };
+
+  const moveTaskToDay = (task: TaskWithRelations, day: Date) => {
+    const field = task.dueDate ? "dueDate" : "scheduledAt";
+    const original = task.dueDate ?? task.scheduledAt;
+    const originalDate = original ? new Date(original) : new Date();
+    const newDate = set(day, {
+      hours: originalDate.getHours(),
+      minutes: originalDate.getMinutes(),
+      seconds: 0,
+      milliseconds: 0,
+    });
+    updateTask.mutate(
+      { id: task.id, data: { [field]: newDate.toISOString() } as never },
+      { onError: () => toast.error(he.events.saveFailed) }
+    );
+  };
+
   return (
     <div>
       <PageHeader
@@ -127,6 +226,8 @@ export default function CalendarPage() {
           onPrev={() => handleNavigate(-1)}
           onNext={() => handleNavigate(1)}
           onToday={handleToday}
+          onNewEvent={() => openCreate()}
+          onManageCategories={() => setCategoriesManagerOpen(true)}
           statusFilters={statusFilters}
           onToggleStatusFilter={toggleStatusFilter}
           tasks={visibleTasks}
@@ -135,23 +236,28 @@ export default function CalendarPage() {
 
         {isLoading ? (
           <TaskListSkeleton rows={8} />
-        ) : viewMode === "day" ? (
-          <DayCalendar day={anchorDate} tasks={visibleTasks} onTaskClick={openTaskPanel} />
-        ) : viewMode === "week" ? (
-          <WeekCalendar
-            anchorDate={anchorDate}
-            tasks={visibleTasks}
-            selectedDay={selectedDay}
-            onSelectDay={setSelectedDay}
-            onTaskClick={openTaskPanel}
-          />
-        ) : (
+        ) : viewMode === "month" ? (
           <MonthCalendar
             anchorDate={anchorDate}
+            events={visibleEvents}
             tasks={visibleTasks}
             selectedDay={selectedDay}
             onSelectDay={setSelectedDay}
             onTaskClick={openTaskPanel}
+            onEventClick={setPeekOccurrence}
+            onCreateAt={handleCreateAtDay}
+            onMoveOccurrenceToDay={moveOccurrenceToDay}
+            onMoveTaskToDay={moveTaskToDay}
+          />
+        ) : (
+          <TimeGrid
+            days={gridDays}
+            events={visibleEvents}
+            tasks={visibleTasks}
+            onEventClick={setPeekOccurrence}
+            onTaskClick={openTaskPanel}
+            onCreateRange={handleCreateRange}
+            onMoveOccurrence={moveOccurrence}
           />
         )}
 
@@ -165,8 +271,15 @@ export default function CalendarPage() {
                 </span>
               )}
             </h3>
-            {selectedDayTasks.length > 0 ? (
+            {selectedDayEvents.length > 0 || selectedDayTasks.length > 0 ? (
               <div className="flex flex-col gap-1">
+                {selectedDayEvents.map((occ) => (
+                  <EventChip
+                    key={occ.occurrenceId}
+                    occurrence={occ}
+                    onClick={() => setPeekOccurrence(occ)}
+                  />
+                ))}
                 {selectedDayTasks.map((task) => (
                   <CalendarTaskChip
                     key={task.id}
@@ -202,13 +315,23 @@ export default function CalendarPage() {
             </div>
           </section>
         )}
-
-        {projects && projects.length === 0 && !isLoading && (
-          <p className="text-center text-xs text-muted-foreground">
-            {he.calendar.noProjectsHint}
-          </p>
-        )}
       </div>
+
+      <EventFormDialog
+        open={formOpen}
+        target={formTarget}
+        onClose={() => setFormOpen(false)}
+        onManageCategories={() => setCategoriesManagerOpen(true)}
+      />
+      <EventPeekDialog
+        occurrence={peekOccurrence}
+        onClose={() => setPeekOccurrence(null)}
+        onEdit={handleEditOccurrence}
+      />
+      <EventCategoriesManager
+        open={categoriesManagerOpen}
+        onClose={() => setCategoriesManagerOpen(false)}
+      />
     </div>
   );
 }

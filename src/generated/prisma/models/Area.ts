@@ -217,6 +217,7 @@ export type AreaWhereInput = {
   projects?: Prisma.ProjectListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
   stickyNotes?: Prisma.StickyNoteListRelationFilter
+  calendarEvents?: Prisma.CalendarEventListRelationFilter
 }
 
 export type AreaOrderByWithRelationInput = {
@@ -232,6 +233,7 @@ export type AreaOrderByWithRelationInput = {
   projects?: Prisma.ProjectOrderByRelationAggregateInput
   tasks?: Prisma.TaskOrderByRelationAggregateInput
   stickyNotes?: Prisma.StickyNoteOrderByRelationAggregateInput
+  calendarEvents?: Prisma.CalendarEventOrderByRelationAggregateInput
 }
 
 export type AreaWhereUniqueInput = Prisma.AtLeast<{
@@ -250,6 +252,7 @@ export type AreaWhereUniqueInput = Prisma.AtLeast<{
   projects?: Prisma.ProjectListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
   stickyNotes?: Prisma.StickyNoteListRelationFilter
+  calendarEvents?: Prisma.CalendarEventListRelationFilter
 }, "id" | "slug">
 
 export type AreaOrderByWithAggregationInput = {
@@ -295,6 +298,7 @@ export type AreaCreateInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
   tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
   stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateInput = {
@@ -310,6 +314,7 @@ export type AreaUncheckedCreateInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
   stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUpdateInput = {
@@ -325,6 +330,7 @@ export type AreaUpdateInput = {
   projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
   stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateInput = {
@@ -340,6 +346,7 @@ export type AreaUncheckedUpdateInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
   stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateManyInput = {
@@ -467,6 +474,22 @@ export type AreaUpdateOneWithoutTasksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutTasksInput, Prisma.AreaUpdateWithoutTasksInput>, Prisma.AreaUncheckedUpdateWithoutTasksInput>
 }
 
+export type AreaCreateNestedOneWithoutCalendarEventsInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutCalendarEventsInput, Prisma.AreaUncheckedCreateWithoutCalendarEventsInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutCalendarEventsInput
+  connect?: Prisma.AreaWhereUniqueInput
+}
+
+export type AreaUpdateOneWithoutCalendarEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutCalendarEventsInput, Prisma.AreaUncheckedCreateWithoutCalendarEventsInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutCalendarEventsInput
+  upsert?: Prisma.AreaUpsertWithoutCalendarEventsInput
+  disconnect?: Prisma.AreaWhereInput | boolean
+  delete?: Prisma.AreaWhereInput | boolean
+  connect?: Prisma.AreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutCalendarEventsInput, Prisma.AreaUpdateWithoutCalendarEventsInput>, Prisma.AreaUncheckedUpdateWithoutCalendarEventsInput>
+}
+
 export type AreaCreateNestedOneWithoutStickyNotesInput = {
   create?: Prisma.XOR<Prisma.AreaCreateWithoutStickyNotesInput, Prisma.AreaUncheckedCreateWithoutStickyNotesInput>
   connectOrCreate?: Prisma.AreaCreateOrConnectWithoutStickyNotesInput
@@ -495,6 +518,7 @@ export type AreaCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
   stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutProjectsInput = {
@@ -509,6 +533,7 @@ export type AreaUncheckedCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
   stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutProjectsInput = {
@@ -539,6 +564,7 @@ export type AreaUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
   stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutProjectsInput = {
@@ -553,6 +579,7 @@ export type AreaUncheckedUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
   stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateWithoutTasksInput = {
@@ -567,6 +594,7 @@ export type AreaCreateWithoutTasksInput = {
   updatedAt?: Date | string
   projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
   stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutTasksInput = {
@@ -581,6 +609,7 @@ export type AreaUncheckedCreateWithoutTasksInput = {
   updatedAt?: Date | string
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
   stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutTasksInput = {
@@ -611,6 +640,7 @@ export type AreaUpdateWithoutTasksInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
   stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutTasksInput = {
@@ -624,6 +654,83 @@ export type AreaUncheckedUpdateWithoutTasksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaCreateWithoutCalendarEventsInput = {
+  id?: string
+  name: string
+  slug?: string | null
+  icon?: string
+  color?: string
+  description?: string | null
+  archived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutCalendarEventsInput = {
+  id?: string
+  name: string
+  slug?: string | null
+  icon?: string
+  color?: string
+  description?: string | null
+  archived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
+  stickyNotes?: Prisma.StickyNoteUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutCalendarEventsInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutCalendarEventsInput, Prisma.AreaUncheckedCreateWithoutCalendarEventsInput>
+}
+
+export type AreaUpsertWithoutCalendarEventsInput = {
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutCalendarEventsInput, Prisma.AreaUncheckedUpdateWithoutCalendarEventsInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutCalendarEventsInput, Prisma.AreaUncheckedCreateWithoutCalendarEventsInput>
+  where?: Prisma.AreaWhereInput
+}
+
+export type AreaUpdateToOneWithWhereWithoutCalendarEventsInput = {
+  where?: Prisma.AreaWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutCalendarEventsInput, Prisma.AreaUncheckedUpdateWithoutCalendarEventsInput>
+}
+
+export type AreaUpdateWithoutCalendarEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
+  stickyNotes?: Prisma.StickyNoteUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutCalendarEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
   stickyNotes?: Prisma.StickyNoteUncheckedUpdateManyWithoutAreaNestedInput
 }
 
@@ -639,6 +746,7 @@ export type AreaCreateWithoutStickyNotesInput = {
   updatedAt?: Date | string
   projects?: Prisma.ProjectCreateNestedManyWithoutAreaInput
   tasks?: Prisma.TaskCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutStickyNotesInput = {
@@ -653,6 +761,7 @@ export type AreaUncheckedCreateWithoutStickyNotesInput = {
   updatedAt?: Date | string
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutAreaInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutAreaInput
+  calendarEvents?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutStickyNotesInput = {
@@ -683,6 +792,7 @@ export type AreaUpdateWithoutStickyNotesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUpdateManyWithoutAreaNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutStickyNotesInput = {
@@ -697,6 +807,7 @@ export type AreaUncheckedUpdateWithoutStickyNotesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutAreaNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutAreaNestedInput
+  calendarEvents?: Prisma.CalendarEventUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 
@@ -708,12 +819,14 @@ export type AreaCountOutputType = {
   projects: number
   tasks: number
   stickyNotes: number
+  calendarEvents: number
 }
 
 export type AreaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projects?: boolean | AreaCountOutputTypeCountProjectsArgs
   tasks?: boolean | AreaCountOutputTypeCountTasksArgs
   stickyNotes?: boolean | AreaCountOutputTypeCountStickyNotesArgs
+  calendarEvents?: boolean | AreaCountOutputTypeCountCalendarEventsArgs
 }
 
 /**
@@ -747,6 +860,13 @@ export type AreaCountOutputTypeCountStickyNotesArgs<ExtArgs extends runtime.Type
   where?: Prisma.StickyNoteWhereInput
 }
 
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeCountCalendarEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CalendarEventWhereInput
+}
+
 
 export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -761,6 +881,7 @@ export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   projects?: boolean | Prisma.Area$projectsArgs<ExtArgs>
   tasks?: boolean | Prisma.Area$tasksArgs<ExtArgs>
   stickyNotes?: boolean | Prisma.Area$stickyNotesArgs<ExtArgs>
+  calendarEvents?: boolean | Prisma.Area$calendarEventsArgs<ExtArgs>
   _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["area"]>
 
@@ -805,6 +926,7 @@ export type AreaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   projects?: boolean | Prisma.Area$projectsArgs<ExtArgs>
   tasks?: boolean | Prisma.Area$tasksArgs<ExtArgs>
   stickyNotes?: boolean | Prisma.Area$stickyNotesArgs<ExtArgs>
+  calendarEvents?: boolean | Prisma.Area$calendarEventsArgs<ExtArgs>
   _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AreaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -816,6 +938,7 @@ export type $AreaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     projects: Prisma.$ProjectPayload<ExtArgs>[]
     tasks: Prisma.$TaskPayload<ExtArgs>[]
     stickyNotes: Prisma.$StickyNotePayload<ExtArgs>[]
+    calendarEvents: Prisma.$CalendarEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1224,6 +1347,7 @@ export interface Prisma__AreaClient<T, Null = never, ExtArgs extends runtime.Typ
   projects<T extends Prisma.Area$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasks<T extends Prisma.Area$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   stickyNotes<T extends Prisma.Area$stickyNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$stickyNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StickyNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  calendarEvents<T extends Prisma.Area$calendarEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$calendarEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1724,6 +1848,30 @@ export type Area$stickyNotesArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.StickyNoteScalarFieldEnum | Prisma.StickyNoteScalarFieldEnum[]
+}
+
+/**
+ * Area.calendarEvents
+ */
+export type Area$calendarEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CalendarEvent
+   */
+  select?: Prisma.CalendarEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CalendarEvent
+   */
+  omit?: Prisma.CalendarEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CalendarEventInclude<ExtArgs> | null
+  where?: Prisma.CalendarEventWhereInput
+  orderBy?: Prisma.CalendarEventOrderByWithRelationInput | Prisma.CalendarEventOrderByWithRelationInput[]
+  cursor?: Prisma.CalendarEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CalendarEventScalarFieldEnum | Prisma.CalendarEventScalarFieldEnum[]
 }
 
 /**

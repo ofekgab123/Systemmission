@@ -57,6 +57,8 @@ export const ModelName = {
   Task: 'Task',
   TaskAttachment: 'TaskAttachment',
   Activity: 'Activity',
+  EventCategory: 'EventCategory',
+  CalendarEvent: 'CalendarEvent',
   StickyNote: 'StickyNote'
 } as const
 
@@ -177,6 +179,43 @@ export const ActivityScalarFieldEnum = {
 } as const
 
 export type ActivityScalarFieldEnum = (typeof ActivityScalarFieldEnum)[keyof typeof ActivityScalarFieldEnum]
+
+
+export const EventCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  color: 'color',
+  createdAt: 'createdAt'
+} as const
+
+export type EventCategoryScalarFieldEnum = (typeof EventCategoryScalarFieldEnum)[keyof typeof EventCategoryScalarFieldEnum]
+
+
+export const CalendarEventScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  location: 'location',
+  start: 'start',
+  end: 'end',
+  allDay: 'allDay',
+  showAs: 'showAs',
+  reminderMinutes: 'reminderMinutes',
+  recurrencePattern: 'recurrencePattern',
+  recurrenceInterval: 'recurrenceInterval',
+  recurrenceWeekdays: 'recurrenceWeekdays',
+  recurrenceUntil: 'recurrenceUntil',
+  recurrenceCount: 'recurrenceCount',
+  recurrenceExceptions: 'recurrenceExceptions',
+  seriesId: 'seriesId',
+  originalStart: 'originalStart',
+  categoryId: 'categoryId',
+  areaId: 'areaId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CalendarEventScalarFieldEnum = (typeof CalendarEventScalarFieldEnum)[keyof typeof CalendarEventScalarFieldEnum]
 
 
 export const StickyNoteScalarFieldEnum = {

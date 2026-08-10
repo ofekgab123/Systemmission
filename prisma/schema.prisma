@@ -97,6 +97,20 @@ enum RecurrencePattern {
   WEEKDAY
 }
 
+enum EventShowAs {
+  FREE
+  TENTATIVE
+  BUSY
+  OUT_OF_OFFICE
+}
+
+enum EventRecurrencePattern {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
 model Area {
   id          String   @id @default(cuid())
   name        String
@@ -108,9 +122,10 @@ model Area {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  projects    Project[]
-  tasks       Task[]
-  stickyNotes StickyNote[]
+  projects       Project[]
+  tasks          Task[]
+  stickyNotes    StickyNote[]
+  calendarEvents CalendarEvent[]
 }
 
 model Project {
@@ -237,6 +252,57 @@ model Activity {
   @@index([taskId])
   @@index([projectId])
   @@index([createdAt])
+}
+
+model EventCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+
+  events CalendarEvent[]
+}
+
+model CalendarEvent {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  location    String?
+
+  start  DateTime
+  end    DateTime
+  allDay Boolean  @default(false)
+
+  showAs          EventShowAs @default(BUSY)
+  reminderMinutes Int?
+
+  recurrencePattern    EventRecurrencePattern?
+  recurrenceInterval   Int                     @default(1)
+  recurrenceWeekdays   Int[]                   @default([])
+  recurrenceUntil      DateTime?
+  recurrenceCount      Int?
+  recurrenceExceptions DateTime[]              @default([])
+
+  // Edited occurrence of a recurring series ("this occurrence only"):
+  // stored as a standalone event pointing at the series master.
+  seriesId      String?
+  series        CalendarEvent?  @relation("SeriesExceptions", fields: [seriesId], references: [id], onDelete: Cascade)
+  exceptions    CalendarEvent[] @relation("SeriesExceptions")
+  originalStart DateTime?
+
+  categoryId String?
+  category   EventCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  areaId String?
+  area   Area?   @relation(fields: [areaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([start])
+  @@index([end])
+  @@index([seriesId])
+  @@index([areaId])
 }
 
 model StickyNote {

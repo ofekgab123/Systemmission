@@ -12,6 +12,7 @@ import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { CommandBar } from "@/components/command/command-bar";
 import { NewCategoryModal } from "@/components/category/new-category-modal";
 import { StickyNoteAlerts } from "@/components/sticky-notes/sticky-note-alerts";
+import { EventReminders } from "@/components/calendar/event-reminders";
 import { MotivationAlerts } from "@/components/motivation/motivation-alerts";
 import { AreaBootstrap } from "@/components/areas/area-bootstrap";
 import { FontScaleControl } from "@/components/accessibility/font-scale-control";
@@ -39,6 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AreaBootstrap />
       <StickyNoteAlerts />
       <MotivationAlerts />
+      <EventReminders />
       <FontScaleControl />
     </div>
   );

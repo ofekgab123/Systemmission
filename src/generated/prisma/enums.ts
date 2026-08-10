@@ -127,3 +127,23 @@ export const RecurrencePattern = {
 } as const
 
 export type RecurrencePattern = (typeof RecurrencePattern)[keyof typeof RecurrencePattern]
+
+
+export const EventShowAs = {
+  FREE: 'FREE',
+  TENTATIVE: 'TENTATIVE',
+  BUSY: 'BUSY',
+  OUT_OF_OFFICE: 'OUT_OF_OFFICE'
+} as const
+
+export type EventShowAs = (typeof EventShowAs)[keyof typeof EventShowAs]
+
+
+export const EventRecurrencePattern = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY'
+} as const
+
+export type EventRecurrencePattern = (typeof EventRecurrencePattern)[keyof typeof EventRecurrencePattern]

@@ -48,6 +48,16 @@ export type TaskAttachment = Prisma.TaskAttachmentModel
  */
 export type Activity = Prisma.ActivityModel
 /**
+ * Model EventCategory
+ * 
+ */
+export type EventCategory = Prisma.EventCategoryModel
+/**
+ * Model CalendarEvent
+ * 
+ */
+export type CalendarEvent = Prisma.CalendarEventModel
+/**
  * Model StickyNote
  * 
  */

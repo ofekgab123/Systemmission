@@ -4,11 +4,15 @@ import type { Urgency, Priority } from "@/generated/prisma/enums";
 import { PRIORITY_META, STATUS_COLOR_CLASSES, type StatusColor } from "@/lib/task-meta";
 
 export type CalendarColorMode = "combined" | "project" | "urgency" | "priority";
-export type CalendarViewMode = "day" | "week" | "month";
+export type CalendarViewMode = "day" | "workweek" | "week" | "month";
 
 export function getCalendarRange(anchor: Date, mode: CalendarViewMode): { start: Date; end: Date } {
   if (mode === "day") {
     return { start: startOfDay(anchor), end: endOfDay(anchor) };
+  }
+  if (mode === "workweek") {
+    const start = startOfWeek(anchor, { weekStartsOn: 0 });
+    return { start, end: endOfDay(addDays(start, 4)) };
   }
   if (mode === "week") {
     return {
@@ -28,7 +32,7 @@ export function shiftCalendarAnchor(
   direction: -1 | 1
 ): Date {
   if (mode === "day") return addDays(anchor, direction);
-  if (mode === "week") return addWeeks(anchor, direction);
+  if (mode === "week" || mode === "workweek") return addWeeks(anchor, direction);
   return addMonths(startOfMonth(anchor), direction);
 }
 
@@ -41,9 +45,9 @@ export function formatCalendarPeriodLabel(anchor: Date, mode: CalendarViewMode):
       year: "numeric",
     }).format(anchor);
   }
-  if (mode === "week") {
+  if (mode === "week" || mode === "workweek") {
     const start = startOfWeek(anchor, { weekStartsOn: 0 });
-    const end = endOfWeek(anchor, { weekStartsOn: 0 });
+    const end = mode === "workweek" ? addDays(start, 4) : endOfWeek(anchor, { weekStartsOn: 0 });
     const monthYear = new Intl.DateTimeFormat("he-IL", { month: "long", year: "numeric" }).format(start);
     if (isSameMonth(start, end)) {
       return `${start.getDate()}–${end.getDate()} ${monthYear}`;

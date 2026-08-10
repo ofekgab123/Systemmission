@@ -60,3 +60,28 @@ export type ActivityWithRelations = Prisma.ActivityGetPayload<{
     project: true;
   };
 }>;
+
+export type EventCategoryRecord = Prisma.EventCategoryGetPayload<Record<string, never>>;
+
+export type CalendarEventWithRelations = Prisma.CalendarEventGetPayload<{
+  include: {
+    category: true;
+    area: true;
+  };
+}>;
+
+/**
+ * A concrete instance of an event on the calendar. For recurring events the
+ * API expands the series into occurrences within the requested range; each
+ * occurrence carries its own start/end plus the series data.
+ */
+export type EventOccurrence = CalendarEventWithRelations & {
+  /** Unique key per rendered instance (`eventId` or `eventId:isoStart`). */
+  occurrenceId: string;
+  /** The computed series start of this occurrence (used for scope=occurrence edits). */
+  occurrenceStart: string;
+  isRecurring: boolean;
+  /** Start/end of the series master row (equals start/end for one-off events). */
+  seriesStart: Date;
+  seriesEnd: Date;
+};

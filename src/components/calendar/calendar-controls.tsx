@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
+import { CalendarPlus, ChevronDown, ChevronRight, ChevronLeft, Tags } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
 import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
@@ -17,6 +17,7 @@ import type { TaskStatus } from "@/generated/prisma/enums";
 
 const VIEW_MODES: { id: CalendarViewMode; label: string }[] = [
   { id: "day", label: he.calendar.viewDay },
+  { id: "workweek", label: he.calendar.viewWorkWeek },
   { id: "week", label: he.calendar.viewWeek },
   { id: "month", label: he.calendar.viewMonth },
 ];
@@ -78,6 +79,8 @@ export function CalendarControls({
   onPrev,
   onNext,
   onToday,
+  onNewEvent,
+  onManageCategories,
   statusFilters,
   onToggleStatusFilter,
   tasks,
@@ -90,6 +93,8 @@ export function CalendarControls({
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
+  onNewEvent: () => void;
+  onManageCategories: () => void;
   statusFilters: Set<CalendarStatusFilter>;
   onToggleStatusFilter: (status: CalendarStatusFilter) => void;
   tasks: TaskWithRelations[];
@@ -114,6 +119,21 @@ export function CalendarControls({
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="flex flex-wrap items-center gap-1 p-2">
+        <Button type="button" size="sm" className="h-8 shrink-0 gap-1.5 px-3" onClick={onNewEvent}>
+          <CalendarPlus className="size-3.5" />
+          {he.events.newEvent}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 px-2.5 text-xs"
+          onClick={onToday}
+        >
+          {he.calendar.today}
+        </Button>
+
         <Button
           type="button"
           variant="ghost"
@@ -124,10 +144,6 @@ export function CalendarControls({
           <ChevronRight className="size-4" />
         </Button>
 
-        <span className="min-w-[6.5rem] flex-1 truncate text-center text-sm font-medium capitalize">
-          {periodLabel}
-        </span>
-
         <Button
           type="button"
           variant="ghost"
@@ -137,6 +153,10 @@ export function CalendarControls({
         >
           <ChevronLeft className="size-4" />
         </Button>
+
+        <span className="min-w-[6.5rem] flex-1 truncate text-center text-sm font-medium capitalize">
+          {periodLabel}
+        </span>
 
         <span className="mx-0.5 hidden h-5 w-px bg-border sm:block" aria-hidden />
 
@@ -167,6 +187,17 @@ export function CalendarControls({
             {filter.label}
           </Button>
         ))}
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={he.events.manageCategories}
+          title={he.events.manageCategories}
+          onClick={onManageCategories}
+        >
+          <Tags className="size-4" />
+        </Button>
 
         {projectGroups.length > 0 && (
           <Button
@@ -206,9 +237,6 @@ export function CalendarControls({
             placeholder={he.calendar.jumpToDate}
             className="sm:max-w-xs"
           />
-          <Button type="button" variant="outline" size="sm" className="h-10" onClick={onToday}>
-            {he.calendar.today}
-          </Button>
         </div>
       )}
 

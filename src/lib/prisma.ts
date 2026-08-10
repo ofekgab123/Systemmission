@@ -6,7 +6,7 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-const PRISMA_CLIENT_VERSION = 4;
+const PRISMA_CLIENT_VERSION = 5;
 
 function createPrismaClient() {
   const adapter = new PrismaPg({
@@ -22,7 +22,8 @@ function isStaleClient(client: PrismaClient | undefined): client is undefined {
     !client ||
     (client as PrismaClient & { __version?: number }).__version !== PRISMA_CLIENT_VERSION ||
     typeof client.stickyNote?.findMany !== "function" ||
-    typeof client.taskAttachment?.createMany !== "function"
+    typeof client.taskAttachment?.createMany !== "function" ||
+    typeof client.calendarEvent?.findMany !== "function"
   );
 }
 

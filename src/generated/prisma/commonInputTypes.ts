@@ -372,6 +372,67 @@ export type EnumActivityTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumActivityTypeFilter<$PrismaModel>
 }
 
+export type EnumEventShowAsFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventShowAs | Prisma.EnumEventShowAsFieldRefInput<$PrismaModel>
+  in?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEventShowAsFilter<$PrismaModel> | $Enums.EventShowAs
+}
+
+export type EnumEventRecurrencePatternNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventRecurrencePattern | Prisma.EnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel> | $Enums.EventRecurrencePattern | null
+}
+
+export type IntFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedIntFilter<$PrismaModel> | number
+}
+
+export type EnumEventShowAsWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventShowAs | Prisma.EnumEventShowAsFieldRefInput<$PrismaModel>
+  in?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEventShowAsWithAggregatesFilter<$PrismaModel> | $Enums.EventShowAs
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEventShowAsFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEventShowAsFilter<$PrismaModel>
+}
+
+export type EnumEventRecurrencePatternNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventRecurrencePattern | Prisma.EnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEventRecurrencePatternNullableWithAggregatesFilter<$PrismaModel> | $Enums.EventRecurrencePattern | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel>
+}
+
+export type IntWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedIntWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedIntFilter<$PrismaModel>
+  _max?: Prisma.NestedIntFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -741,6 +802,56 @@ export type NestedEnumActivityTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumActivityTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumActivityTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumEventShowAsFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventShowAs | Prisma.EnumEventShowAsFieldRefInput<$PrismaModel>
+  in?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEventShowAsFilter<$PrismaModel> | $Enums.EventShowAs
+}
+
+export type NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventRecurrencePattern | Prisma.EnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel> | $Enums.EventRecurrencePattern | null
+}
+
+export type NestedEnumEventShowAsWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventShowAs | Prisma.EnumEventShowAsFieldRefInput<$PrismaModel>
+  in?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EventShowAs[] | Prisma.ListEnumEventShowAsFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEventShowAsWithAggregatesFilter<$PrismaModel> | $Enums.EventShowAs
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEventShowAsFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEventShowAsFilter<$PrismaModel>
+}
+
+export type NestedEnumEventRecurrencePatternNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EventRecurrencePattern | Prisma.EnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EventRecurrencePattern[] | Prisma.ListEnumEventRecurrencePatternFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEventRecurrencePatternNullableWithAggregatesFilter<$PrismaModel> | $Enums.EventRecurrencePattern | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEventRecurrencePatternNullableFilter<$PrismaModel>
+}
+
+export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedIntWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedIntFilter<$PrismaModel>
+  _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
 
