@@ -1,19 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarPlus, ChevronDown, ChevronRight, ChevronLeft, Tags } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  ChevronUp,
+  Tags,
+  SlidersHorizontal,
+} from "lucide-react";
+import { format } from "date-fns";
+import { he as dateHe } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
-import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
-import {
-  formatCalendarPeriodLabel,
-  CALENDAR_TASK_DRAG_MIME,
-  type CalendarViewMode,
-} from "@/lib/calendar-utils";
-import { PRIORITY_META } from "@/lib/task-meta";
-import type { TaskWithRelations } from "@/types";
+import { formatCalendarPeriodLabel, type CalendarViewMode } from "@/lib/calendar-utils";
+import { CAL } from "@/lib/calendar-theme";
+import { DEFAULT_EVENT_COLOR } from "@/lib/event-utils";
+import { useEventCategories } from "@/hooks/use-event-categories";
+import { useProjects } from "@/hooks/use-projects";
+import { CalendarQuickActions } from "@/components/calendar/calendar-quick-actions";
+import type { EventOccurrence, TaskWithRelations } from "@/types";
 import type { TaskStatus } from "@/generated/prisma/enums";
 
 const VIEW_MODES: { id: CalendarViewMode; label: string }[] = [
@@ -31,45 +39,82 @@ const STATUS_FILTERS: { id: CalendarStatusFilter; label: string }[] = [
   { id: "WAITING", label: he.views.waiting },
 ];
 
-const NO_PROJECT_ID = "__none__";
+import { UNCategorized_CATEGORY_KEY, NO_PROJECT_KEY } from "@/lib/calendar-category-filter";
 
-interface ProjectGroup {
-  id: string;
-  name: string;
-  color: string;
-  tasks: TaskWithRelations[];
+function ViewModeSwitcher({
+  viewMode,
+  onViewModeChange,
+}: {
+  viewMode: CalendarViewMode;
+  onViewModeChange: (mode: CalendarViewMode) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label={he.calendar.viewModeLabel}
+      className="flex gap-1 rounded-[11px] p-[3px]"
+      style={{ backgroundColor: CAL.stripBg }}
+    >
+      {VIEW_MODES.map((mode) => (
+        <button
+          key={mode.id}
+          type="button"
+          role="tab"
+          aria-selected={viewMode === mode.id}
+          className={cn(
+            "flex-1 rounded-[9px] px-2 py-1.5 text-[13px] font-semibold whitespace-nowrap transition-all",
+            viewMode === mode.id
+              ? "bg-white text-[#111827] shadow-[0_1px_3px_rgba(17,24,39,.12)]"
+              : "text-[#8A90A0] hover:text-[#374151]"
+          )}
+          onClick={() => onViewModeChange(mode.id)}
+        >
+          {mode.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
-function groupTasksByProject(tasks: TaskWithRelations[]): ProjectGroup[] {
-  const map = new Map<string, ProjectGroup>();
-
-  for (const task of tasks) {
-    const id = task.project?.id ?? NO_PROJECT_ID;
-    const existing = map.get(id);
-    if (existing) {
-      existing.tasks.push(task);
-      continue;
-    }
-    map.set(id, {
-      id,
-      name: task.project?.name ?? he.task.noProject,
-      color: task.project?.color ?? "#94a3b8",
-      tasks: [task],
-    });
-  }
-
-  return [...map.values()]
-    .map((group) => ({
-      ...group,
-      tasks: [...group.tasks].sort(
-        (a, b) => PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight
-      ),
-    }))
-    .sort((a, b) => {
-      if (a.id === NO_PROJECT_ID) return 1;
-      if (b.id === NO_PROJECT_ID) return -1;
-      return a.name.localeCompare(b.name, "he");
-    });
+function CategoryChip({
+  name,
+  color,
+  count,
+  active,
+  onClick,
+}: {
+  name: string;
+  color: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+        active
+          ? "border-transparent text-white shadow-sm"
+          : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+      )}
+      style={active ? { backgroundColor: color } : undefined}
+      title={he.calendar.eventCount(count)}
+    >
+      <span
+        className="size-2 shrink-0 rounded-full"
+        style={{
+          backgroundColor: active ? "rgba(255,255,255,0.9)" : color,
+          boxShadow: active ? undefined : `0 0 0 1px ${color}40`,
+        }}
+      />
+      <span className="max-w-[8rem] truncate">{name}</span>
+      <span className={cn("tabular-nums", active ? "text-white/85" : "text-[#9CA3AF]")}>
+        {count}
+      </span>
+    </button>
+  );
 }
 
 export function CalendarControls({
@@ -81,11 +126,16 @@ export function CalendarControls({
   onNext,
   onToday,
   onNewEvent,
-  onManageCategories,
+  backlogTasks,
+  onTaskClick,
   statusFilters,
   onToggleStatusFilter,
   tasks,
-  onTaskClick,
+  projectFilters,
+  onToggleProjectFilter,
+  events,
+  categoryFilters,
+  onToggleCategoryFilter,
 }: {
   viewMode: CalendarViewMode;
   onViewModeChange: (mode: CalendarViewMode) => void;
@@ -95,208 +145,306 @@ export function CalendarControls({
   onNext: () => void;
   onToday: () => void;
   onNewEvent: () => void;
-  onManageCategories: () => void;
+  backlogTasks: TaskWithRelations[];
+  onTaskClick: (taskId: string) => void;
   statusFilters: Set<CalendarStatusFilter>;
   onToggleStatusFilter: (status: CalendarStatusFilter) => void;
   tasks: TaskWithRelations[];
-  onTaskClick: (taskId: string) => void;
+  projectFilters: Set<string>;
+  onToggleProjectFilter: (projectKey: string) => void;
+  events: EventOccurrence[];
+  categoryFilters: Set<string>;
+  onToggleCategoryFilter: (categoryKey: string) => void;
 }) {
   const [dateOpen, setDateOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState(false);
 
-  const periodLabel = formatCalendarPeriodLabel(anchorDate, viewMode);
-  const projectGroups = useMemo(() => groupTasksByProject(tasks), [tasks]);
-
-  const toggleCategory = (id: string) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      if (!v) {
+        setDateOpen(false);
+        setFiltersOpen(false);
+        setCategoriesOpen(false);
+      }
+      return !v;
     });
   };
 
+  const currentViewLabel = VIEW_MODES.find((m) => m.id === viewMode)?.label ?? "";
+
+  const { data: categories = [] } = useEventCategories();
+  const { data: projects = [] } = useProjects({ status: "ACTIVE" });
+  const monthLabel = format(anchorDate, "MMMM yyyy", { locale: dateHe });
+  const periodLabel = formatCalendarPeriodLabel(anchorDate, viewMode);
+  const activeFilterCount = statusFilters.size;
+  const activeCategoryCount = projectFilters.size + categoryFilters.size;
+
+  const taskCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const task of tasks) {
+      const key = task.projectId ?? NO_PROJECT_KEY;
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return map;
+  }, [tasks]);
+
+  const eventCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const occ of events) {
+      const key = occ.categoryId ?? UNCategorized_CATEGORY_KEY;
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return map;
+  }, [events]);
+
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.name.localeCompare(b.name, "he")),
+    [projects]
+  );
+
+  const hasCategoryLegend =
+    sortedProjects.length > 0 || categories.length > 0 || tasks.length > 0 || events.length > 0;
+
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      <div className="flex flex-wrap items-center gap-1 p-2">
-        <Button type="button" size="sm" className="h-8 shrink-0 gap-1.5 px-3" onClick={onNewEvent}>
-          <CalendarPlus className="size-3.5" />
-          {he.events.newEvent}
-        </Button>
+    <div className="bg-white">
+      <div
+        className={cn("border-b px-4 pt-1.5", collapsed ? "pb-2" : "pb-2.5")}
+        style={{ borderColor: CAL.border }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <button
+              type="button"
+              aria-expanded={!collapsed}
+              aria-label={collapsed ? he.calendar.expandControls : he.calendar.collapseControls}
+              onClick={toggleCollapsed}
+              className="flex size-8 shrink-0 items-center justify-center rounded-full text-[#6B7280] transition-colors hover:bg-[#F1F3F7]"
+            >
+              <ChevronUp
+                className={cn(
+                  "size-4 transition-transform duration-200",
+                  collapsed && "rotate-180"
+                )}
+              />
+            </button>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 shrink-0 px-2.5 text-xs"
-          onClick={onToday}
-        >
-          {he.calendar.today}
-        </Button>
+            <button
+              type="button"
+              aria-expanded={dateOpen}
+              onClick={() => !collapsed && setDateOpen((v) => !v)}
+              className="flex min-w-0 items-center gap-1.5 text-start"
+            >
+              <span
+                className={cn(
+                  "truncate font-bold capitalize text-[#111827]",
+                  collapsed ? "text-base" : "text-[21px]"
+                )}
+              >
+                {viewMode === "month" ? monthLabel : periodLabel}
+              </span>
+              {!collapsed && (
+                <ChevronDown
+                  className={cn(
+                    "size-3.5 shrink-0 text-[#6B7280] transition-transform duration-200",
+                    dateOpen && "rotate-180"
+                  )}
+                />
+              )}
+            </button>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={onPrev}
-          aria-label={he.calendar.prevPeriod}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={onNext}
-          aria-label={he.calendar.nextPeriod}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-
-        <span className="min-w-[6.5rem] flex-1 truncate text-center text-sm font-medium capitalize">
-          {periodLabel}
-        </span>
-
-        <span className="mx-0.5 hidden h-5 w-px bg-border sm:block" aria-hidden />
-
-        {VIEW_MODES.map((mode) => (
-          <Button
-            key={mode.id}
-            type="button"
-            variant={viewMode === mode.id ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 shrink-0 px-2.5 text-xs"
-            onClick={() => onViewModeChange(mode.id)}
-          >
-            {mode.label}
-          </Button>
-        ))}
-
-        <span className="mx-0.5 hidden h-5 w-px bg-border sm:block" aria-hidden />
-
-        {STATUS_FILTERS.map((filter) => (
-          <Button
-            key={filter.id}
-            type="button"
-            variant={statusFilters.has(filter.id) ? "secondary" : "outline"}
-            size="sm"
-            className="h-8 shrink-0 px-2.5 text-xs"
-            onClick={() => onToggleStatusFilter(filter.id)}
-          >
-            {filter.label}
-          </Button>
-        ))}
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={he.events.manageCategories}
-          title={he.events.manageCategories}
-          onClick={onManageCategories}
-        >
-          <Tags className="size-4" />
-        </Button>
-
-        {projectGroups.length > 0 && (
-          <Button
-            type="button"
-            variant={categoriesOpen ? "secondary" : "outline"}
-            size="sm"
-            className="h-8 shrink-0 px-2.5 text-xs"
-            aria-expanded={categoriesOpen}
-            onClick={() => setCategoriesOpen((v) => !v)}
-          >
-            {he.calendar.legendProjects}
-          </Button>
-        )}
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-expanded={dateOpen}
-          aria-label={he.calendar.jumpToDate}
-          onClick={() => setDateOpen((v) => !v)}
-        >
-          <ChevronDown
-            className={cn(
-              "size-4 text-muted-foreground transition-transform duration-200",
-              dateOpen && "rotate-180"
+            {collapsed && (
+              <span className="shrink-0 rounded-full bg-[#F1F3F7] px-2 py-0.5 text-[10px] font-semibold text-[#6B7280]">
+                {currentViewLabel}
+              </span>
             )}
-          />
-        </Button>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onToday}
+              className="flex h-7 items-center rounded-full border bg-white px-2.5 text-xs font-semibold text-[#374151] transition-colors hover:bg-[#F1F3F7]"
+              style={{ borderColor: "#DDE1E9" }}
+            >
+              {he.calendar.today}
+            </button>
+
+            <div
+              className="flex items-center rounded-[10px] p-0.5"
+              style={{ backgroundColor: CAL.stripBg }}
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="size-7 rounded-lg"
+                onClick={onPrev}
+                aria-label={he.calendar.prevPeriod}
+              >
+                <ChevronRight className="size-4 text-[#374151]" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="size-7 rounded-lg"
+                onClick={onNext}
+                aria-label={he.calendar.nextPeriod}
+              >
+                <ChevronLeft className="size-4 text-[#374151]" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {!collapsed && (
+          <div className="mt-3">
+            <ViewModeSwitcher viewMode={viewMode} onViewModeChange={onViewModeChange} />
+          </div>
+        )}
       </div>
 
-      {dateOpen && (
-        <div className="flex flex-col gap-2 border-t p-3 sm:flex-row sm:items-center">
-          <DateField
-            value={anchorDate}
-            onChange={(date) => date && onJumpToDate(date)}
-            placeholder={he.calendar.jumpToDate}
-            className="sm:max-w-xs"
+      {!collapsed && (
+        <>
+      {/* Status filters */}
+      <div
+        className="flex flex-wrap items-center gap-2 border-b px-4 py-2"
+        style={{ borderColor: CAL.border, backgroundColor: CAL.allDayBg }}
+      >
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          className={cn(
+            "flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+            filtersOpen || activeFilterCount > 0
+              ? "border-[#2563EB]/30 bg-[#E8F0FE] text-[#2563EB]"
+              : "border-[#DDE1E9] bg-white text-[#374151]"
+          )}
+        >
+          <SlidersHorizontal className="size-3.5" />
+          {he.calendar.filterBy}
+          {activeFilterCount > 0 && (
+            <span className="flex size-4 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+
+        {filtersOpen &&
+          STATUS_FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => onToggleStatusFilter(filter.id)}
+              className={cn(
+                "h-7 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                statusFilters.has(filter.id)
+                  ? "border-[#2563EB]/30 bg-[#E8F0FE] text-[#2563EB]"
+                  : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+
+        <button
+          type="button"
+          aria-expanded={categoriesOpen}
+          onClick={() => setCategoriesOpen((v) => !v)}
+          className={cn(
+            "ms-auto flex h-7 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors",
+            categoriesOpen || activeCategoryCount > 0
+              ? "border-[#2563EB]/30 bg-[#E8F0FE] text-[#2563EB]"
+              : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+          )}
+          title={he.calendar.legendProjects}
+        >
+          <Tags className="size-3.5" />
+          <span className="hidden sm:inline">{he.calendar.legendProjects}</span>
+          {activeCategoryCount > 0 && (
+            <span className="flex size-4 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-bold text-white">
+              {activeCategoryCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      <CalendarQuickActions
+        backlogTasks={backlogTasks}
+        onTaskClick={onTaskClick}
+        onNewEvent={onNewEvent}
+      />
+
+      {/* Category picker — opens from tags button */}
+      {categoriesOpen && hasCategoryLegend && (
+        <div
+          className="flex flex-wrap gap-1.5 border-b px-4 py-2"
+          style={{ borderColor: CAL.border, backgroundColor: CAL.surface }}
+        >
+          {sortedProjects.map((project) => (
+            <CategoryChip
+              key={project.id}
+              name={project.name}
+              color={project.color}
+              count={taskCounts.get(project.id) ?? 0}
+              active={projectFilters.has(project.id)}
+              onClick={() => onToggleProjectFilter(project.id)}
+            />
+          ))}
+          <CategoryChip
+            name={he.task.noProject}
+            color="#94a3b8"
+            count={taskCounts.get(NO_PROJECT_KEY) ?? 0}
+            active={projectFilters.has(NO_PROJECT_KEY)}
+            onClick={() => onToggleProjectFilter(NO_PROJECT_KEY)}
+          />
+          {categories.map((category) => (
+            <CategoryChip
+              key={category.id}
+              name={category.name}
+              color={category.color}
+              count={eventCounts.get(category.id) ?? 0}
+              active={categoryFilters.has(category.id)}
+              onClick={() => onToggleCategoryFilter(category.id)}
+            />
+          ))}
+          <CategoryChip
+            name={he.events.noCategory}
+            color={DEFAULT_EVENT_COLOR}
+            count={eventCounts.get(UNCategorized_CATEGORY_KEY) ?? 0}
+            active={categoryFilters.has(UNCategorized_CATEGORY_KEY)}
+            onClick={() => onToggleCategoryFilter(UNCategorized_CATEGORY_KEY)}
           />
         </div>
       )}
 
-      {categoriesOpen && projectGroups.length > 0 && (
-        <div className="border-t">
-          {projectGroups.map((group) => {
-            const open = expandedCategories.has(group.id);
-            return (
-              <div key={group.id} className="border-b last:border-b-0">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  aria-expanded={open}
-                  onClick={() => toggleCategory(group.id)}
-                  className="h-auto w-full justify-start gap-2 rounded-none px-3 py-2.5 font-normal hover:bg-muted/40"
-                >
-                  <span
-                    className="size-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: group.color }}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-start text-sm font-medium">
-                    {group.name}
-                  </span>
-                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                    {he.calendar.taskCount(group.tasks.length)}
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                      open && "rotate-180"
-                    )}
-                  />
-                </Button>
-                {open && (
-                  <div className="flex flex-col gap-1 border-t bg-muted/20 px-3 py-2">
-                    {group.tasks.map((task) => (
-                      <div
-                        key={task.id}
-                        draggable
-                        title={he.calendar.dragToMove}
-                        className="cursor-grab active:cursor-grabbing"
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData(CALENDAR_TASK_DRAG_MIME, task.id);
-                          e.dataTransfer.effectAllowed = "move";
-                        }}
-                      >
-                        <CalendarTaskChip
-                          task={task}
-                          showDate
-                          onClick={() => onTaskClick(task.id)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      {categoriesOpen && !hasCategoryLegend && (
+        <div
+          className="border-b px-4 py-3 text-xs text-[#9CA3AF]"
+          style={{ borderColor: CAL.border }}
+        >
+          {he.calendar.noProjectsHint}
         </div>
+      )}
+
+      {dateOpen && (
+        <div className="border-b px-4 py-3" style={{ borderColor: CAL.border }}>
+          <DateField
+            value={anchorDate}
+            onChange={(date) => {
+              if (date) {
+                onJumpToDate(date);
+                setDateOpen(false);
+              }
+            }}
+            placeholder={he.calendar.jumpToDate}
+            className="max-w-xs"
+          />
+        </div>
+      )}
+        </>
       )}
     </div>
   );

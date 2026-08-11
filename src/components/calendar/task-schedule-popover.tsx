@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type PointerEvent, type ReactNode } from "react";
 import { set } from "date-fns";
 import { Clock, ExternalLink } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import type { TaskWithRelations } from "@/types";
 
@@ -25,6 +26,8 @@ export function TaskSchedulePopover({
   onOpenChange,
   onSchedule,
   onOpenTask,
+  onPointerDown,
+  isDragged = false,
   children,
 }: {
   task: TaskWithRelations;
@@ -33,7 +36,9 @@ export function TaskSchedulePopover({
   onOpenChange: (open: boolean) => void;
   onSchedule: (start: Date) => void;
   onOpenTask: () => void;
-  children: React.ReactElement;
+  onPointerDown?: (e: PointerEvent<HTMLDivElement>) => void;
+  isDragged?: boolean;
+  children: ReactNode;
 }) {
   const [time, setTime] = useState(() => defaultTimeForDay(day));
 
@@ -46,7 +51,21 @@ export function TaskSchedulePopover({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger render={children} />
+      <PopoverTrigger
+        nativeButton={false}
+        render={
+          <div
+            className={cn(
+              "w-full min-w-0 cursor-grab touch-none active:cursor-grabbing",
+              isDragged && "opacity-30"
+            )}
+            title={he.calendar.dragToMove}
+            onPointerDown={onPointerDown}
+          />
+        }
+      >
+        {children}
+      </PopoverTrigger>
       <PopoverContent className="w-72" align="start" dir="rtl">
         <div className="flex flex-col gap-3">
           <div>

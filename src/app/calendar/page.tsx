@@ -1,18 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { eachDayOfInterval, isSameDay, set, startOfDay, startOfToday } from "date-fns";
+import { eachDayOfInterval, set, startOfDay, startOfToday } from "date-fns";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/layout/page-header";
 import { MonthCalendar } from "@/components/calendar/month-calendar";
 import { TimeGrid } from "@/components/calendar/time-grid";
 import { CalendarControls } from "@/components/calendar/calendar-controls";
-import { CalendarTaskChip } from "@/components/calendar/calendar-task-chip";
-import { EventChip } from "@/components/calendar/event-chip";
+import { WeekStrip } from "@/components/calendar/week-strip";
+import { CalendarQuickActions } from "@/components/calendar/calendar-quick-actions";
+import { CalendarExternalDragProvider } from "@/components/calendar/calendar-external-drag";
 import { EventFormDialog, type EventFormTarget } from "@/components/calendar/event-form-dialog";
 import { EventPeekDialog } from "@/components/calendar/event-peek";
 import { EventCategoriesManager } from "@/components/calendar/event-categories-manager";
-import { AddTaskButton } from "@/components/quick-add/add-task-button";
 import { useTasks, useUpdateTask } from "@/hooks/use-tasks";
 import { useEvents, useUpdateEvent, type EventEditScope } from "@/hooks/use-events";
 import { useUIStore } from "@/store/ui-store";
@@ -20,14 +19,12 @@ import { he } from "@/lib/i18n/he";
 import {
   dayKey,
   getCalendarRange,
-  getTaskCalendarDate,
   shiftCalendarAnchor,
   type CalendarViewMode,
 } from "@/lib/calendar-utils";
-import { occurrencesForDay } from "@/lib/event-utils";
-import { PRIORITY_META } from "@/lib/task-meta";
-import { cn } from "@/lib/utils";
-import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
+import { CAL } from "@/lib/calendar-theme";
+import { filterEventsByCategory, filterTasksByProject } from "@/lib/calendar-category-filter";
+import { TaskListSkeleton } from "@/components/task/task-list";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 import type { TaskStatus } from "@/generated/prisma/enums";
 
@@ -38,6 +35,8 @@ export default function CalendarPage() {
   const [anchorDate, setAnchorDate] = useState(() => startOfToday());
   const [selectedDay, setSelectedDay] = useState<Date | null>(() => startOfToday());
   const [statusFilters, setStatusFilters] = useState<Set<CalendarStatusFilter>>(new Set());
+  const [categoryFilters, setCategoryFilters] = useState<Set<string>>(new Set());
+  const [projectFilters, setProjectFilters] = useState<Set<string>>(new Set());
   const openTaskPanel = useUIStore((s) => s.openTaskPanel);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -55,6 +54,12 @@ export default function CalendarPage() {
     limit: 500,
   });
 
+  const { data: backlogTasksRaw, isLoading: backlogLoading } = useTasks({
+    view: "calendar-backlog",
+    topLevel: true,
+    limit: 200,
+  });
+
   const { data: events, isLoading: eventsLoading } = useEvents({
     from: range.start.toISOString(),
     to: range.end.toISOString(),
@@ -63,22 +68,59 @@ export default function CalendarPage() {
   const updateEvent = useUpdateEvent();
   const updateTask = useUpdateTask();
 
-  const isLoading = tasksLoading || eventsLoading;
-  const visibleEvents = useMemo(() => events ?? [], [events]);
+  const isLoading = tasksLoading || eventsLoading || backlogLoading;
+  const allEvents = useMemo(() => events ?? [], [events]);
+  const visibleEvents = useMemo(
+    () => filterEventsByCategory(allEvents, categoryFilters),
+    [allEvents, categoryFilters]
+  );
 
   const visibleTasks = useMemo(() => {
     if (!tasks) return [];
-    return tasks.filter((t) => {
+    return filterTasksByProject(
+      tasks.filter((t) => {
+        if (t.status === "CANCELLED") return false;
+        if (statusFilters.size === 0) return t.status !== "DONE";
+        return statusFilters.has(t.status as CalendarStatusFilter);
+      }),
+      projectFilters
+    );
+  }, [tasks, statusFilters, projectFilters]);
+
+  const backlogTasks = useMemo(() => {
+    if (!backlogTasksRaw) return [];
+    return filterTasksByProject(
+      backlogTasksRaw.filter((t) => {
+        if (t.status === "CANCELLED") return false;
+        if (statusFilters.size === 0) return t.status !== "DONE";
+        return statusFilters.has(t.status as CalendarStatusFilter);
+      }),
+      projectFilters
+    );
+  }, [backlogTasksRaw, statusFilters, projectFilters]);
+
+  const calendarTasks = useMemo(() => {
+    const map = new Map<string, TaskWithRelations>();
+    for (const task of visibleTasks) map.set(task.id, task);
+    for (const task of backlogTasks) map.set(task.id, task);
+    return [...map.values()];
+  }, [visibleTasks, backlogTasks]);
+
+  const tasksForCategoryCounts = useMemo(() => {
+    const map = new Map<string, TaskWithRelations>();
+    const baseFilter = (t: TaskWithRelations) => {
       if (t.status === "CANCELLED") return false;
       if (statusFilters.size === 0) return t.status !== "DONE";
       return statusFilters.has(t.status as CalendarStatusFilter);
-    });
-  }, [tasks, statusFilters]);
-
-  const noDateTasks = useMemo(
-    () => visibleTasks.filter((t) => !getTaskCalendarDate(t)),
-    [visibleTasks]
-  );
+    };
+    for (const task of tasks ?? []) {
+      if (baseFilter(task)) map.set(task.id, task);
+    }
+    for (const task of backlogTasksRaw ?? []) {
+      if (baseFilter(task)) map.set(task.id, task);
+    }
+    return [...map.values()];
+  }, [tasks, backlogTasksRaw, statusFilters]);
 
   const gridDays = useMemo(
     () =>
@@ -88,39 +130,29 @@ export default function CalendarPage() {
     [viewMode, anchorDate, range]
   );
 
-  const selectedDayTasks = useMemo(() => {
-    if (!selectedDay) return [];
-    const key = dayKey(selectedDay);
-    return visibleTasks
-      .filter((t) => {
-        const d = getTaskCalendarDate(t);
-        return d && dayKey(d) === key;
-      })
-      .sort((a, b) => PRIORITY_META[b.priority].weight - PRIORITY_META[a.priority].weight);
-  }, [visibleTasks, selectedDay]);
-
-  const selectedDayEvents = useMemo(() => {
-    if (!selectedDay) return [];
-    const { allDay, timed } = occurrencesForDay(visibleEvents, selectedDay);
-    return [
-      ...allDay,
-      ...timed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
-    ];
-  }, [visibleEvents, selectedDay]);
-
-  const selectedDayLabelHe = selectedDay
-    ? new Intl.DateTimeFormat("he-IL", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      }).format(selectedDay)
-    : "";
-
   const toggleStatusFilter = (status: CalendarStatusFilter) => {
     setStatusFilters((prev) => {
       const next = new Set(prev);
       if (next.has(status)) next.delete(status);
       else next.add(status);
+      return next;
+    });
+  };
+
+  const toggleCategoryFilter = (categoryKey: string) => {
+    setCategoryFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryKey)) next.delete(categoryKey);
+      else next.add(categoryKey);
+      return next;
+    });
+  };
+
+  const toggleProjectFilter = (projectKey: string) => {
+    setProjectFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectKey)) next.delete(projectKey);
+      else next.add(projectKey);
       return next;
     });
   };
@@ -144,8 +176,23 @@ export default function CalendarPage() {
     }
   };
 
+  const handleViewModeChange = (mode: CalendarViewMode) => {
+    setViewMode(mode);
+    if (mode === "day") {
+      setAnchorDate(selectedDay ?? anchorDate);
+    }
+    if (mode === "month" && !selectedDay) {
+      setSelectedDay(anchorDate);
+    }
+  };
+
+  const handleStripSelectDay = (day: Date) => {
+    setAnchorDate(day);
+    setSelectedDay(day);
+  };
+
   const openCreate = (defaults?: EventFormTarget["defaults"]) => {
-    setFormTarget({ defaults });
+    setFormTarget(defaults ? { defaults } : {});
     setFormOpen(true);
   };
 
@@ -162,7 +209,7 @@ export default function CalendarPage() {
 
   const handleEditOccurrence = (occurrence: EventOccurrence, scope?: EventEditScope) => {
     setPeekOccurrence(null);
-    setFormTarget({ occurrence, scope });
+    setFormTarget(scope ? { occurrence, scope } : { occurrence });
     setFormOpen(true);
   };
 
@@ -198,7 +245,7 @@ export default function CalendarPage() {
     const data: { scheduledAt: string; dueDate?: string } = {
       scheduledAt: start.toISOString(),
     };
-    if (task.dueDate && dayKey(new Date(task.dueDate)) !== dayKey(start)) {
+    if (!task.dueDate || dayKey(new Date(task.dueDate)) !== dayKey(start)) {
       data.dueDate = startOfDay(start).toISOString();
     }
     updateTask.mutate(
@@ -232,6 +279,17 @@ export default function CalendarPage() {
   };
 
   const moveTaskToDay = (task: TaskWithRelations, day: Date) => {
+    if (!task.dueDate && !task.scheduledAt) {
+      updateTask.mutate(
+        { id: task.id, data: { dueDate: startOfDay(day).toISOString() } as never },
+        {
+          onSuccess: () => toast.success(he.calendar.movedToDay),
+          onError: () => toast.error(he.events.saveFailed),
+        }
+      );
+      return;
+    }
+
     const field = task.dueDate ? "dueDate" : "scheduledAt";
     const original = task.dueDate ?? task.scheduledAt;
     const originalDate = original ? new Date(original) : new Date();
@@ -250,114 +308,101 @@ export default function CalendarPage() {
     );
   };
 
+  const assignUnscheduledTaskToDay = (taskId: string, day: Date) => {
+    const task =
+      backlogTasks.find((t) => t.id === taskId) ??
+      calendarTasks.find((t) => t.id === taskId);
+    if (!task) return;
+    updateTask.mutate(
+      { id: task.id, data: { dueDate: startOfDay(day).toISOString() } as never },
+      {
+        onSuccess: () => toast.success(he.calendar.movedToDay),
+        onError: () => toast.error(he.events.saveFailed),
+      }
+    );
+  };
+
   return (
-    <div>
-      <PageHeader
-        title={he.calendar.title}
-        description={he.calendar.description}
-        actions={<AddTaskButton className="gap-2" />}
-      />
-      <div className="page-content flex flex-col gap-6">
-        <CalendarControls
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          anchorDate={anchorDate}
-          onJumpToDate={handleJumpToDate}
-          onPrev={() => handleNavigate(-1)}
-          onNext={() => handleNavigate(1)}
-          onToday={handleToday}
-          onNewEvent={() => openCreate()}
-          onManageCategories={() => setCategoriesManagerOpen(true)}
-          statusFilters={statusFilters}
-          onToggleStatusFilter={toggleStatusFilter}
-          tasks={visibleTasks}
-          onTaskClick={openTaskPanel}
-        />
-
-        {isLoading ? (
-          <TaskListSkeleton rows={8} />
-        ) : viewMode === "month" ? (
-          <MonthCalendar
+    <CalendarExternalDragProvider>
+    <div
+      className="fixed inset-x-0 top-14 bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-0 flex flex-col overflow-hidden md:relative md:inset-auto md:min-h-[calc(100dvh-4rem)]"
+      style={{ backgroundColor: CAL.bg }}
+    >
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-2 md:px-4 md:py-4">
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[20px] border shadow-[0_8px_32px_rgba(17,24,39,.08)] md:rounded-[24px]"
+          style={{ borderColor: CAL.border, backgroundColor: CAL.surface }}
+        >
+          <CalendarControls
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
             anchorDate={anchorDate}
-            events={visibleEvents}
-            tasks={visibleTasks}
-            selectedDay={selectedDay}
-            onSelectDay={setSelectedDay}
+            onJumpToDate={handleJumpToDate}
+            onPrev={() => handleNavigate(-1)}
+            onNext={() => handleNavigate(1)}
+            onToday={handleToday}
+            onNewEvent={() => openCreate()}
+            backlogTasks={backlogTasks}
             onTaskClick={openTaskPanel}
-            onEventClick={setPeekOccurrence}
-            onCreateAt={handleCreateAtDay}
-            onMoveOccurrenceToDay={moveOccurrenceToDay}
-            onMoveTaskToDay={moveTaskToDay}
+            statusFilters={statusFilters}
+            onToggleStatusFilter={toggleStatusFilter}
+            tasks={tasksForCategoryCounts}
+            projectFilters={projectFilters}
+            onToggleProjectFilter={toggleProjectFilter}
+            events={allEvents}
+            categoryFilters={categoryFilters}
+            onToggleCategoryFilter={toggleCategoryFilter}
           />
-        ) : (
-          <TimeGrid
-            days={gridDays}
-            events={visibleEvents}
-            tasks={visibleTasks}
-            onEventClick={setPeekOccurrence}
-            onTaskClick={openTaskPanel}
-            onCreateRange={handleCreateRange}
-            onMoveOccurrence={moveOccurrence}
-            onScheduleTask={scheduleTaskAtTime}
-            onUnscheduleTask={unscheduleTask}
-            onMoveTaskToDay={moveTaskToDay}
-          />
-        )}
 
-        {viewMode === "month" && selectedDay && (
-          <section className="rounded-xl border bg-card p-4">
-            <h3 className="mb-3 font-heading text-sm font-medium capitalize">
-              {selectedDayLabelHe}
-              {isSameDay(selectedDay, new Date()) && (
-                <span className="ms-2 text-xs font-normal text-primary">
-                  ({he.calendar.today})
-                </span>
-              )}
-            </h3>
-            {selectedDayEvents.length > 0 || selectedDayTasks.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                {selectedDayEvents.map((occ) => (
-                  <EventChip
-                    key={occ.occurrenceId}
-                    occurrence={occ}
-                    onClick={() => setPeekOccurrence(occ)}
-                  />
-                ))}
-                {selectedDayTasks.map((task) => (
-                  <CalendarTaskChip
-                    key={task.id}
-                    task={task}
-                    onClick={() => openTaskPanel(task.id)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title={he.calendar.noTasksThisDay}
-                description={he.calendar.noTasksThisDayDesc}
-                action={<AddTaskButton variant="outline" className="gap-2" tab="form" />}
-              />
-            )}
-          </section>
-        )}
+          {viewMode === "day" && (
+            <WeekStrip
+              anchorDate={anchorDate}
+              selectedDay={anchorDate}
+              onSelectDay={handleStripSelectDay}
+              events={visibleEvents}
+              tasks={visibleTasks}
+            />
+          )}
 
-        {noDateTasks.length > 0 && (
-          <section className="rounded-xl border border-dashed bg-muted/20 p-4">
-            <h3 className="mb-3 font-heading text-sm font-medium">
-              {he.calendar.noDate} ({noDateTasks.length})
-            </h3>
-            <div className="flex flex-col gap-1">
-              {noDateTasks.slice(0, 12).map((task) => (
-                <NoDateTaskRow key={task.id} task={task} onOpen={openTaskPanel} />
-              ))}
-              {noDateTasks.length > 12 && (
-                <p className="text-xs text-muted-foreground">
-                  {he.calendar.andMore(noDateTasks.length - 12)}
-                </p>
-              )}
+          {isLoading ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+              <TaskListSkeleton rows={8} />
             </div>
-          </section>
-        )}
+          ) : viewMode === "month" ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <MonthCalendar
+              anchorDate={anchorDate}
+              events={visibleEvents}
+              tasks={calendarTasks}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+              onTaskClick={openTaskPanel}
+              onEventClick={setPeekOccurrence}
+              onCreateAt={handleCreateAtDay}
+              onMoveOccurrenceToDay={moveOccurrenceToDay}
+              onMoveTaskToDay={moveTaskToDay}
+              onAssignExternalTask={assignUnscheduledTaskToDay}
+            />
+            </div>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <TimeGrid
+              days={gridDays}
+              events={visibleEvents}
+              tasks={calendarTasks}
+              onEventClick={setPeekOccurrence}
+              onTaskClick={openTaskPanel}
+              onCreateRange={handleCreateRange}
+              onMoveOccurrence={moveOccurrence}
+              onScheduleTask={scheduleTaskAtTime}
+              onUnscheduleTask={unscheduleTask}
+              onMoveTaskToDay={moveTaskToDay}
+              hideDayHeader={viewMode === "day"}
+              focusDay={viewMode !== "day" ? anchorDate : null}
+            />
+            </div>
+          )}
+        </div>
       </div>
 
       <EventFormDialog
@@ -376,36 +421,6 @@ export default function CalendarPage() {
         onClose={() => setCategoriesManagerOpen(false)}
       />
     </div>
-  );
-}
-
-function NoDateTaskRow({
-  task,
-  onOpen,
-}: {
-  task: TaskWithRelations;
-  onOpen: (id: string) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(task.id)}
-      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-start text-sm transition-colors hover:bg-muted/50"
-    >
-      {task.project && (
-        <span
-          className="size-2 shrink-0 rounded-full"
-          style={{ backgroundColor: task.project.color }}
-        />
-      )}
-      <span className={cn(task.status === "DONE" && "line-through opacity-50")}>
-        {task.title}
-      </span>
-      {task.project && (
-        <span className="ms-auto truncate text-xs text-muted-foreground">
-          {task.project.name}
-        </span>
-      )}
-    </button>
+    </CalendarExternalDragProvider>
   );
 }

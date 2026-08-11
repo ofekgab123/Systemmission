@@ -6,25 +6,26 @@ import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useStickyNotes, useUpdateStickyNote, type StickyNote } from "@/hooks/use-sticky-notes";
+import { SNOOZE_OPTIONS } from "@/lib/sticky-note-utils";
 import { he } from "@/lib/i18n/he";
 
 export function StickyNoteAlerts() {
   const { data: dueNotes } = useStickyNotes({ active: true, due: true });
   const updateNote = useUpdateStickyNote();
   const [current, setCurrent] = useState<StickyNote | null>(null);
-  const [minutes, setMinutes] = useState("");
+  const [snoozeOpen, setSnoozeOpen] = useState(false);
   const handledIds = useRef(new Set<string>());
 
   const pickNext = useCallback(() => {
     const next = (dueNotes ?? []).find((n) => !handledIds.current.has(n.id));
     setCurrent(next ?? null);
-    setMinutes("");
+    setSnoozeOpen(false);
   }, [dueNotes]);
 
   useEffect(() => {
@@ -36,31 +37,27 @@ export function StickyNoteAlerts() {
   const finish = (id: string) => {
     handledIds.current.add(id);
     setCurrent(null);
-    setMinutes("");
+    setSnoozeOpen(false);
     setTimeout(pickNext, 300);
   };
 
-  const handleDismiss = () => {
-    if (!current) return;
-    updateNote.mutate({ id: current.id, action: "dismiss" }, { onSuccess: () => finish(current.id) });
-  };
-
-  const handleSnooze = (value: number) => {
+  const handleAcknowledge = () => {
     if (!current) return;
     updateNote.mutate(
-      { id: current.id, action: "snooze", minutes: value },
+      { id: current.id, action: "reset-alert" },
       { onSuccess: () => finish(current.id) }
     );
   };
 
-  const handleCustomMinutes = () => {
-    const parsed = Number.parseInt(minutes, 10);
-    if (!Number.isFinite(parsed) || parsed < 1) return;
-    handleSnooze(parsed);
+  const handleSnooze = (minutes: number) => {
+    if (!current) return;
+    updateNote.mutate(
+      { id: current.id, action: "snooze", minutes },
+      { onSuccess: () => finish(current.id) }
+    );
   };
 
   const open = !!current;
-  const customMinutesValid = Number.parseInt(minutes, 10) >= 1;
 
   return (
     <AlertDialog open={open} onOpenChange={() => {}}>
@@ -75,62 +72,31 @@ export function StickyNoteAlerts() {
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="snooze-minutes" className="text-sm font-medium text-foreground">
-              {he.dontForget.remindInMinutes}
-            </label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="snooze-minutes"
-                type="number"
-                min={1}
-                inputMode="numeric"
-                placeholder="30"
-                value={minutes}
-                onChange={(e) => setMinutes(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleCustomMinutes();
-                  }
-                }}
-                className="h-10 rounded-xl text-center tabular-nums"
-              />
-              <span className="shrink-0 text-sm text-muted-foreground">{he.dontForget.minutesUnit}</span>
+        {snoozeOpen ? (
+          <div className="grid grid-cols-2 gap-2">
+            {SNOOZE_OPTIONS.map((opt) => (
               <Button
+                key={opt.labelKey}
                 type="button"
                 variant="outline"
-                className="h-10 shrink-0 rounded-xl px-3"
-                disabled={!customMinutesValid}
-                onClick={handleCustomMinutes}
+                className="h-10 rounded-xl text-sm"
+                onClick={() => handleSnooze(opt.minutes)}
               >
                 <Clock className="size-3.5" />
-                {he.dontForget.remind}
+                {he.dontForget.snooze[opt.labelKey]}
               </Button>
-            </div>
+            ))}
           </div>
-
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 flex-1 rounded-xl text-sm"
-              onClick={() => handleSnooze(-1)}
-            >
-              <Clock className="size-3.5" />
-              {he.dontForget.snooze.tomorrow}
+        ) : (
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-start">
+            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={handleAcknowledge}>
+              {he.dontForget.forgot}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 flex-1 rounded-xl text-sm"
-              onClick={handleDismiss}
-            >
-              {he.dontForget.dontRemind}
+            <Button type="button" className="flex-1 rounded-xl" onClick={() => setSnoozeOpen(true)}>
+              {he.dontForget.schedule}
             </Button>
-          </div>
-        </div>
+          </AlertDialogFooter>
+        )}
       </AlertDialogContent>
     </AlertDialog>
   );

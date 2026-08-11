@@ -240,4 +240,13 @@
       padding: 2rem 2rem 3rem;
     }
   }
+  .cal-scroll {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+  .cal-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -58,6 +58,10 @@ export async function GET(req: NextRequest) {
   } else if (view === "no-deadline") {
     where.dueDate = null;
     where.status = { notIn: ["DONE", "CANCELLED", "SOMEDAY", "INBOX"] };
+  } else if (view === "calendar-backlog") {
+    where.dueDate = null;
+    where.scheduledAt = null;
+    where.status = { notIn: ["DONE", "CANCELLED", "INBOX"] };
   } else if (view === "calendar") {
     const from = params.get("from");
     const to = params.get("to");

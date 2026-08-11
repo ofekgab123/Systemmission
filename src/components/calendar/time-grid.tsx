@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { addMinutes, differenceInMinutes, format, isToday, startOfDay } from "date-fns";
-import { he as dateHe } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import {
@@ -23,9 +22,11 @@ import {
   splitTasksForDay,
   CALENDAR_TASK_DRAG_MIME,
 } from "@/lib/calendar-utils";
+import { CAL, CAL_HOUR_HEIGHT, eventBlockStyle, hebrewWeekdayLetter } from "@/lib/calendar-theme";
+import { useCalendarExternalDragOptional } from "@/components/calendar/calendar-external-drag";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 
-const HOUR_HEIGHT = 48;
+const HOUR_HEIGHT = CAL_HOUR_HEIGHT;
 const DAY_MINUTES = 24 * 60;
 const SNAP = 15;
 const DRAG_THRESHOLD_PX = 5;
@@ -81,6 +82,8 @@ export function TimeGrid({
   onScheduleTask,
   onUnscheduleTask,
   onMoveTaskToDay,
+  hideDayHeader = false,
+  focusDay,
 }: {
   days: Date[];
   events: EventOccurrence[];
@@ -92,6 +95,10 @@ export function TimeGrid({
   onScheduleTask: (task: TaskWithRelations, start: Date) => void;
   onUnscheduleTask: (task: TaskWithRelations, day: Date) => void;
   onMoveTaskToDay: (task: TaskWithRelations, day: Date) => void;
+  /** Hide the top day-name row when the week strip handles navigation. */
+  hideDayHeader?: boolean;
+  /** Highlight this day column in multi-day views. */
+  focusDay?: Date | null;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -106,6 +113,8 @@ export function TimeGrid({
     task: TaskWithRelations;
     day: Date;
   } | null>(null);
+
+  const externalDrag = useCalendarExternalDragOptional();
 
   const colPct = 100 / days.length;
 
@@ -177,14 +186,43 @@ export function TimeGrid({
     return { dayIndex, minute };
   };
 
+  useEffect(() => {
+    if (!externalDrag) return;
+
+    const handler = (task: TaskWithRelations, clientX: number, clientY: number) => {
+      if (isOverGrid(clientX, clientY)) {
+        const { dayIndex, minute } = pointerToPosition(clientX, clientY);
+        onScheduleTask(task, addMinutes(startOfDay(days[dayIndex]), snap(minute)));
+        return true;
+      }
+      const allDayIdx = getAllDayDropIndex(clientX, clientY);
+      if (allDayIdx !== null) {
+        const day = days[allDayIdx];
+        if (hasTaskSpecificTime(task)) {
+          onUnscheduleTask(task, day);
+        } else {
+          onMoveTaskToDay(task, day);
+        }
+        return true;
+      }
+      return false;
+    };
+
+    externalDrag.registerDropHandler("time-grid", handler);
+    return () => externalDrag.unregisterDropHandler("time-grid");
+  }, [externalDrag, days, onScheduleTask, onMoveTaskToDay, onUnscheduleTask]);
+
   const resolveExternalTask = (e: React.DragEvent) => {
-    const id = e.dataTransfer.getData(CALENDAR_TASK_DRAG_MIME);
+    const id =
+      e.dataTransfer.getData(CALENDAR_TASK_DRAG_MIME) ||
+      e.dataTransfer.getData("text/plain");
     if (!id) return null;
     return tasks.find((t) => t.id === id) ?? null;
   };
 
   const handleExternalDragOver = (e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes(CALENDAR_TASK_DRAG_MIME)) return;
+    const types = e.dataTransfer.types;
+    if (!types.includes(CALENDAR_TASK_DRAG_MIME) && !types.includes("text/plain")) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
@@ -211,40 +249,53 @@ export function TimeGrid({
 
   const handleCreatePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 || eventDrag || taskDrag) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
     const { dayIndex, minute } = pointerToPosition(e.clientX, e.clientY);
     const anchor = snap(minute, 30) === minute ? minute : Math.floor(minute / 30) * 30;
-    const drag: CreateDrag = {
-      dayIndex,
-      anchorMin: anchor,
-      startMin: anchor,
-      endMin: anchor + 30,
-      moved: false,
-    };
-    setCreateDrag(drag);
+    let active = true;
 
     const handleMove = (ev: PointerEvent) => {
+      if (!active) return;
+      if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < DRAG_THRESHOLD_PX) return;
+
       const { minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
       const snapped = snap(cur);
       setCreateDrag((prev) => {
-        if (!prev) return prev;
-        const moved = prev.moved || Math.abs(snapped - prev.anchorMin) >= SNAP;
-        if (!moved) return prev;
-        const startMin = Math.min(prev.anchorMin, snapped);
-        let endMin = Math.max(prev.anchorMin, snapped);
+        if (prev) {
+          const moved = prev.moved || Math.abs(snapped - prev.anchorMin) >= SNAP;
+          if (!moved) return prev;
+          const startMin = Math.min(prev.anchorMin, snapped);
+          let endMin = Math.max(prev.anchorMin, snapped);
+          if (endMin - startMin < SNAP) endMin = startMin + SNAP;
+          return { ...prev, moved, startMin, endMin };
+        }
+        const moved = Math.abs(snapped - anchor) >= SNAP;
+        const startMin = moved ? Math.min(anchor, snapped) : anchor;
+        let endMin = moved ? Math.max(anchor, snapped) : anchor + 30;
         if (endMin - startMin < SNAP) endMin = startMin + SNAP;
-        return { ...prev, moved, startMin, endMin };
+        return {
+          dayIndex,
+          anchorMin: anchor,
+          startMin,
+          endMin,
+          moved,
+        };
       });
     };
 
     const handleUp = () => {
+      active = false;
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       setCreateDrag((prev) => {
         if (prev) {
-          const day = startOfDay(days[prev.dayIndex]);
-          const start = addMinutes(day, prev.startMin);
-          const end = addMinutes(day, prev.moved ? prev.endMin : prev.startMin + 30);
-          onCreateRange(start, end);
+          queueMicrotask(() => {
+            const day = startOfDay(days[prev.dayIndex]);
+            const start = addMinutes(day, prev.startMin);
+            const end = addMinutes(day, prev.moved ? prev.endMin : prev.startMin + 30);
+            onCreateRange(start, end);
+          });
         }
         return null;
       });
@@ -277,6 +328,7 @@ export function TimeGrid({
       startClientY: e.clientY,
     };
     setEventDrag(initial);
+    let currentDrag: EventDrag = initial;
 
     const handleMove = (ev: PointerEvent) => {
       const { dayIndex: curDay, minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
@@ -289,44 +341,45 @@ export function TimeGrid({
         if (!moved) return prev;
 
         if (prev.mode === "resize") {
-          return {
+          const next = {
             ...prev,
             moved,
             endMin: Math.max(prev.startMin + SNAP, snap(cur)),
           };
+          currentDrag = next;
+          return next;
         }
 
         const duration = endMin - startMin;
         const rawStart = clampMin(snap(cur - prev.grabOffsetMin));
         const newStart = Math.min(rawStart, DAY_MINUTES - duration);
-        return {
+        const next = {
           ...prev,
           moved,
           dayIndex: curDay,
           startMin: newStart,
           endMin: newStart + duration,
         };
+        currentDrag = next;
+        return next;
       });
     };
 
     const handleUp = () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
-      setEventDrag((prev) => {
-        if (prev) {
-          if (!prev.moved) {
-            onEventClick(prev.occurrence);
-          } else {
-            const day = startOfDay(days[prev.dayIndex]);
-            onMoveOccurrence(
-              prev.occurrence,
-              addMinutes(day, prev.startMin),
-              addMinutes(day, prev.endMin)
-            );
-          }
-        }
-        return null;
-      });
+      setEventDrag(null);
+      const prev = currentDrag;
+      if (!prev.moved) {
+        onEventClick(prev.occurrence);
+      } else {
+        const day = startOfDay(days[prev.dayIndex]);
+        onMoveOccurrence(
+          prev.occurrence,
+          addMinutes(day, prev.startMin),
+          addMinutes(day, prev.endMin)
+        );
+      }
     };
 
     window.addEventListener("pointermove", handleMove);
@@ -363,6 +416,7 @@ export function TimeGrid({
       startClientY: e.clientY,
     };
     setTaskDrag(initial);
+    let currentDrag: TaskDrag = initial;
 
     const handleMove = (ev: PointerEvent) => {
       const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
@@ -378,18 +432,24 @@ export function TimeGrid({
           Math.abs(ev.clientX - prev.startClientX) > DRAG_THRESHOLD_PX ||
           Math.abs(ev.clientY - prev.startClientY) > DRAG_THRESHOLD_PX;
         if (!moved) return prev;
-        if (!overGrid) return { ...prev, moved: true };
+        if (!overGrid) {
+          const next = { ...prev, moved: true };
+          currentDrag = next;
+          return next;
+        }
 
         const { dayIndex: curDay, minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
         const snapped = snap(cur - prev.grabOffsetMin);
         const newStart = clampMin(Math.min(snapped, DAY_MINUTES - duration));
-        return {
+        const next = {
           ...prev,
           moved: true,
           dayIndex: curDay,
           startMin: newStart,
           endMin: newStart + duration,
         };
+        currentDrag = next;
+        return next;
       });
     };
 
@@ -397,30 +457,28 @@ export function TimeGrid({
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       setTaskDragOverAllDay(null);
-      setTaskDrag((prev) => {
-        if (!prev) return null;
+      setTaskDrag(null);
 
-        const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
+      const prev = currentDrag;
+      const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
 
-        if (prev.moved && allDayIdx !== null && !prev.fromAllDay) {
-          onUnscheduleTask(prev.task, days[allDayIdx]);
-        } else if (prev.moved && isOverGrid(ev.clientX, ev.clientY)) {
-          const day = startOfDay(days[prev.dayIndex]);
-          onScheduleTask(prev.task, addMinutes(day, prev.startMin));
-        } else if (
-          prev.moved &&
-          prev.fromAllDay &&
-          allDayIdx !== null &&
-          allDayIdx !== prev.dayIndex
-        ) {
-          onMoveTaskToDay(prev.task, days[allDayIdx]);
-        } else if (!prev.moved && prev.fromAllDay) {
-          setScheduleTarget({ task: prev.task, day: days[dayIndex] });
-        } else if (!prev.moved && !prev.fromAllDay) {
-          onTaskClick(prev.task.id);
-        }
-        return null;
-      });
+      if (prev.moved && allDayIdx !== null && !prev.fromAllDay) {
+        onUnscheduleTask(prev.task, days[allDayIdx]);
+      } else if (prev.moved && isOverGrid(ev.clientX, ev.clientY)) {
+        const day = startOfDay(days[prev.dayIndex]);
+        onScheduleTask(prev.task, addMinutes(day, prev.startMin));
+      } else if (
+        prev.moved &&
+        prev.fromAllDay &&
+        allDayIdx !== null &&
+        allDayIdx !== prev.dayIndex
+      ) {
+        onMoveTaskToDay(prev.task, days[allDayIdx]);
+      } else if (!prev.moved && prev.fromAllDay) {
+        setScheduleTarget({ task: prev.task, day: days[dayIndex] });
+      } else if (!prev.moved && !prev.fromAllDay) {
+        onTaskClick(prev.task.id);
+      }
     };
 
     window.addEventListener("pointermove", handleMove);
@@ -435,35 +493,49 @@ export function TimeGrid({
   const showAllDayRow = hasAllDayContent || hasTimedTasks || taskDrag !== null;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border bg-card">
-      <div className="flex border-b">
-        <div className="w-12 shrink-0 sm:w-14" />
-        {days.map((day) => {
-          const today = isToday(day);
-          return (
-            <div
-              key={dayKey(day)}
-              className="flex flex-1 items-center justify-center gap-1.5 border-s py-2 text-sm"
-            >
-              <span className={cn("text-muted-foreground", today && "font-medium text-primary")}>
-                {format(day, "EEEE", { locale: dateHe })}
-              </span>
-              <span
-                className={cn(
-                  "flex size-6 items-center justify-center rounded-full text-sm font-medium",
-                  today && "bg-primary text-primary-foreground"
-                )}
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white"
+      style={{ borderColor: CAL.border }}
+    >
+      {!hideDayHeader && days.length > 1 && (
+        <div className="flex shrink-0 border-b" style={{ borderColor: CAL.border, backgroundColor: CAL.allDayBg }}>
+          <div className="w-[38px] shrink-0 sm:w-[52px]" />
+          {days.map((day) => {
+            const today = isToday(day);
+            const focused = focusDay ? dayKey(day) === dayKey(focusDay) : false;
+            return (
+              <div
+                key={dayKey(day)}
+                className="flex flex-1 flex-col items-center py-1.5"
+                style={{ backgroundColor: focused ? CAL.selectedColBg : undefined }}
               >
-                {format(day, "d")}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+                <span className="text-[9.5px] font-semibold" style={{ color: CAL.muted }}>
+                  {hebrewWeekdayLetter(day)}
+                </span>
+                <span
+                  className={cn(
+                    "mt-0.5 text-sm font-bold",
+                    focused || today ? "text-[#2563EB]" : "text-[#374151]"
+                  )}
+                >
+                  {format(day, "d")}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {showAllDayRow && (
-        <div ref={allDayRowRef} className="flex border-b bg-muted/20">
-          <div className="flex w-12 shrink-0 items-start justify-center pt-1.5 text-[10px] text-muted-foreground sm:w-14">
+        <div
+          ref={allDayRowRef}
+          className="flex shrink-0 border-b"
+          style={{ borderColor: CAL.border, backgroundColor: CAL.allDayBg }}
+        >
+          <div
+            className="flex w-[52px] shrink-0 items-start justify-center pt-2 text-[10px] font-medium sm:w-[52px]"
+            style={{ color: CAL.muted }}
+          >
             {he.calendar.allDaySection}
           </div>
           {perDay.map(({ day, allDayEvents, allDayTasks }, dayIndex) => (
@@ -473,9 +545,14 @@ export function TimeGrid({
                 allDayColumnRefs.current[dayIndex] = el;
               }}
               className={cn(
-                "flex min-h-8 flex-1 flex-col gap-0.5 border-s p-1 transition-colors",
-                taskDragOverAllDay === dayIndex && "bg-primary/15 ring-2 ring-inset ring-primary/40"
+                "flex min-h-8 flex-1 flex-col gap-0.5 p-1 transition-colors",
+                taskDragOverAllDay === dayIndex && "bg-[#E8F0FE] ring-2 ring-inset ring-[#2563EB]/30"
               )}
+              style={{
+                borderInlineStart: `1px solid ${CAL.borderLight}`,
+                backgroundColor:
+                  focusDay && dayKey(day) === dayKey(focusDay) ? CAL.selectedColBg : undefined,
+              }}
               onDragOver={handleExternalDragOver}
               onDrop={(e) => handleAllDayExternalDrop(e, dayIndex)}
             >
@@ -499,31 +576,24 @@ export function TimeGrid({
                     task={task}
                     day={day}
                     open={isOpen}
+                    isDragged={isDragged}
                     onOpenChange={(open) => {
                       if (!open) setScheduleTarget(null);
                     }}
                     onSchedule={(start) => onScheduleTask(task, start)}
                     onOpenTask={() => onTaskClick(task.id)}
+                    onPointerDown={(e) =>
+                      beginTaskDrag(
+                        e,
+                        task,
+                        dayIndex,
+                        9 * 60,
+                        9 * 60 + duration,
+                        true
+                      )
+                    }
                   >
-                    <div
-                      className={cn(
-                        "cursor-grab touch-none active:cursor-grabbing",
-                        isDragged && "opacity-30"
-                      )}
-                      title={he.calendar.dragToMove}
-                      onPointerDown={(e) =>
-                        beginTaskDrag(
-                          e,
-                          task,
-                          dayIndex,
-                          9 * 60,
-                          9 * 60 + duration,
-                          true
-                        )
-                      }
-                    >
-                      <CalendarTaskChip task={task} onClick={() => {}} />
-                    </div>
+                    <CalendarTaskChip task={task} onClick={() => {}} />
                   </TaskSchedulePopover>
                 );
               })}
@@ -545,46 +615,73 @@ export function TimeGrid({
         </div>
       )}
 
-      <div ref={scrollRef} className="max-h-[65dvh] overflow-y-auto overscroll-contain">
+      <div
+        ref={scrollRef}
+        className="cal-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+      >
         <div className="flex">
-          <div className="relative w-12 shrink-0 sm:w-14" style={{ height: 24 * HOUR_HEIGHT }}>
+          <div className="relative w-[52px] shrink-0" style={{ height: 24 * HOUR_HEIGHT }}>
             {Array.from({ length: 24 }, (_, h) => (
               <span
                 key={h}
-                className="absolute end-1.5 -translate-y-1/2 text-[10px] tabular-nums text-muted-foreground sm:text-xs"
-                style={{ top: h * HOUR_HEIGHT }}
+                className="absolute end-1.5 -translate-y-1/2 text-[10.5px] tabular-nums"
+                style={{ top: h * HOUR_HEIGHT, color: CAL.hourLabel, opacity: h === 0 ? 0 : 1 }}
               >
                 {h > 0 && `${String(h).padStart(2, "0")}:00`}
               </span>
+            ))}
+            {Array.from({ length: 24 }, (_, h) => (
+              <div
+                key={`half-${h}`}
+                className="pointer-events-none absolute inset-x-0 border-t border-dashed"
+                style={{
+                  top: h * HOUR_HEIGHT + HOUR_HEIGHT / 2,
+                  borderColor: CAL.borderLight,
+                }}
+              />
             ))}
           </div>
 
           <div
             ref={gridRef}
-            className="relative flex-1 cursor-pointer touch-pan-y select-none"
-            style={{ height: 24 * HOUR_HEIGHT }}
+            className="relative flex-1 cursor-pointer select-none touch-pan-y"
+            style={{ height: 24 * HOUR_HEIGHT, borderInlineStart: `1px solid ${CAL.border}` }}
             onPointerDown={handleCreatePointerDown}
             onDragOver={handleExternalDragOver}
             onDrop={handleGridExternalDrop}
           >
             {Array.from({ length: 24 }, (_, h) => (
-              <div key={h}>
-                <div
-                  className="pointer-events-none absolute inset-x-0 border-t"
-                  style={{ top: h * HOUR_HEIGHT }}
-                />
-                <div
-                  className="pointer-events-none absolute inset-x-0 border-t border-dashed border-border/50"
-                  style={{ top: h * HOUR_HEIGHT + HOUR_HEIGHT / 2 }}
-                />
-              </div>
+              <div
+                key={h}
+                className="pointer-events-none absolute inset-x-0 border-t"
+                style={{
+                  top: h * HOUR_HEIGHT,
+                  borderColor: h === 0 ? "transparent" : CAL.borderLight,
+                }}
+              />
+            ))}
+            {Array.from({ length: 24 }, (_, h) => (
+              <div
+                key={`half-${h}`}
+                className="pointer-events-none absolute inset-x-0 border-t border-dashed"
+                style={{
+                  top: h * HOUR_HEIGHT + HOUR_HEIGHT / 2,
+                  borderColor: CAL.borderLight,
+                }}
+              />
             ))}
 
             {days.map((day, i) => (
               <div
                 key={dayKey(day)}
-                className="pointer-events-none absolute inset-y-0 border-s"
-                style={{ insetInlineStart: `${i * colPct}%` }}
+                className="pointer-events-none absolute inset-y-0"
+                style={{
+                  insetInlineStart: `${i * colPct}%`,
+                  width: `${colPct}%`,
+                  borderInlineStart: i > 0 ? `1px solid ${CAL.borderLight}` : undefined,
+                  backgroundColor:
+                    focusDay && dayKey(day) === dayKey(focusDay) ? CAL.selectedColBg : undefined,
+                }}
               />
             ))}
 
@@ -595,31 +692,33 @@ export function TimeGrid({
                 const color = eventColor(occurrence);
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
                 const widthPct = colPct / columns;
+                const block = eventBlockStyle(color);
+                const narrow = days.length > 1;
                 return (
                   <div
                     key={occurrence.occurrenceId}
                     className={cn(
-                      "absolute z-10 cursor-grab touch-none overflow-hidden rounded-md px-1.5 py-1 text-xs leading-tight shadow-sm transition-opacity",
+                      "absolute z-10 cursor-grab touch-none overflow-hidden rounded-[7px] leading-tight transition-opacity",
+                      narrow ? "px-1 py-0.5 text-[9.5px] font-semibold" : "px-2 py-1 text-[13px]",
                       isDragged && "opacity-30"
                     )}
                     style={{
+                      ...block,
                       top: (startMin / 60) * HOUR_HEIGHT,
-                      height: Math.max(height, 18),
-                      insetInlineStart: `calc(${dayIndex * colPct + column * widthPct}% + 2px)`,
-                      width: `calc(${widthPct}% - 5px)`,
-                      backgroundColor: `${color}2b`,
-                      borderInlineStart: `3px solid ${color}`,
+                      height: Math.max(height, 24),
+                      insetInlineStart: `calc(${dayIndex * colPct + column * widthPct}% + ${narrow ? 2 : 4}px)`,
+                      width: `calc(${widthPct}% - ${narrow ? 4 : 8}px)`,
                     }}
                     onPointerDown={(e) =>
                       beginEventDrag(e, occurrence, dayIndex, startMin, endMin, "move")
                     }
                     title={`${occurrence.title} · ${formatEventTime(occurrence.start)}–${formatEventTime(occurrence.end)}`}
                   >
-                    <p className="truncate font-medium text-foreground">
+                    <p className="truncate font-semibold leading-snug">
                       {occurrence.title || he.events.noTitle}
                     </p>
-                    {height >= 34 && (
-                      <p className="truncate tabular-nums text-muted-foreground">
+                    {!narrow && height >= 34 && (
+                      <p className="truncate text-[10.5px] opacity-75">
                         {formatEventTime(occurrence.start)}–{formatEventTime(occurrence.end)}
                       </p>
                     )}
@@ -644,7 +743,7 @@ export function TimeGrid({
                   <div
                     key={task.id}
                     className={cn(
-                      "absolute z-10 cursor-grab touch-none overflow-hidden rounded-md px-1.5 py-1 text-xs leading-tight shadow-sm transition-opacity",
+                      "absolute z-10 cursor-grab touch-none overflow-hidden rounded-[7px] px-2 py-1 text-xs leading-tight transition-opacity",
                       className,
                       isDragged && "opacity-30"
                     )}
@@ -736,16 +835,18 @@ export function TimeGrid({
                 isToday(day) && (
                   <div
                     key={`now-${dayKey(day)}`}
-                    className="pointer-events-none absolute z-30"
+                    className="pointer-events-none absolute z-30 flex items-center"
                     style={{
                       top: (nowMin / 60) * HOUR_HEIGHT,
                       insetInlineStart: `${i * colPct}%`,
                       width: `${colPct}%`,
                     }}
                   >
-                    <div className="relative border-t-2 border-status-red">
-                      <span className="absolute -top-[5px] start-0 size-2 rounded-full bg-status-red" />
-                    </div>
+                    <span
+                      className="size-[9px] shrink-0 rounded-full"
+                      style={{ backgroundColor: CAL.now, marginInlineEnd: -4 }}
+                    />
+                    <div className="h-[1.5px] flex-1" style={{ backgroundColor: CAL.now }} />
                   </div>
                 )
             )}
