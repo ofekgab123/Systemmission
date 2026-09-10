@@ -40,6 +40,8 @@ const HOUR_HEIGHT = CAL_HOUR_HEIGHT;
 const DAY_MINUTES = 24 * 60;
 const SNAP = 15;
 const DRAG_THRESHOLD_PX = 5;
+const HOLD_CANCEL_PX = 12;
+const LONG_PRESS_MS = 420;
 
 interface CreateDrag {
   dayIndex: number;
@@ -346,10 +348,40 @@ export function TimeGrid({
       startClientX: e.clientX,
       startClientY: e.clientY,
     };
-    setEventDrag(initial);
+    const needsHold = e.pointerType === "touch" && mode === "move";
+    let armed = !needsHold;
+    let cancelled = false;
     let currentDrag: EventDrag = initial;
+    let holdTimer: number | undefined;
+
+    const arm = () => {
+      armed = true;
+      setEventDrag(initial);
+      try {
+        navigator.vibrate?.(12);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    if (needsHold) {
+      holdTimer = window.setTimeout(arm, LONG_PRESS_MS);
+    } else {
+      arm();
+    }
 
     const handleMove = (ev: PointerEvent) => {
+      if (!armed) {
+        const slipped =
+          Math.abs(ev.clientX - initial.startClientX) > HOLD_CANCEL_PX ||
+          Math.abs(ev.clientY - initial.startClientY) > HOLD_CANCEL_PX;
+        if (slipped) {
+          cancelled = true;
+          if (holdTimer !== undefined) window.clearTimeout(holdTimer);
+        }
+        return;
+      }
+
       const { dayIndex: curDay, minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
       setEventDrag((prev) => {
         if (!prev) return prev;
@@ -384,25 +416,37 @@ export function TimeGrid({
       });
     };
 
-    const handleUp = () => {
+    const endGesture = () => {
+      if (holdTimer !== undefined) window.clearTimeout(holdTimer);
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleCancel);
+    };
+
+    const handleUp = () => {
+      endGesture();
       setEventDrag(null);
       const prev = currentDrag;
-      if (!prev.moved) {
-        onEventClick(prev.occurrence);
-      } else {
-        const day = startOfDay(days[prev.dayIndex]);
-        onMoveOccurrence(
-          prev.occurrence,
-          addMinutes(day, prev.startMin),
-          addMinutes(day, prev.endMin)
-        );
+      if (!armed || cancelled || !prev.moved) {
+        if (!cancelled) onEventClick(prev.occurrence);
+        return;
       }
+      const day = startOfDay(days[prev.dayIndex]);
+      onMoveOccurrence(
+        prev.occurrence,
+        addMinutes(day, prev.startMin),
+        addMinutes(day, prev.endMin)
+      );
+    };
+
+    const handleCancel = () => {
+      endGesture();
+      setEventDrag(null);
     };
 
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleCancel);
   };
 
   const beginTaskDrag = (
@@ -415,7 +459,7 @@ export function TimeGrid({
   ) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    e.preventDefault();
+    if (e.pointerType !== "touch") e.preventDefault();
 
     const duration = endMin - startMin;
     const grabOffsetMin = fromAllDay
@@ -434,10 +478,40 @@ export function TimeGrid({
       startClientX: e.clientX,
       startClientY: e.clientY,
     };
-    setTaskDrag(initial);
+    const needsHold = e.pointerType === "touch";
+    let armed = !needsHold;
+    let cancelled = false;
     let currentDrag: TaskDrag = initial;
+    let holdTimer: number | undefined;
+
+    const arm = () => {
+      armed = true;
+      setTaskDrag(initial);
+      try {
+        navigator.vibrate?.(12);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    if (needsHold) {
+      holdTimer = window.setTimeout(arm, LONG_PRESS_MS);
+    } else {
+      arm();
+    }
 
     const handleMove = (ev: PointerEvent) => {
+      if (!armed) {
+        const slipped =
+          Math.abs(ev.clientX - initial.startClientX) > HOLD_CANCEL_PX ||
+          Math.abs(ev.clientY - initial.startClientY) > HOLD_CANCEL_PX;
+        if (slipped) {
+          cancelled = true;
+          if (holdTimer !== undefined) window.clearTimeout(holdTimer);
+        }
+        return;
+      }
+
       const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
       setTaskDragOverAllDay(allDayIdx);
 
@@ -472,14 +546,28 @@ export function TimeGrid({
       });
     };
 
-    const handleUp = (ev: PointerEvent) => {
+    const endGesture = () => {
+      if (holdTimer !== undefined) window.clearTimeout(holdTimer);
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleCancel);
+    };
+
+    const handleUp = (ev: PointerEvent) => {
+      endGesture();
       setTaskDragOverAllDay(null);
       setTaskDrag(null);
 
       const prev = currentDrag;
       const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
+
+      if (!armed || cancelled) {
+        if (!cancelled && !prev.fromAllDay) onTaskClick(prev.task.id);
+        else if (!cancelled && prev.fromAllDay) {
+          setScheduleTarget({ task: prev.task, day: days[dayIndex] });
+        }
+        return;
+      }
 
       if (prev.moved && allDayIdx !== null && !prev.fromAllDay) {
         onUnscheduleTask(prev.task, days[allDayIdx]);
@@ -500,8 +588,15 @@ export function TimeGrid({
       }
     };
 
+    const handleCancel = () => {
+      endGesture();
+      setTaskDragOverAllDay(null);
+      setTaskDrag(null);
+    };
+
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleCancel);
   };
 
   const nowMin = differenceInMinutes(now, startOfDay(now));
@@ -706,8 +801,9 @@ export function TimeGrid({
 
             {perDay.map(({ positionedEvents }, dayIndex) =>
               positionedEvents.map(({ occurrence, startMin, endMin, column, columns }) => {
-                const isDragged =
-                  eventDrag?.moved && eventDrag.occurrence.occurrenceId === occurrence.occurrenceId;
+                const isHeld =
+                  eventDrag?.occurrence.occurrenceId === occurrence.occurrenceId;
+                const isDragged = Boolean(isHeld && eventDrag?.moved);
                 const color = eventColor(occurrence);
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
                 const widthPct = colPct / columns;
@@ -728,9 +824,11 @@ export function TimeGrid({
                   <div
                     key={occurrence.occurrenceId}
                     className={cn(
-                      "absolute z-10 cursor-grab touch-none overflow-hidden leading-tight transition-opacity",
+                      "absolute z-10 cursor-grab select-none overflow-hidden leading-tight transition-opacity",
                       ghost ? "rounded-none" : "rounded-[3px]",
                       narrow ? "px-1 py-0.5 text-[9.5px] font-semibold" : "px-1.5 py-1 text-[12px]",
+                      isHeld && "touch-none",
+                      isHeld && !isDragged && "ring-2 ring-[#2563EB]/50",
                       isDragged && "opacity-30"
                     )}
                     style={{
@@ -743,18 +841,19 @@ export function TimeGrid({
                     onPointerDown={(e) =>
                       beginEventDrag(e, occurrence, dayIndex, startMin, endMin, "move")
                     }
+                    onContextMenu={(e) => e.preventDefault()}
                     title={titleBits.join(" · ")}
                   >
-                    <p className="truncate font-semibold leading-snug">
+                    <p className="whitespace-normal break-words font-semibold leading-snug">
                       {occurrence.title || he.events.noTitle}
                     </p>
                     {!narrow && height >= 34 && (
-                      <p className="truncate text-[10.5px] opacity-80">
+                      <p className="break-words text-[10.5px] opacity-80">
                         {formatEventTime(occurrence.start)}–{formatEventTime(occurrence.end)}
                       </p>
                     )}
                     {!narrow && occurrence.location && height >= 52 && (
-                      <p className="truncate text-[10px] opacity-80">{occurrence.location}</p>
+                      <p className="break-words text-[10px] opacity-80">{occurrence.location}</p>
                     )}
                     <div
                       className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"
@@ -769,7 +868,8 @@ export function TimeGrid({
 
             {perDay.map(({ positionedTasks }, dayIndex) =>
               positionedTasks.map(({ task, startMin, endMin, column, columns }) => {
-                const isDragged = taskDrag?.moved && taskDrag.task.id === task.id;
+                const isHeld = taskDrag?.task.id === task.id;
+                const isDragged = Boolean(isHeld && taskDrag?.moved);
                 const { className, style } = getCalendarTaskStyle(task, "combined");
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
                 const widthPct = colPct / columns;
@@ -777,8 +877,10 @@ export function TimeGrid({
                   <div
                     key={task.id}
                     className={cn(
-                      "absolute z-10 cursor-grab touch-none overflow-hidden rounded-[7px] px-2 py-1 text-xs leading-tight transition-opacity",
+                      "absolute z-10 cursor-grab select-none overflow-hidden rounded-[7px] px-2 py-1 text-xs leading-tight transition-opacity",
                       className,
+                      isHeld && "touch-none",
+                      isHeld && !isDragged && "ring-2 ring-[#2563EB]/50",
                       isDragged && "opacity-30"
                     )}
                     style={{
@@ -793,7 +895,7 @@ export function TimeGrid({
                     }
                     title={`${task.title} · ${he.calendar.dragToMove}`}
                   >
-                    <p className="truncate font-medium">{task.title}</p>
+                    <p className="whitespace-normal break-words font-medium">{task.title}</p>
                     {height >= 34 && (
                       <p className="truncate tabular-nums text-muted-foreground">
                         {formatEventTime(addMinutes(startOfDay(days[dayIndex]), startMin))}
@@ -819,7 +921,7 @@ export function TimeGrid({
                   borderInlineStart: `3px solid ${eventColor(eventDrag.occurrence)}`,
                 }}
               >
-                <p className="truncate font-medium">{eventDrag.occurrence.title}</p>
+                <p className="whitespace-normal break-words font-medium">{eventDrag.occurrence.title}</p>
               </div>
             )}
 
