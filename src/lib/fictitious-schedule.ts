@@ -3,11 +3,11 @@ import type { EventOccurrence, TaskWithRelations } from "@/types";
 
 const STORAGE_KEY = "mission-fictitious-schedule";
 const RESET_KEY = "mission-fictitious-schedule-reset";
-const RESET_VERSION = "2026-09-10-seed";
+const RESET_VERSION = "2026-09-10-font-8-all";
 export const FICTITIOUS_BLOCK_COLOR = "#1F4E79";
 export const FICTITIOUS_FONT_MIN = 8;
 export const FICTITIOUS_FONT_MAX = 24;
-export const FICTITIOUS_FONT_DEFAULT = 12;
+export const FICTITIOUS_FONT_DEFAULT = 8;
 
 export function stepFictitiousFontSize(current: number, delta: -1 | 1) {
   return Math.min(FICTITIOUS_FONT_MAX, Math.max(FICTITIOUS_FONT_MIN, current + delta));

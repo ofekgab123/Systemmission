@@ -30,6 +30,7 @@ import {
   outlookEventBlockStyle,
 } from "@/lib/calendar-theme";
 import {
+  FICTITIOUS_FONT_DEFAULT,
   fictitiousOccurrenceVariant,
   isFictitiousOccurrence,
 } from "@/lib/fictitious-schedule";
@@ -979,9 +980,8 @@ export function TimeGrid({
                   : eventBlockStyle(color);
                 const ghost = outlook && variant === "ghost";
                 const narrow = days.length > 1;
-                const defaultFont = narrow ? 9.5 : 12;
+                const defaultFont = outlook ? FICTITIOUS_FONT_DEFAULT : narrow ? 9.5 : 12;
                 const titleSize = occurrence.fontSize ?? defaultFont;
-                const metaSize = Math.max(8, titleSize * 0.88);
                 const titleBits = [
                   occurrence.title,
                   `${formatEventTime(occurrence.start)}–${formatEventTime(occurrence.end)}`,
@@ -1016,14 +1016,12 @@ export function TimeGrid({
                       {occurrence.title || he.events.noTitle}
                     </p>
                     {!narrow && height >= 34 && (
-                      <p className="break-words opacity-80" style={{ fontSize: `${metaSize}px` }}>
+                      <p className="break-words opacity-80">
                         {formatEventTime(occurrence.start)}–{formatEventTime(occurrence.end)}
                       </p>
                     )}
                     {!narrow && occurrence.location && height >= 52 && (
-                      <p className="break-words opacity-80" style={{ fontSize: `${metaSize}px` }}>
-                        {occurrence.location}
-                      </p>
+                      <p className="break-words opacity-80">{occurrence.location}</p>
                     )}
                     <div
                       className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"

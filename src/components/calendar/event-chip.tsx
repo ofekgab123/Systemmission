@@ -5,6 +5,7 @@ import type { EventOccurrence } from "@/types";
 import { eventColor, formatEventTime } from "@/lib/event-utils";
 import { eventBlockStyle, outlookEventBlockStyle } from "@/lib/calendar-theme";
 import {
+  FICTITIOUS_FONT_DEFAULT,
   fictitiousOccurrenceVariant,
   isFictitiousOccurrence,
 } from "@/lib/fictitious-schedule";
@@ -42,11 +43,16 @@ export function EventChip({
         compact ? "px-1 text-[8.5px] font-semibold" : "px-2 text-[11.5px] font-semibold md:text-xs",
         className
       )}
-      style={block}
+      style={{
+        ...block,
+        ...(outlook
+          ? { fontSize: `${occurrence.fontSize ?? FICTITIOUS_FONT_DEFAULT}px` }
+          : null),
+      }}
       title={occurrence.title}
     >
       {showTime && !occurrence.allDay && !compact && (
-        <span className="shrink-0 text-[10px] tabular-nums opacity-70 md:text-xs">
+        <span className="shrink-0 tabular-nums opacity-70">
           {formatEventTime(occurrence.start)}
         </span>
       )}
