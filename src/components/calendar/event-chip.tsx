@@ -9,6 +9,7 @@ import {
   fictitiousOccurrenceVariant,
   isFictitiousOccurrence,
 } from "@/lib/fictitious-schedule";
+import { FictitiousOwnerTag } from "@/components/today/fictitious-owner-tag";
 import { cn } from "@/lib/utils";
 
 /** Compact event pill used in the month grid and all-day rows. */
@@ -27,9 +28,8 @@ export function EventChip({
 }) {
   const color = eventColor(occurrence);
   const outlook = isFictitiousOccurrence(occurrence);
-  const block = outlook
-    ? outlookEventBlockStyle(color, fictitiousOccurrenceVariant(occurrence))
-    : eventBlockStyle(color);
+  const variant = fictitiousOccurrenceVariant(occurrence);
+  const block = outlook ? outlookEventBlockStyle(color, variant) : eventBlockStyle(color);
 
   return (
     <button
@@ -49,7 +49,7 @@ export function EventChip({
           ? { fontSize: `${occurrence.fontSize ?? FICTITIOUS_FONT_DEFAULT}px` }
           : null),
       }}
-      title={occurrence.title}
+      title={[occurrence.owner, occurrence.title].filter(Boolean).join(" · ")}
     >
       {showTime && !occurrence.allDay && !compact && (
         <span className="shrink-0 tabular-nums opacity-70">
@@ -57,6 +57,14 @@ export function EventChip({
         </span>
       )}
       <span className="min-w-0 flex-1 truncate">{occurrence.title}</span>
+      {outlook && (
+        <FictitiousOwnerTag
+          owner={occurrence.owner}
+          ghost={variant === "ghost"}
+          compact
+          className="pointer-events-none shrink-0"
+        />
+      )}
       {occurrence.isRecurring && !compact && (
         <Repeat className="size-3 shrink-0 opacity-60" />
       )}

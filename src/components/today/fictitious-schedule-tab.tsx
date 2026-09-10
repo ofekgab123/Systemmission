@@ -24,6 +24,10 @@ import {
 import {
   applyFictitiousPlacement,
   blockToOccurrence,
+  fictitiousOwnerColor,
+  fictitiousOwnerOf,
+  filterByFictitiousOwner,
+  listFictitiousOwners,
   newFictitiousBlockId,
   OUTLOOK_COLORS,
   persistFictitiousSchedule,
@@ -60,6 +64,7 @@ export function FictitiousScheduleTab({
   const [state, setState] = useState<FictitiousScheduleState>({ blocks: [], placements: [] });
   const [formOpen, setFormOpen] = useState(false);
   const [formTarget, setFormTarget] = useState<FictitiousBlockTarget | null>(null);
+  const [ownerFilters, setOwnerFilters] = useState<Set<string>>(new Set());
   const [collapsedInner, setCollapsedInner] = useState(true);
   const collapsed = collapsedProp ?? collapsedInner;
   const setCollapsed = (next: boolean | ((value: boolean) => boolean)) => {
@@ -86,10 +91,29 @@ export function FictitiousScheduleTab({
     [viewMode, anchorDate, range]
   );
 
+  const owners = useMemo(() => listFictitiousOwners(state.blocks), [state.blocks]);
+  const ownerCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const block of state.blocks) {
+      const owner = fictitiousOwnerOf(block);
+      counts.set(owner, (counts.get(owner) ?? 0) + 1);
+    }
+    return counts;
+  }, [state.blocks]);
+
   const events = useMemo(
-    () => state.blocks.map(blockToOccurrence),
-    [state.blocks]
+    () => filterByFictitiousOwner(state.blocks.map(blockToOccurrence), ownerFilters),
+    [state.blocks, ownerFilters]
   );
+
+  const toggleOwnerFilter = (owner: string) => {
+    setOwnerFilters((current) => {
+      const next = new Set(current);
+      if (next.has(owner)) next.delete(owner);
+      else next.add(owner);
+      return next;
+    });
+  };
 
   const placementByTask = useMemo(() => {
     const map = new Map<string, FictitiousTaskPlacement>();
@@ -130,6 +154,7 @@ export function FictitiousScheduleTab({
       ...draft,
       id: draft.id ?? newFictitiousBlockId(),
       fontSize: draft.fontSize ?? previous?.fontSize ?? null,
+      owner: fictitiousOwnerOf({ owner: draft.owner ?? previous?.owner }),
     };
     const exists = state.blocks.some((item) => item.id === block.id);
     commit({
@@ -245,6 +270,49 @@ export function FictitiousScheduleTab({
             </Button>
           </div>
 
+          <div
+            className="flex flex-wrap items-center gap-1.5 border-b px-3 py-1.5"
+            style={{ borderColor: CAL.border, backgroundColor: CAL.allDayBg }}
+            role="group"
+            aria-label={he.today.fictitiousFilterOwner}
+          >
+            <span className="text-[11px] font-medium text-[#8A90A0]">
+              {he.today.fictitiousFilterOwner}
+            </span>
+            {owners.map((owner) => {
+              const active = ownerFilters.has(owner);
+              const color = fictitiousOwnerColor(owner);
+              const count = ownerCounts.get(owner) ?? 0;
+              return (
+                <button
+                  key={owner}
+                  type="button"
+                  onClick={() => toggleOwnerFilter(owner)}
+                  className={cn(
+                    "flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                    active
+                      ? "border-transparent text-white shadow-sm"
+                      : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+                  )}
+                  style={active ? { backgroundColor: color } : undefined}
+                  title={he.calendar.eventCount(count)}
+                >
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: active ? "rgba(255,255,255,0.9)" : color,
+                      boxShadow: active ? undefined : `0 0 0 1px ${color}40`,
+                    }}
+                  />
+                  <span>{owner}</span>
+                  <span className={cn("tabular-nums", active ? "text-white/85" : "text-[#9CA3AF]")}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {!collapsed && (
             <>
               <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2" style={{ borderColor: CAL.border }}>
@@ -340,6 +408,7 @@ export function FictitiousScheduleTab({
       <FictitiousBlockDialog
         open={formOpen}
         target={formTarget}
+        owners={owners}
         onClose={() => setFormOpen(false)}
         onSave={handleSaveBlock}
         onDelete={handleDeleteBlock}

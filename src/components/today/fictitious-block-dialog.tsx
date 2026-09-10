@@ -19,6 +19,10 @@ import { he } from "@/lib/i18n/he";
 import {
   FICTITIOUS_BLOCK_COLOR,
   FICTITIOUS_FONT_DEFAULT,
+  FICTITIOUS_OWNER_POODI,
+  fictitiousOwnerColor,
+  fictitiousOwnerOf,
+  listFictitiousOwners,
   OUTLOOK_COLORS,
   stepFictitiousFontSize,
   type FictitiousBlock,
@@ -82,6 +86,7 @@ function initialFromTarget(target: FictitiousBlockTarget) {
       color: OUTLOOK_COLORS.navy,
       variant: "solid" as FictitiousBlockVariant,
       fontSize: FICTITIOUS_FONT_DEFAULT,
+      owner: FICTITIOUS_OWNER_POODI,
     };
   }
   const start = new Date(target.block.start);
@@ -99,18 +104,21 @@ function initialFromTarget(target: FictitiousBlockTarget) {
     color: variant === "ghost" ? null : (normalizeHex(target.block.color) ?? FICTITIOUS_BLOCK_COLOR),
     variant,
     fontSize: target.block.fontSize ?? FICTITIOUS_FONT_DEFAULT,
+    owner: fictitiousOwnerOf(target.block),
   };
 }
 
 export function FictitiousBlockDialog({
   open,
   target,
+  owners = [FICTITIOUS_OWNER_POODI],
   onClose,
   onSave,
   onDelete,
 }: {
   open: boolean;
   target: FictitiousBlockTarget | null;
+  owners?: string[];
   onClose: () => void;
   onSave: (block: Omit<FictitiousBlock, "id"> & { id?: string }) => void;
   onDelete?: (id: string) => void;
@@ -121,6 +129,7 @@ export function FictitiousBlockDialog({
         <FictitiousBlockForm
           key={target.mode === "edit" ? target.block.id : `${target.start.toISOString()}-${target.end.toISOString()}`}
           target={target}
+          owners={owners}
           onClose={onClose}
           onSave={onSave}
           onDelete={onDelete}
@@ -132,11 +141,13 @@ export function FictitiousBlockDialog({
 
 function FictitiousBlockForm({
   target,
+  owners,
   onClose,
   onSave,
   onDelete,
 }: {
   target: FictitiousBlockTarget;
+  owners: string[];
   onClose: () => void;
   onSave: (block: Omit<FictitiousBlock, "id"> & { id?: string }) => void;
   onDelete?: (id: string) => void;
@@ -154,6 +165,11 @@ function FictitiousBlockForm({
   const [color, setColor] = useState<string | null>(initial.color);
   const [variant, setVariant] = useState<FictitiousBlockVariant>(initial.variant);
   const [fontSize, setFontSize] = useState(initial.fontSize);
+  const [owner, setOwner] = useState(initial.owner);
+  const ownerOptions = listFictitiousOwners([
+    ...owners.map((name) => ({ owner: name })),
+    { owner },
+  ]);
 
   const computedStart = allDay ? startOfDay(startDate) : combineDateTime(startDate, startTime);
   const computedEnd = allDay ? endOfDay(endDate) : combineDateTime(endDate, endTime);
@@ -180,6 +196,7 @@ function FictitiousBlockForm({
       color: variant === "ghost" ? null : color,
       variant,
       fontSize,
+      owner: fictitiousOwnerOf({ owner }),
     });
     onClose();
   };
@@ -277,6 +294,36 @@ function FictitiousBlockForm({
               +
             </Button>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">{he.today.fictitiousOwner}</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {ownerOptions.map((name) => {
+              const selected = fictitiousOwnerOf({ owner }) === name;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setOwner(name)}
+                  className={cn(
+                    "h-7 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                    selected
+                      ? "border-transparent text-white"
+                      : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+                  )}
+                  style={selected ? { backgroundColor: fictitiousOwnerColor(name) } : undefined}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+          <Input
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            placeholder={he.today.fictitiousOwnerPlaceholder}
+          />
         </div>
 
         <div className="flex flex-col gap-2">

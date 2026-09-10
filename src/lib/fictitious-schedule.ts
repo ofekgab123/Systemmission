@@ -3,11 +3,41 @@ import type { EventOccurrence, TaskWithRelations } from "@/types";
 
 const STORAGE_KEY = "mission-fictitious-schedule";
 const RESET_KEY = "mission-fictitious-schedule-reset";
-const RESET_VERSION = "2026-09-10-show-short-times";
+const RESET_VERSION = "2026-09-10-owners-poodi-tomer";
 export const FICTITIOUS_BLOCK_COLOR = "#1F4E79";
 export const FICTITIOUS_FONT_MIN = 8;
 export const FICTITIOUS_FONT_MAX = 24;
 export const FICTITIOUS_FONT_DEFAULT = 8;
+export const FICTITIOUS_OWNER_POODI = "פודי";
+export const FICTITIOUS_OWNER_TOMER = "תומר";
+export const FICTITIOUS_KNOWN_OWNERS = [FICTITIOUS_OWNER_POODI, FICTITIOUS_OWNER_TOMER] as const;
+export const FICTITIOUS_OWNER_COLORS: Record<string, string> = {
+  [FICTITIOUS_OWNER_POODI]: "#0EA5E9",
+  [FICTITIOUS_OWNER_TOMER]: "#F59E0B",
+};
+
+export function fictitiousOwnerOf(block: { owner?: string | null }) {
+  const owner = block.owner?.trim();
+  return owner || FICTITIOUS_OWNER_POODI;
+}
+
+export function fictitiousOwnerColor(owner: string) {
+  return FICTITIOUS_OWNER_COLORS[owner] ?? "#6366F1";
+}
+
+export function listFictitiousOwners(blocks: { owner?: string | null }[]) {
+  const seen = new Set<string>(FICTITIOUS_KNOWN_OWNERS);
+  for (const block of blocks) seen.add(fictitiousOwnerOf(block));
+  return [...seen];
+}
+
+export function filterByFictitiousOwner<T extends { owner?: string | null }>(
+  items: T[],
+  ownerFilters: Set<string>
+) {
+  if (ownerFilters.size === 0) return items;
+  return items.filter((item) => ownerFilters.has(fictitiousOwnerOf(item)));
+}
 
 export function stepFictitiousFontSize(current: number, delta: -1 | 1) {
   return Math.min(FICTITIOUS_FONT_MAX, Math.max(FICTITIOUS_FONT_MIN, current + delta));
@@ -18,6 +48,9 @@ export const OUTLOOK_COLORS = {
   olive: "#C4A035",
   gray: "#9A9A9A",
   green: "#92D050",
+  yellow: "#EAB308",
+  ink: "#111827",
+  burgundy: "#7F1D1D",
 } as const;
 
 export type FictitiousBlockVariant = "solid" | "ghost";
@@ -34,6 +67,8 @@ export type FictitiousBlock = {
   variant?: FictitiousBlockVariant;
   /** Title size in px; omitted uses the grid default. */
   fontSize?: number | null;
+  /** Person this draft block belongs to, e.g. "פודי". */
+  owner?: string | null;
 };
 
 export type FictitiousTaskPlacement = {
@@ -189,12 +224,59 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
     color: null,
     location: "ביסל״א 883/מפקד",
   },
-];
+  {
+    id: "fictitious-16-tomer-f151a",
+    title: "תוכנית F151A — היערכות לסקר תשתיות",
+    start: at(2026, 9, 16, 10, 0),
+    end: at(2026, 9, 16, 10, 45),
+    color: OUTLOOK_COLORS.yellow,
+    location: "צפי מועד 9, חד״ן רמ״ה תוכניות והנדסת כלי טיס",
+    description: "התנעת קבוצות עבודה\nהטכנולוגי / תוכניות והנדסת כלי טיס",
+    owner: FICTITIOUS_OWNER_TOMER,
+  },
+  {
+    id: "fictitious-16-tomer-pa-mmh",
+    title: "פ״ע ממ״ח משאבים וקו״מ אבא״ו",
+    start: at(2026, 9, 16, 10, 45),
+    end: at(2026, 9, 16, 11, 30),
+    color: OUTLOOK_COLORS.ink,
+    location: "משרד מבורך; בארי בוטנרו",
+    description: "התוכן של פעילות זו התעדכן",
+    owner: FICTITIOUS_OWNER_TOMER,
+  },
+  {
+    id: "fictitious-16-tomer-status-tatam",
+    title: "סטטוס ת״ע ת״מ",
+    start: at(2026, 9, 16, 12, 0),
+    end: at(2026, 9, 16, 13, 0),
+    color: OUTLOOK_COLORS.burgundy,
+    location: "מפקד תוה״ן; בסיס 108/תוה״ן/מפקד",
+    owner: FICTITIOUS_OWNER_TOMER,
+  },
+  {
+    id: "fictitious-16-tomer-tohan-visit",
+    title: "המשך ביקור יחידת תוה״ן",
+    start: at(2026, 9, 16, 13, 0),
+    end: at(2026, 9, 16, 16, 0),
+    color: OUTLOOK_COLORS.ink,
+    location: "יחידת תוה״ן · בארי בוטנרו",
+    description: [
+      "13:00-15:30 - ביקור יחידת תוה״ן",
+      "15:30-16:00 - סיכום תכולות ויציאה לדרך — אפיון שיפוץ לשכת 108",
+      "רלוונטיים: תומר מבורך, אוהד שמריהו, אלכסיי שמובסקי, אור מיכאלי",
+    ].join("\n"),
+    owner: FICTITIOUS_OWNER_TOMER,
+  },
+].map((block) => ({ ...block, owner: block.owner ?? FICTITIOUS_OWNER_POODI }));
 
 export function mergeFictitiousSeed(state: FictitiousScheduleState): FictitiousScheduleState {
   const existingIds = new Set(state.blocks.map((block) => block.id));
   const missing = FICTITIOUS_SEED_BLOCKS.filter((block) => !existingIds.has(block.id));
-  return { ...state, blocks: [...state.blocks, ...missing] };
+  const blocks = [...state.blocks, ...missing].map((block) => ({
+    ...block,
+    owner: fictitiousOwnerOf(block),
+  }));
+  return { ...state, blocks };
 }
 
 export function readFictitiousSchedule(areaId: string): FictitiousScheduleState {
@@ -267,6 +349,7 @@ export function blockToOccurrence(block: FictitiousBlock): EventOccurrence {
     seriesStart: start,
     seriesEnd: end,
     fontSize: block.fontSize ?? null,
+    owner: fictitiousOwnerOf(block),
   };
 }
 

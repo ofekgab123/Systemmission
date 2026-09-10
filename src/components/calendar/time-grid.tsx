@@ -34,6 +34,7 @@ import {
   fictitiousOccurrenceVariant,
   isFictitiousOccurrence,
 } from "@/lib/fictitious-schedule";
+import { FictitiousOwnerTag } from "@/components/today/fictitious-owner-tag";
 import { useCalendarExternalDragOptional } from "@/components/calendar/calendar-external-drag";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 
@@ -983,6 +984,7 @@ export function TimeGrid({
                 const defaultFont = outlook ? FICTITIOUS_FONT_DEFAULT : narrow ? 9.5 : 12;
                 const titleSize = occurrence.fontSize ?? defaultFont;
                 const titleBits = [
+                  occurrence.owner,
                   occurrence.title,
                   `${formatEventTime(occurrence.start)}-${formatEventTime(occurrence.end)}`,
                   occurrence.location,
@@ -1012,9 +1014,19 @@ export function TimeGrid({
                     onContextMenu={(e) => e.preventDefault()}
                     title={titleBits.join(" · ")}
                   >
-                    <p className="whitespace-normal break-words font-semibold leading-snug">
-                      {occurrence.title || he.events.noTitle}
-                    </p>
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="min-w-0 flex-1 whitespace-normal break-words font-semibold leading-snug">
+                        {occurrence.title || he.events.noTitle}
+                      </p>
+                      {outlook && (
+                        <FictitiousOwnerTag
+                          owner={occurrence.owner}
+                          ghost={ghost}
+                          compact
+                          className="pointer-events-none mt-px shrink-0"
+                        />
+                      )}
+                    </div>
                     {!narrow && (
                       <p className="break-words opacity-80">
                         {formatEventTime(occurrence.start)}-{formatEventTime(occurrence.end)}
