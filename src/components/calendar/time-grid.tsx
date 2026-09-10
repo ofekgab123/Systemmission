@@ -48,6 +48,49 @@ function blockWidthScale(startMin: number, endMin: number) {
   return endMin - startMin > LONG_BLOCK_MINUTES ? 0.5 : 1;
 }
 
+/** Pack overlay columns so shrinking a long block lets neighbors fill the gap. */
+function packOverlayColumns(
+  items: { id: string; startMin: number; endMin: number; column: number; columns: number }[]
+): Map<string, { offset: number; width: number }> {
+  const packed = new Map<string, { offset: number; width: number }>();
+  const sorted = [...items].sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
+  let cluster: typeof items = [];
+  let clusterEnd = -1;
+
+  const flush = () => {
+    if (cluster.length === 0) return;
+    const n = Math.max(1, cluster[0].columns);
+    const scale = Array.from({ length: n }, () => 1);
+    for (const item of cluster) {
+      if (blockWidthScale(item.startMin, item.endMin) < 1) scale[item.column] = 0.5;
+    }
+    const longCount = scale.filter((s) => s < 1).length;
+    const shortCount = n - longCount;
+    const widths = scale.map((s) => {
+      if (shortCount === 0 || s < 1) return 0.5 / n;
+      return (1 - (0.5 / n) * longCount) / shortCount;
+    });
+    const offsets: number[] = [];
+    let acc = 0;
+    for (const w of widths) {
+      offsets.push(acc);
+      acc += w;
+    }
+    for (const item of cluster) {
+      packed.set(item.id, { offset: offsets[item.column] ?? 0, width: widths[item.column] ?? 1 });
+    }
+    cluster = [];
+  };
+
+  for (const item of sorted) {
+    if (cluster.length > 0 && item.startMin >= clusterEnd) flush();
+    cluster.push(item);
+    clusterEnd = cluster.length === 1 ? item.endMin : Math.max(clusterEnd, item.endMin);
+  }
+  flush();
+  return packed;
+}
+
 interface CreateDrag {
   dayIndex: number;
   anchorMin: number;
@@ -905,15 +948,28 @@ export function TimeGrid({
               />
             ))}
 
-            {perDay.map(({ positionedEvents }, dayIndex) =>
-              positionedEvents.map(({ occurrence, startMin, endMin, column, columns }) => {
+            {perDay.map(({ positionedEvents }, dayIndex) => {
+              const eventPack = packOverlayColumns(
+                positionedEvents.map((item) => ({
+                  id: item.occurrence.occurrenceId,
+                  startMin: item.startMin,
+                  endMin: item.endMin,
+                  column: item.column,
+                  columns: item.columns,
+                }))
+              );
+              return positionedEvents.map(({ occurrence, startMin, endMin, column, columns }) => {
                 const isHeld =
                   eventDrag?.occurrence.occurrenceId === occurrence.occurrenceId;
                 const isDragged = Boolean(isHeld && eventDrag?.moved);
                 const color = eventColor(occurrence);
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
-                const slotPct = colPct / columns;
-                const widthPct = slotPct * blockWidthScale(startMin, endMin);
+                const pack = eventPack.get(occurrence.occurrenceId) ?? {
+                  offset: column / columns,
+                  width: (1 / columns) * blockWidthScale(startMin, endMin),
+                };
+                const slotPct = colPct * pack.offset;
+                const widthPct = colPct * pack.width;
                 const outlook =
                   appearance === "outlook" || isFictitiousOccurrence(occurrence);
                 const variant = fictitiousOccurrenceVariant(occurrence);
@@ -942,7 +998,7 @@ export function TimeGrid({
                       ...block,
                       top: (startMin / 60) * HOUR_HEIGHT,
                       height: Math.max(height, 24),
-                      insetInlineStart: `calc(${dayIndex * colPct + column * slotPct}% + ${narrow ? 2 : 4}px)`,
+                      insetInlineStart: `calc(${dayIndex * colPct + slotPct}% + ${narrow ? 2 : 4}px)`,
                       width: `calc(${widthPct}% - ${narrow ? 4 : 8}px)`,
                     }}
                     onPointerDown={(e) =>
@@ -970,17 +1026,30 @@ export function TimeGrid({
                     />
                   </div>
                 );
-              })
-            )}
+              });
+            })}
 
-            {perDay.map(({ positionedTasks }, dayIndex) =>
-              positionedTasks.map(({ task, startMin, endMin, column, columns }) => {
+            {perDay.map(({ positionedTasks }, dayIndex) => {
+              const taskPack = packOverlayColumns(
+                positionedTasks.map((item) => ({
+                  id: item.task.id,
+                  startMin: item.startMin,
+                  endMin: item.endMin,
+                  column: item.column,
+                  columns: item.columns,
+                }))
+              );
+              return positionedTasks.map(({ task, startMin, endMin, column, columns }) => {
                 const isHeld = taskDrag?.task.id === task.id;
                 const isDragged = Boolean(isHeld && taskDrag?.moved);
                 const { className, style } = getCalendarTaskStyle(task, "combined");
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
-                const slotPct = colPct / columns;
-                const widthPct = slotPct * blockWidthScale(startMin, endMin);
+                const pack = taskPack.get(task.id) ?? {
+                  offset: column / columns,
+                  width: (1 / columns) * blockWidthScale(startMin, endMin),
+                };
+                const slotPct = colPct * pack.offset;
+                const widthPct = colPct * pack.width;
                 return (
                   <div
                     key={task.id}
@@ -995,7 +1064,7 @@ export function TimeGrid({
                       ...style,
                       top: (startMin / 60) * HOUR_HEIGHT,
                       height: Math.max(height, 18),
-                      insetInlineStart: `calc(${dayIndex * colPct + column * slotPct}% + 2px)`,
+                      insetInlineStart: `calc(${dayIndex * colPct + slotPct}% + 2px)`,
                       width: `calc(${widthPct}% - 5px)`,
                     }}
                     onPointerDown={(e) =>
@@ -1011,8 +1080,8 @@ export function TimeGrid({
                     )}
                   </div>
                 );
-              })
-            )}
+              });
+            })}
 
             {eventDrag?.moved && (
               <div
