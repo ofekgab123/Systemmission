@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { AddTaskButton } from "@/components/quick-add/add-task-button";
@@ -41,15 +41,35 @@ function TodayPageContent() {
     router.replace(value === "overview" ? "/today" : `/today?tab=${value}`, { scroll: false });
   };
 
+  const isFictitious = tab === "fictitious";
+  const [fictitiousChromeOpen, setFictitiousChromeOpen] = useState(false);
+  const hideFictitiousChrome = isFictitious && !fictitiousChromeOpen;
+
   return (
     <div>
-      <PageHeader
-        title={greetingForNow()}
-        description={formatFullDate()}
-        actions={<AddTaskButton className="gap-2" />}
-      />
-      <div className="page-content flex flex-col gap-6 md:gap-8">
-        <Tabs value={tab} onValueChange={setTab} className="gap-6 md:gap-8">
+      {(!isFictitious || fictitiousChromeOpen) && (
+        <PageHeader
+          title={greetingForNow()}
+          description={formatFullDate()}
+          actions={<AddTaskButton className="gap-2" />}
+        />
+      )}
+      <div
+        className={
+          isFictitious
+            ? "page-content flex flex-col gap-2 !pt-2 md:!pt-3"
+            : "page-content flex flex-col gap-6 md:gap-8"
+        }
+      >
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            setTab(value);
+            if (value === "fictitious") setFictitiousChromeOpen(false);
+          }}
+          className={isFictitious ? "gap-2" : "gap-6 md:gap-8"}
+        >
+          {!hideFictitiousChrome && (
           <TabsList className="grid h-10 w-full max-w-xl grid-cols-3">
             <TabsTrigger value="overview" className="gap-1.5">
               <Target className="hidden size-4 sm:block" />
@@ -64,6 +84,7 @@ function TodayPageContent() {
               {he.today.tabFictitious}
             </TabsTrigger>
           </TabsList>
+          )}
 
           <TabsContent value="overview" className="flex flex-col gap-6 md:gap-8">
             <Section icon={<Target className="size-4" />} title={he.today.focus} subtitle={he.today.focusSubtitle}>
@@ -118,7 +139,11 @@ function TodayPageContent() {
           </TabsContent>
 
           <TabsContent value="fictitious">
-            <FictitiousScheduleTab tasks={activeTasks ?? []} />
+            <FictitiousScheduleTab
+              tasks={activeTasks ?? []}
+              collapsed={!fictitiousChromeOpen}
+              onCollapsedChange={(next) => setFictitiousChromeOpen(!next)}
+            />
           </TabsContent>
         </Tabs>
       </div>
