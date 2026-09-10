@@ -249,7 +249,7 @@ export function TimeGrid({
     const colWidth = rect.width / days.length;
     const dayIndex = Math.max(
       0,
-      Math.min(days.length - 1, Math.floor((rect.right - clientX) / colWidth))
+      Math.min(days.length - 1, Math.floor((clientX - rect.left) / colWidth))
     );
     const minute = clampMin(((clientY - rect.top) / HOUR_HEIGHT) * 60);
     return { dayIndex, minute };
@@ -754,6 +754,7 @@ export function TimeGrid({
 
   return (
     <div
+      dir="ltr"
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
       style={{ borderColor: CAL.border, backgroundColor: gridBackground ?? "#ffffff" }}
     >
@@ -978,6 +979,9 @@ export function TimeGrid({
                   : eventBlockStyle(color);
                 const ghost = outlook && variant === "ghost";
                 const narrow = days.length > 1;
+                const defaultFont = narrow ? 9.5 : 12;
+                const titleSize = occurrence.fontSize ?? defaultFont;
+                const metaSize = Math.max(8, titleSize * 0.88);
                 const titleBits = [
                   occurrence.title,
                   `${formatEventTime(occurrence.start)}–${formatEventTime(occurrence.end)}`,
@@ -987,9 +991,9 @@ export function TimeGrid({
                   <div
                     key={occurrence.occurrenceId}
                     className={cn(
-                      "absolute z-10 cursor-grab select-none overflow-hidden leading-tight transition-opacity",
+                      "absolute z-10 cursor-grab select-none overflow-hidden font-semibold leading-tight transition-opacity",
                       ghost ? "rounded-none" : "rounded-[3px]",
-                      narrow ? "px-1 py-0.5 text-[9.5px] font-semibold" : "px-1.5 py-1 text-[12px]",
+                      narrow ? "px-1 py-0.5" : "px-1.5 py-1",
                       isHeld && "touch-none",
                       isHeld && !isDragged && "ring-2 ring-[#2563EB]/50",
                       isDragged && "opacity-30"
@@ -1000,6 +1004,7 @@ export function TimeGrid({
                       height: Math.max(height, 24),
                       insetInlineStart: `calc(${dayIndex * colPct + slotPct}% + ${narrow ? 2 : 4}px)`,
                       width: `calc(${widthPct}% - ${narrow ? 4 : 8}px)`,
+                      fontSize: `${titleSize}px`,
                     }}
                     onPointerDown={(e) =>
                       beginEventDrag(e, occurrence, dayIndex, startMin, endMin, "move")
@@ -1011,12 +1016,14 @@ export function TimeGrid({
                       {occurrence.title || he.events.noTitle}
                     </p>
                     {!narrow && height >= 34 && (
-                      <p className="break-words text-[10.5px] opacity-80">
+                      <p className="break-words opacity-80" style={{ fontSize: `${metaSize}px` }}>
                         {formatEventTime(occurrence.start)}–{formatEventTime(occurrence.end)}
                       </p>
                     )}
                     {!narrow && occurrence.location && height >= 52 && (
-                      <p className="break-words text-[10px] opacity-80">{occurrence.location}</p>
+                      <p className="break-words opacity-80" style={{ fontSize: `${metaSize}px` }}>
+                        {occurrence.location}
+                      </p>
                     )}
                     <div
                       className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"

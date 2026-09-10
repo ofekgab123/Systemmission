@@ -40,6 +40,7 @@ export function WeekStrip({
 
   return (
     <div
+      dir="ltr"
       className="border-b bg-white px-2 py-2 shadow-[0_1px_3px_rgba(17,24,39,.04)]"
       style={{ borderColor: CAL.border }}
     >

@@ -129,6 +129,7 @@ export function FictitiousScheduleTab({
       ...previous,
       ...draft,
       id: draft.id ?? newFictitiousBlockId(),
+      fontSize: draft.fontSize ?? previous?.fontSize ?? null,
     };
     const exists = state.blocks.some((item) => item.id === block.id);
     commit({

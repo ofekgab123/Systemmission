@@ -84,4 +84,6 @@ export type EventOccurrence = CalendarEventWithRelations & {
   /** Start/end of the series master row (equals start/end for one-off events). */
   seriesStart: Date;
   seriesEnd: Date;
+  /** Optional per-block title size for draft/fictitious squares. */
+  fontSize?: number | null;
 };

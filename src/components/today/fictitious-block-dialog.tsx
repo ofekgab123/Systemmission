@@ -18,7 +18,9 @@ import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
 import {
   FICTITIOUS_BLOCK_COLOR,
+  FICTITIOUS_FONT_DEFAULT,
   OUTLOOK_COLORS,
+  stepFictitiousFontSize,
   type FictitiousBlock,
   type FictitiousBlockVariant,
 } from "@/lib/fictitious-schedule";
@@ -79,6 +81,7 @@ function initialFromTarget(target: FictitiousBlockTarget) {
       description: "",
       color: OUTLOOK_COLORS.navy,
       variant: "solid" as FictitiousBlockVariant,
+      fontSize: FICTITIOUS_FONT_DEFAULT,
     };
   }
   const start = new Date(target.block.start);
@@ -95,6 +98,7 @@ function initialFromTarget(target: FictitiousBlockTarget) {
     description: target.block.description ?? "",
     color: variant === "ghost" ? null : (normalizeHex(target.block.color) ?? FICTITIOUS_BLOCK_COLOR),
     variant,
+    fontSize: target.block.fontSize ?? FICTITIOUS_FONT_DEFAULT,
   };
 }
 
@@ -149,6 +153,7 @@ function FictitiousBlockForm({
   const [description, setDescription] = useState(initial.description);
   const [color, setColor] = useState<string | null>(initial.color);
   const [variant, setVariant] = useState<FictitiousBlockVariant>(initial.variant);
+  const [fontSize, setFontSize] = useState(initial.fontSize);
 
   const computedStart = allDay ? startOfDay(startDate) : combineDateTime(startDate, startTime);
   const computedEnd = allDay ? endOfDay(endDate) : combineDateTime(endDate, endTime);
@@ -174,6 +179,7 @@ function FictitiousBlockForm({
       description: description.trim() || null,
       color: variant === "ghost" ? null : color,
       variant,
+      fontSize,
     });
     onClose();
   };
@@ -243,6 +249,33 @@ function FictitiousBlockForm({
                 />
               )}
             </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs font-medium text-muted-foreground">{he.today.fictitiousTextSize}</span>
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-xs"
+              aria-label={he.today.fictitiousTextSmaller}
+              onClick={() => setFontSize(stepFictitiousFontSize(fontSize, -1))}
+            >
+              −
+            </Button>
+            <span className="min-w-10 text-center text-sm tabular-nums" style={{ fontSize: `${fontSize}px` }}>
+              {fontSize}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-xs"
+              aria-label={he.today.fictitiousTextLarger}
+              onClick={() => setFontSize(stepFictitiousFontSize(fontSize, 1))}
+            >
+              +
+            </Button>
           </div>
         </div>
 

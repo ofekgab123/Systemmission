@@ -164,7 +164,7 @@ export function MonthCalendar({
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex min-h-0 flex-1 flex-col bg-white">
+      <div dir="ltr" className="flex min-h-0 flex-1 flex-col bg-white">
         <CalendarWeekdayHeader />
         <div
           className="grid shrink-0 grid-cols-7"
