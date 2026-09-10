@@ -42,6 +42,11 @@ const SNAP = 15;
 const DRAG_THRESHOLD_PX = 5;
 const HOLD_CANCEL_PX = 12;
 const LONG_PRESS_MS = 420;
+const LONG_BLOCK_MINUTES = 4 * 60;
+
+function blockWidthScale(startMin: number, endMin: number) {
+  return endMin - startMin > LONG_BLOCK_MINUTES ? 0.5 : 1;
+}
 
 interface CreateDrag {
   dayIndex: number;
@@ -256,6 +261,32 @@ export function TimeGrid({
     onScheduleTask(task, addMinutes(startOfDay(days[dayIndex]), snap(minute)));
   };
 
+  const lockGridScroll = () => {
+    const scroller = scrollRef.current;
+    const grid = gridRef.current;
+    const prevScrollerOverflow = scroller?.style.overflowY ?? "";
+    const prevScrollerTouch = scroller?.style.touchAction ?? "";
+    const prevGridTouch = grid?.style.touchAction ?? "";
+    if (scroller) {
+      scroller.style.overflowY = "hidden";
+      scroller.style.touchAction = "none";
+    }
+    if (grid) grid.style.touchAction = "none";
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      if (scroller) {
+        scroller.style.overflowY = prevScrollerOverflow;
+        scroller.style.touchAction = prevScrollerTouch;
+      }
+      if (grid) grid.style.touchAction = prevGridTouch;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  };
+
   const handleAllDayExternalDrop = (e: React.DragEvent, dayIndex: number) => {
     e.preventDefault();
     const task = resolveExternalTask(e);
@@ -353,9 +384,17 @@ export function TimeGrid({
     let cancelled = false;
     let currentDrag: EventDrag = initial;
     let holdTimer: number | undefined;
+    let unlockScroll: (() => void) | undefined;
+    const target = e.currentTarget;
 
     const arm = () => {
       armed = true;
+      unlockScroll = lockGridScroll();
+      try {
+        target.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
       setEventDrag(initial);
       try {
         navigator.vibrate?.(12);
@@ -370,6 +409,25 @@ export function TimeGrid({
       arm();
     }
 
+    const handleTouchMove = (ev: TouchEvent) => {
+      if (cancelled && !armed) return;
+      if (armed) {
+        ev.preventDefault();
+        return;
+      }
+      const t = ev.touches[0];
+      if (!t) return;
+      const slipped =
+        Math.abs(t.clientX - initial.startClientX) > HOLD_CANCEL_PX ||
+        Math.abs(t.clientY - initial.startClientY) > HOLD_CANCEL_PX;
+      if (slipped) {
+        cancelled = true;
+        if (holdTimer !== undefined) window.clearTimeout(holdTimer);
+        return;
+      }
+      ev.preventDefault();
+    };
+
     const handleMove = (ev: PointerEvent) => {
       if (!armed) {
         const slipped =
@@ -381,6 +439,7 @@ export function TimeGrid({
         }
         return;
       }
+      ev.preventDefault();
 
       const { dayIndex: curDay, minute: cur } = pointerToPosition(ev.clientX, ev.clientY);
       setEventDrag((prev) => {
@@ -421,6 +480,13 @@ export function TimeGrid({
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleCancel);
+      window.removeEventListener("touchmove", handleTouchMove);
+      unlockScroll?.();
+      try {
+        target.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
     };
 
     const handleUp = () => {
@@ -444,9 +510,10 @@ export function TimeGrid({
       setEventDrag(null);
     };
 
-    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointermove", handleMove, { passive: false });
     window.addEventListener("pointerup", handleUp);
     window.addEventListener("pointercancel", handleCancel);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
   };
 
   const beginTaskDrag = (
@@ -483,9 +550,17 @@ export function TimeGrid({
     let cancelled = false;
     let currentDrag: TaskDrag = initial;
     let holdTimer: number | undefined;
+    let unlockScroll: (() => void) | undefined;
+    const target = e.currentTarget;
 
     const arm = () => {
       armed = true;
+      unlockScroll = lockGridScroll();
+      try {
+        target.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
       setTaskDrag(initial);
       try {
         navigator.vibrate?.(12);
@@ -500,6 +575,25 @@ export function TimeGrid({
       arm();
     }
 
+    const handleTouchMove = (ev: TouchEvent) => {
+      if (cancelled && !armed) return;
+      if (armed) {
+        ev.preventDefault();
+        return;
+      }
+      const t = ev.touches[0];
+      if (!t) return;
+      const slipped =
+        Math.abs(t.clientX - initial.startClientX) > HOLD_CANCEL_PX ||
+        Math.abs(t.clientY - initial.startClientY) > HOLD_CANCEL_PX;
+      if (slipped) {
+        cancelled = true;
+        if (holdTimer !== undefined) window.clearTimeout(holdTimer);
+        return;
+      }
+      ev.preventDefault();
+    };
+
     const handleMove = (ev: PointerEvent) => {
       if (!armed) {
         const slipped =
@@ -511,6 +605,7 @@ export function TimeGrid({
         }
         return;
       }
+      ev.preventDefault();
 
       const allDayIdx = getAllDayDropIndex(ev.clientX, ev.clientY);
       setTaskDragOverAllDay(allDayIdx);
@@ -551,6 +646,13 @@ export function TimeGrid({
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleCancel);
+      window.removeEventListener("touchmove", handleTouchMove);
+      unlockScroll?.();
+      try {
+        target.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
     };
 
     const handleUp = (ev: PointerEvent) => {
@@ -594,9 +696,10 @@ export function TimeGrid({
       setTaskDrag(null);
     };
 
-    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointermove", handleMove, { passive: false });
     window.addEventListener("pointerup", handleUp);
     window.addEventListener("pointercancel", handleCancel);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
   };
 
   const nowMin = differenceInMinutes(now, startOfDay(now));
@@ -758,7 +861,10 @@ export function TimeGrid({
 
           <div
             ref={gridRef}
-            className="relative flex-1 cursor-pointer select-none touch-pan-y"
+            className={cn(
+              "relative flex-1 cursor-pointer select-none",
+              eventDrag || taskDrag ? "touch-none" : "touch-pan-y"
+            )}
             style={{ height: 24 * HOUR_HEIGHT, borderInlineStart: `1px solid ${CAL.border}` }}
             onPointerDown={handleCreatePointerDown}
             onDragOver={handleExternalDragOver}
@@ -806,7 +912,8 @@ export function TimeGrid({
                 const isDragged = Boolean(isHeld && eventDrag?.moved);
                 const color = eventColor(occurrence);
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
-                const widthPct = colPct / columns;
+                const slotPct = colPct / columns;
+                const widthPct = slotPct * blockWidthScale(startMin, endMin);
                 const outlook =
                   appearance === "outlook" || isFictitiousOccurrence(occurrence);
                 const variant = fictitiousOccurrenceVariant(occurrence);
@@ -835,7 +942,7 @@ export function TimeGrid({
                       ...block,
                       top: (startMin / 60) * HOUR_HEIGHT,
                       height: Math.max(height, 24),
-                      insetInlineStart: `calc(${dayIndex * colPct + column * widthPct}% + ${narrow ? 2 : 4}px)`,
+                      insetInlineStart: `calc(${dayIndex * colPct + column * slotPct}% + ${narrow ? 2 : 4}px)`,
                       width: `calc(${widthPct}% - ${narrow ? 4 : 8}px)`,
                     }}
                     onPointerDown={(e) =>
@@ -872,7 +979,8 @@ export function TimeGrid({
                 const isDragged = Boolean(isHeld && taskDrag?.moved);
                 const { className, style } = getCalendarTaskStyle(task, "combined");
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
-                const widthPct = colPct / columns;
+                const slotPct = colPct / columns;
+                const widthPct = slotPct * blockWidthScale(startMin, endMin);
                 return (
                   <div
                     key={task.id}
@@ -887,7 +995,7 @@ export function TimeGrid({
                       ...style,
                       top: (startMin / 60) * HOUR_HEIGHT,
                       height: Math.max(height, 18),
-                      insetInlineStart: `calc(${dayIndex * colPct + column * widthPct}% + 2px)`,
+                      insetInlineStart: `calc(${dayIndex * colPct + column * slotPct}% + 2px)`,
                       width: `calc(${widthPct}% - 5px)`,
                     }}
                     onPointerDown={(e) =>
@@ -916,7 +1024,7 @@ export function TimeGrid({
                     18
                   ),
                   insetInlineStart: `calc(${eventDrag.dayIndex * colPct}% + 2px)`,
-                  width: `calc(${colPct}% - 5px)`,
+                  width: `calc(${colPct * blockWidthScale(eventDrag.startMin, eventDrag.endMin)}% - 5px)`,
                   backgroundColor: `${eventColor(eventDrag.occurrence)}40`,
                   borderInlineStart: `3px solid ${eventColor(eventDrag.occurrence)}`,
                 }}
