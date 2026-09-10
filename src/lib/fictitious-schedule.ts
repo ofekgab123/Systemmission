@@ -267,7 +267,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
     ].join("\n"),
     owner: FICTITIOUS_OWNER_TOMER,
   },
-].map((block) => ({ ...block, owner: block.owner ?? FICTITIOUS_OWNER_POODI }));
+];
 
 export function mergeFictitiousSeed(state: FictitiousScheduleState): FictitiousScheduleState {
   const existingIds = new Set(state.blocks.map((block) => block.id));
