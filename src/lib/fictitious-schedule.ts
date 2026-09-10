@@ -2,6 +2,8 @@ import { startOfDay } from "date-fns";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 
 const STORAGE_KEY = "mission-fictitious-schedule";
+const RESET_KEY = "mission-fictitious-schedule-reset";
+const RESET_VERSION = "2026-09-10-seed";
 export const FICTITIOUS_BLOCK_COLOR = "#1F4E79";
 
 export const OUTLOOK_COLORS = {
@@ -41,8 +43,20 @@ function emptyState(): FictitiousScheduleState {
   return { blocks: [], placements: [] };
 }
 
+function resetStoredScheduleOnce() {
+  if (typeof window === "undefined") return;
+  try {
+    if (localStorage.getItem(RESET_KEY) === RESET_VERSION) return;
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem(RESET_KEY, RESET_VERSION);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 function readAll(): StoredSchedules {
   if (typeof window === "undefined") return {};
+  resetStoredScheduleOnce();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
