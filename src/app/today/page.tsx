@@ -9,9 +9,10 @@ import { sortByScore } from "@/lib/task-score";
 import { TaskRow } from "@/components/task/task-row";
 import { TaskListSkeleton, EmptyState } from "@/components/task/task-list";
 import { TodayPlanTab } from "@/components/today/today-plan-tab";
+import { FictitiousScheduleTab } from "@/components/today/fictitious-schedule-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { greetingForNow, formatFullDate } from "@/lib/date-utils";
-import { Clock, AlertTriangle, CalendarClock, Target, ListOrdered } from "lucide-react";
+import { Clock, AlertTriangle, CalendarClock, Target, ListOrdered, Sparkles } from "lucide-react";
 import { he } from "@/lib/i18n/he";
 
 const WORKABLE_EXCLUDE = "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED,INBOX";
@@ -19,7 +20,9 @@ const WORKABLE_EXCLUDE = "DONE,CANCELLED,SOMEDAY,WAITING,BLOCKED,INBOX";
 function TodayPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") === "plan" ? "plan" : "overview";
+  const requestedTab = searchParams.get("tab");
+  const tab =
+    requestedTab === "plan" || requestedTab === "fictitious" ? requestedTab : "overview";
 
   const { data: activeTasks, isLoading } = useTasks({
     excludeStatus: WORKABLE_EXCLUDE,
@@ -35,7 +38,7 @@ function TodayPageContent() {
   const scheduledToday = (todayTasks ?? []).filter((t) => t.scheduledAt);
 
   const setTab = (value: string) => {
-    router.replace(value === "plan" ? "/today?tab=plan" : "/today", { scroll: false });
+    router.replace(value === "overview" ? "/today" : `/today?tab=${value}`, { scroll: false });
   };
 
   return (
@@ -47,14 +50,18 @@ function TodayPageContent() {
       />
       <div className="page-content flex flex-col gap-6 md:gap-8">
         <Tabs value={tab} onValueChange={setTab} className="gap-6 md:gap-8">
-          <TabsList className="grid h-10 w-full max-w-md grid-cols-2">
+          <TabsList className="grid h-10 w-full max-w-xl grid-cols-3">
             <TabsTrigger value="overview" className="gap-1.5">
-              <Target className="size-4" />
+              <Target className="hidden size-4 sm:block" />
               {he.today.tabOverview}
             </TabsTrigger>
             <TabsTrigger value="plan" className="gap-1.5">
-              <ListOrdered className="size-4" />
+              <ListOrdered className="hidden size-4 sm:block" />
               {he.today.tabPlan}
+            </TabsTrigger>
+            <TabsTrigger value="fictitious" className="gap-1.5">
+              <Sparkles className="hidden size-4 sm:block" />
+              {he.today.tabFictitious}
             </TabsTrigger>
           </TabsList>
 
@@ -108,6 +115,10 @@ function TodayPageContent() {
 
           <TabsContent value="plan">
             <TodayPlanTab tasks={activeTasks ?? []} isLoading={isLoading} />
+          </TabsContent>
+
+          <TabsContent value="fictitious">
+            <FictitiousScheduleTab tasks={activeTasks ?? []} />
           </TabsContent>
         </Tabs>
       </div>

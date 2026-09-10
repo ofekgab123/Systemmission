@@ -3,7 +3,11 @@
 import { Repeat } from "lucide-react";
 import type { EventOccurrence } from "@/types";
 import { eventColor, formatEventTime } from "@/lib/event-utils";
-import { eventBlockStyle } from "@/lib/calendar-theme";
+import { eventBlockStyle, outlookEventBlockStyle } from "@/lib/calendar-theme";
+import {
+  fictitiousOccurrenceVariant,
+  isFictitiousOccurrence,
+} from "@/lib/fictitious-schedule";
 import { cn } from "@/lib/utils";
 
 /** Compact event pill used in the month grid and all-day rows. */
@@ -21,7 +25,10 @@ export function EventChip({
   compact?: boolean;
 }) {
   const color = eventColor(occurrence);
-  const block = eventBlockStyle(color);
+  const outlook = isFictitiousOccurrence(occurrence);
+  const block = outlook
+    ? outlookEventBlockStyle(color, fictitiousOccurrenceVariant(occurrence))
+    : eventBlockStyle(color);
 
   return (
     <button

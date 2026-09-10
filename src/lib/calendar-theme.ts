@@ -49,3 +49,38 @@ export function eventBlockStyle(color: string): {
     color: text,
   };
 }
+
+function hexLuminance(hex: string): number {
+  const raw = hex.replace("#", "");
+  if (raw.length < 6) return 0;
+  const r = parseInt(raw.slice(0, 2), 16) / 255;
+  const g = parseInt(raw.slice(2, 4), 16) / 255;
+  const b = parseInt(raw.slice(4, 6), 16) / 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** Solid Outlook-style event tile (or ghost text with no card). */
+export function outlookEventBlockStyle(
+  color: string | null | undefined,
+  variant: "solid" | "ghost" = "solid"
+): {
+  backgroundColor: string;
+  border: string;
+  boxShadow: string;
+  color: string;
+} {
+  if (variant === "ghost" || !color) {
+    return {
+      backgroundColor: "transparent",
+      border: "none",
+      boxShadow: "none",
+      color: "#1F2937",
+    };
+  }
+  return {
+    backgroundColor: color,
+    border: "1px solid rgba(0,0,0,.14)",
+    boxShadow: "0 1px 1px rgba(0,0,0,.08)",
+    color: hexLuminance(color) > 0.62 ? "#1F2937" : "#FFFFFF",
+  };
+}

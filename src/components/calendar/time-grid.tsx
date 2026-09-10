@@ -22,7 +22,17 @@ import {
   splitTasksForDay,
   CALENDAR_TASK_DRAG_MIME,
 } from "@/lib/calendar-utils";
-import { CAL, CAL_HOUR_HEIGHT, eventBlockStyle, hebrewWeekdayLetter } from "@/lib/calendar-theme";
+import {
+  CAL,
+  CAL_HOUR_HEIGHT,
+  eventBlockStyle,
+  hebrewWeekdayLetter,
+  outlookEventBlockStyle,
+} from "@/lib/calendar-theme";
+import {
+  fictitiousOccurrenceVariant,
+  isFictitiousOccurrence,
+} from "@/lib/fictitious-schedule";
 import { useCalendarExternalDragOptional } from "@/components/calendar/calendar-external-drag";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 
@@ -84,6 +94,8 @@ export function TimeGrid({
   onMoveTaskToDay,
   hideDayHeader = false,
   focusDay,
+  appearance = "default",
+  gridBackground,
 }: {
   days: Date[];
   events: EventOccurrence[];
@@ -99,6 +111,8 @@ export function TimeGrid({
   hideDayHeader?: boolean;
   /** Highlight this day column in multi-day views. */
   focusDay?: Date | null;
+  appearance?: "default" | "outlook";
+  gridBackground?: string;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -124,8 +138,13 @@ export function TimeGrid({
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 7 * HOUR_HEIGHT;
-  }, []);
+    const node = scrollRef.current;
+    if (!node) return;
+    const frame = window.requestAnimationFrame(() => {
+      node.scrollTop = 7 * HOUR_HEIGHT;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [days]);
 
   const perDay = useMemo(
     () =>
@@ -494,8 +513,8 @@ export function TimeGrid({
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white"
-      style={{ borderColor: CAL.border }}
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      style={{ borderColor: CAL.border, backgroundColor: gridBackground ?? "#ffffff" }}
     >
       {!hideDayHeader && days.length > 1 && (
         <div className="flex shrink-0 border-b" style={{ borderColor: CAL.border, backgroundColor: CAL.allDayBg }}>
@@ -692,14 +711,26 @@ export function TimeGrid({
                 const color = eventColor(occurrence);
                 const height = ((endMin - startMin) / 60) * HOUR_HEIGHT;
                 const widthPct = colPct / columns;
-                const block = eventBlockStyle(color);
+                const outlook =
+                  appearance === "outlook" || isFictitiousOccurrence(occurrence);
+                const variant = fictitiousOccurrenceVariant(occurrence);
+                const block = outlook
+                  ? outlookEventBlockStyle(color, variant)
+                  : eventBlockStyle(color);
+                const ghost = outlook && variant === "ghost";
                 const narrow = days.length > 1;
+                const titleBits = [
+                  occurrence.title,
+                  `${formatEventTime(occurrence.start)}–${formatEventTime(occurrence.end)}`,
+                  occurrence.location,
+                ].filter(Boolean);
                 return (
                   <div
                     key={occurrence.occurrenceId}
                     className={cn(
-                      "absolute z-10 cursor-grab touch-none overflow-hidden rounded-[7px] leading-tight transition-opacity",
-                      narrow ? "px-1 py-0.5 text-[9.5px] font-semibold" : "px-2 py-1 text-[13px]",
+                      "absolute z-10 cursor-grab touch-none overflow-hidden leading-tight transition-opacity",
+                      ghost ? "rounded-none" : "rounded-[3px]",
+                      narrow ? "px-1 py-0.5 text-[9.5px] font-semibold" : "px-1.5 py-1 text-[12px]",
                       isDragged && "opacity-30"
                     )}
                     style={{
@@ -712,15 +743,18 @@ export function TimeGrid({
                     onPointerDown={(e) =>
                       beginEventDrag(e, occurrence, dayIndex, startMin, endMin, "move")
                     }
-                    title={`${occurrence.title} · ${formatEventTime(occurrence.start)}–${formatEventTime(occurrence.end)}`}
+                    title={titleBits.join(" · ")}
                   >
                     <p className="truncate font-semibold leading-snug">
                       {occurrence.title || he.events.noTitle}
                     </p>
                     {!narrow && height >= 34 && (
-                      <p className="truncate text-[10.5px] opacity-75">
+                      <p className="truncate text-[10.5px] opacity-80">
                         {formatEventTime(occurrence.start)}–{formatEventTime(occurrence.end)}
                       </p>
+                    )}
+                    {!narrow && occurrence.location && height >= 52 && (
+                      <p className="truncate text-[10px] opacity-80">{occurrence.location}</p>
                     )}
                     <div
                       className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"
