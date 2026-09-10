@@ -169,9 +169,9 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
 ];
 
 export function mergeFictitiousSeed(state: FictitiousScheduleState): FictitiousScheduleState {
-  const seedIds = new Set(FICTITIOUS_SEED_BLOCKS.map((block) => block.id));
-  const extras = state.blocks.filter((block) => !seedIds.has(block.id));
-  return { ...state, blocks: [...FICTITIOUS_SEED_BLOCKS, ...extras] };
+  const existingIds = new Set(state.blocks.map((block) => block.id));
+  const missing = FICTITIOUS_SEED_BLOCKS.filter((block) => !existingIds.has(block.id));
+  return { ...state, blocks: [...state.blocks, ...missing] };
 }
 
 export function readFictitiousSchedule(areaId: string): FictitiousScheduleState {

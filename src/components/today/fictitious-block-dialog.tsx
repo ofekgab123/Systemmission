@@ -14,8 +14,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { DateField } from "@/components/ui/date-field";
+import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
-import type { FictitiousBlock } from "@/lib/fictitious-schedule";
+import {
+  FICTITIOUS_BLOCK_COLOR,
+  OUTLOOK_COLORS,
+  type FictitiousBlock,
+  type FictitiousBlockVariant,
+} from "@/lib/fictitious-schedule";
+
+const SPECTRUM_SWATCHES = [
+  "#EF4444",
+  "#F97316",
+  "#EAB308",
+  "#C4A035",
+  "#92D050",
+  "#22C55E",
+  "#14B8A6",
+  "#0EA5E9",
+  "#3B82F6",
+  "#1F4E79",
+  "#6366F1",
+  "#A855F7",
+  "#EC4899",
+  "#F3E6C4",
+  "#FFFFFF",
+  "#9A9A9A",
+  "#64748B",
+  "#111827",
+] as const;
+
+function normalizeHex(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const hex = value.trim();
+  if (!/^#([0-9a-fA-F]{6})$/.test(hex)) return null;
+  return hex.toUpperCase();
+}
 
 export type FictitiousBlockTarget =
   | { mode: "create"; start: Date; end: Date; allDay?: boolean }
@@ -43,10 +77,13 @@ function initialFromTarget(target: FictitiousBlockTarget) {
       endTime: toTimeString(target.end),
       location: "",
       description: "",
+      color: OUTLOOK_COLORS.navy,
+      variant: "solid" as FictitiousBlockVariant,
     };
   }
   const start = new Date(target.block.start);
   const end = new Date(target.block.end);
+  const variant = target.block.variant ?? "solid";
   return {
     title: target.block.title,
     allDay: !!target.block.allDay,
@@ -56,6 +93,8 @@ function initialFromTarget(target: FictitiousBlockTarget) {
     endTime: toTimeString(end),
     location: target.block.location ?? "",
     description: target.block.description ?? "",
+    color: variant === "ghost" ? null : (normalizeHex(target.block.color) ?? FICTITIOUS_BLOCK_COLOR),
+    variant,
   };
 }
 
@@ -108,6 +147,8 @@ function FictitiousBlockForm({
   const [endTime, setEndTime] = useState(initial.endTime);
   const [location, setLocation] = useState(initial.location);
   const [description, setDescription] = useState(initial.description);
+  const [color, setColor] = useState<string | null>(initial.color);
+  const [variant, setVariant] = useState<FictitiousBlockVariant>(initial.variant);
 
   const computedStart = allDay ? startOfDay(startDate) : combineDateTime(startDate, startTime);
   const computedEnd = allDay ? endOfDay(endDate) : combineDateTime(endDate, endTime);
@@ -131,8 +172,8 @@ function FictitiousBlockForm({
       allDay,
       location: location.trim() || null,
       description: description.trim() || null,
-      color: isEditing ? target.block.color : undefined,
-      variant: isEditing ? target.block.variant : undefined,
+      color: variant === "ghost" ? null : color,
+      variant,
     });
     onClose();
   };
@@ -205,6 +246,22 @@ function FictitiousBlockForm({
           </div>
         </div>
 
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium text-muted-foreground">{he.today.fictitiousColor}</span>
+          <ColorSpectrumPicker
+            color={color}
+            variant={variant}
+            onSelect={(nextColor) => {
+              setVariant("solid");
+              setColor(nextColor);
+            }}
+            onClear={() => {
+              setVariant("ghost");
+              setColor(null);
+            }}
+          />
+        </div>
+
         <Input
           value={location}
           onChange={(e) => setLocation(e.target.value)}
@@ -243,5 +300,85 @@ function FictitiousBlockForm({
         </div>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+function ColorSpectrumPicker({
+  color,
+  variant,
+  onSelect,
+  onClear,
+}: {
+  color: string | null;
+  variant: FictitiousBlockVariant;
+  onSelect: (color: string) => void;
+  onClear: () => void;
+}) {
+  const selected = variant === "ghost" ? null : normalizeHex(color);
+  const pickerValue = selected ?? FICTITIOUS_BLOCK_COLOR;
+  const customSelected = !!selected && !SPECTRUM_SWATCHES.some((swatch) => swatch.toUpperCase() === selected);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          onClick={onClear}
+          className={cn(
+            "h-7 rounded-md border px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent",
+            variant === "ghost" && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+          )}
+        >
+          {he.today.fictitiousNoColor}
+        </button>
+        {SPECTRUM_SWATCHES.map((swatch) => {
+          const hex = swatch.toUpperCase();
+          const isWhite = hex === "#FFFFFF";
+          return (
+            <button
+              key={swatch}
+              type="button"
+              onClick={() => onSelect(hex)}
+              className={cn(
+                "size-7 rounded-full border border-black/10 transition-transform active:scale-95",
+                selected === hex && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+              )}
+              style={{ backgroundColor: swatch }}
+              aria-label={swatch}
+              title={swatch}
+            >
+              {isWhite ? <span className="sr-only">{swatch}</span> : null}
+            </button>
+          );
+        })}
+        <label
+          className={cn(
+            "relative size-7 cursor-pointer overflow-hidden rounded-full border border-black/10",
+            customSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+          )}
+          title={he.today.fictitiousCustomColor}
+        >
+          <span
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background: customSelected
+                ? pickerValue
+                : "conic-gradient(#ef4444, #eab308, #22c55e, #0ea5e9, #6366f1, #ec4899, #ef4444)",
+            }}
+          />
+          <input
+            type="color"
+            value={pickerValue}
+            aria-label={he.today.fictitiousCustomColor}
+            className="absolute inset-0 cursor-pointer opacity-0"
+            onChange={(e) => {
+              const next = normalizeHex(e.target.value);
+              if (next) onSelect(next);
+            }}
+          />
+        </label>
+      </div>
+    </div>
   );
 }
