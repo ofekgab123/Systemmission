@@ -1015,7 +1015,7 @@ export function TimeGrid({
                     <p className="whitespace-normal break-words font-semibold leading-snug">
                       {occurrence.title || he.events.noTitle}
                     </p>
-                    {!narrow && height >= 34 && (
+                    {!narrow && (
                       <p className="break-words opacity-80">
                         {formatEventTime(occurrence.start)}-{formatEventTime(occurrence.end)}
                       </p>

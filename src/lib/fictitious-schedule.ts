@@ -3,7 +3,7 @@ import type { EventOccurrence, TaskWithRelations } from "@/types";
 
 const STORAGE_KEY = "mission-fictitious-schedule";
 const RESET_KEY = "mission-fictitious-schedule-reset";
-const RESET_VERSION = "2026-09-10-hyphen";
+const RESET_VERSION = "2026-09-10-show-short-times";
 export const FICTITIOUS_BLOCK_COLOR = "#1F4E79";
 export const FICTITIOUS_FONT_MIN = 8;
 export const FICTITIOUS_FONT_MAX = 24;
