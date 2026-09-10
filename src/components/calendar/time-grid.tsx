@@ -984,7 +984,7 @@ export function TimeGrid({
                 const titleSize = occurrence.fontSize ?? defaultFont;
                 const titleBits = [
                   occurrence.title,
-                  `${formatEventTime(occurrence.start)}–${formatEventTime(occurrence.end)}`,
+                  `${formatEventTime(occurrence.start)}-${formatEventTime(occurrence.end)}`,
                   occurrence.location,
                 ].filter(Boolean);
                 return (
@@ -1017,7 +1017,7 @@ export function TimeGrid({
                     </p>
                     {!narrow && height >= 34 && (
                       <p className="break-words opacity-80">
-                        {formatEventTime(occurrence.start)}–{formatEventTime(occurrence.end)}
+                        {formatEventTime(occurrence.start)}-{formatEventTime(occurrence.end)}
                       </p>
                     )}
                     {!narrow && occurrence.location && height >= 52 && (
@@ -1142,7 +1142,7 @@ export function TimeGrid({
                 }}
               >
                 <span className="tabular-nums">
-                  {formatEventTime(addMinutes(startOfDay(days[0]), createDrag.startMin))}–
+                  {formatEventTime(addMinutes(startOfDay(days[0]), createDrag.startMin))}-
                   {formatEventTime(addMinutes(startOfDay(days[0]), createDrag.endMin))}
                 </span>
               </div>

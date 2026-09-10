@@ -3,7 +3,7 @@ import type { EventOccurrence, TaskWithRelations } from "@/types";
 
 const STORAGE_KEY = "mission-fictitious-schedule";
 const RESET_KEY = "mission-fictitious-schedule-reset";
-const RESET_VERSION = "2026-09-10-font-8-all";
+const RESET_VERSION = "2026-09-10-hyphen";
 export const FICTITIOUS_BLOCK_COLOR = "#1F4E79";
 export const FICTITIOUS_FONT_MIN = 8;
 export const FICTITIOUS_FONT_MAX = 24;
@@ -90,18 +90,18 @@ function at(year: number, month: number, day: number, hour: number, minute: numb
 }
 
 const SEED_16_TOUR_DETAILS = [
-  "12:00–12:45 — ארוחת צהריים (חד״א נגדים)",
-  "12:45–13:00 — נסיעה לחד״ת מופ״ת",
-  "13:00–13:30 — הצגת בסיס 108 ע״י מב״ס (חד״ת מופ״ת)",
-  "13:30–15:00 — סיור במחלקות: פיתוח תקשוב, קרנות, מערכת בדיקות REI, הנדסת מכונות, אינטגרציה",
-  "15:00–15:30 — סיכום ושאלות (חד״ת מופ״ת)",
+  "12:00-12:45 - ארוחת צהריים (חד״א נגדים)",
+  "12:45-13:00 - נסיעה לחד״ת מופ״ת",
+  "13:00-13:30 - הצגת בסיס 108 ע״י מב״ס (חד״ת מופ״ת)",
+  "13:30-15:00 - סיור במחלקות: פיתוח תקשוב, קרנות, מערכת בדיקות REI, הנדסת מכונות, אינטגרציה",
+  "15:00-15:30 - סיכום ושאלות (חד״ת מופ״ת)",
 ].join("\n");
 
 /** Draft roster for 16 Sep 2026 — Outlook-colored blocks. */
 export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
   {
     id: "fictitious-16-kabat",
-    title: "FW: קאבט״ר — כנס מצטיינים",
+    title: "FW: קאבט״ר - כנס מצטיינים",
     start: at(2026, 9, 16, 8, 0),
     end: at(2026, 9, 16, 17, 0),
     color: OUTLOOK_COLORS.green,
@@ -117,7 +117,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
   },
   {
     id: "fictitious-16-sihat-heteh",
-    title: "שיחת חתך — קבע מובהק",
+    title: "שיחת חתך - קבע מובהק",
     start: at(2026, 9, 16, 10, 0),
     end: at(2026, 9, 16, 11, 0),
     color: OUTLOOK_COLORS.navy,
@@ -125,7 +125,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
   },
   {
     id: "fictitious-16-taahkir",
-    title: "תחקיר ״שאגת הארי״ — העמקה בסוגיית השונות",
+    title: "תחקיר ״שאגת הארי״ - העמקה בסוגיית השונות",
     start: at(2026, 9, 16, 10, 30),
     end: at(2026, 9, 16, 11, 45),
     color: OUTLOOK_COLORS.olive,
@@ -133,7 +133,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
   },
   {
     id: "fictitious-16-doctrine",
-    title: "דיון הכנה — דוקטרינת רלצ״ד",
+    title: "דיון הכנה - דוקטרינת רלצ״ד",
     start: at(2026, 9, 16, 11, 30),
     end: at(2026, 9, 16, 12, 0),
     color: OUTLOOK_COLORS.navy,
@@ -157,7 +157,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
   },
   {
     id: "fictitious-16-external",
-    title: "אירוע חיצוני, מפא״ת — סיור קורס אודם",
+    title: "אירוע חיצוני, מפא״ת - סיור קורס אודם",
     start: at(2026, 9, 16, 12, 0),
     end: at(2026, 9, 16, 15, 30),
     color: OUTLOOK_COLORS.green,

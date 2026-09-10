@@ -14,7 +14,7 @@ export function formatEventTime(date: Date | string): string {
 
 export function formatEventTimeRange(occ: Pick<EventOccurrence, "start" | "end" | "allDay">): string {
   if (occ.allDay) return "כל היום";
-  return `${formatEventTime(occ.start)}–${formatEventTime(occ.end)}`;
+  return `${formatEventTime(occ.start)}-${formatEventTime(occ.end)}`;
 }
 
 /**
