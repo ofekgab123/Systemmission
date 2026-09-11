@@ -1,9 +1,6 @@
 import { startOfDay } from "date-fns";
 import type { EventOccurrence, TaskWithRelations } from "@/types";
 
-const STORAGE_KEY = "mission-fictitious-schedule";
-const RESET_KEY = "mission-fictitious-schedule-reset";
-const RESET_VERSION = "2026-09-10-owners-poodi-tomer";
 export const FICTITIOUS_BLOCK_COLOR = "#1F4E79";
 export const FICTITIOUS_FONT_MIN = 8;
 export const FICTITIOUS_FONT_MAX = 24;
@@ -15,28 +12,46 @@ export const FICTITIOUS_OWNER_COLORS: Record<string, string> = {
   [FICTITIOUS_OWNER_POODI]: "#0EA5E9",
   [FICTITIOUS_OWNER_TOMER]: "#F59E0B",
 };
+/** Bump when seed roster content must refresh for everyone. */
+export const FICTITIOUS_SEED_VERSION = "2026-09-11-tohan-visit-details";
 
-export function fictitiousOwnerOf(block: { owner?: string | null }) {
-  const owner = block.owner?.trim();
-  return owner || FICTITIOUS_OWNER_POODI;
+const LEGACY_STORAGE_KEY = "mission-fictitious-schedule";
+const LEGACY_RESET_KEY = "mission-fictitious-schedule-reset";
+
+export type FictitiousOwnerSource = {
+  owners?: string[] | null;
+  owner?: string | null;
+};
+
+export function fictitiousOwnersOf(block: FictitiousOwnerSource) {
+  const fromList = (block.owners ?? []).map((name) => name.trim()).filter(Boolean);
+  if (fromList.length > 0) return [...new Set(fromList)];
+  const legacy = block.owner?.trim();
+  return [legacy || FICTITIOUS_OWNER_POODI];
+}
+
+export function fictitiousOwnerOf(block: FictitiousOwnerSource) {
+  return fictitiousOwnersOf(block)[0] ?? FICTITIOUS_OWNER_POODI;
 }
 
 export function fictitiousOwnerColor(owner: string) {
   return FICTITIOUS_OWNER_COLORS[owner] ?? "#6366F1";
 }
 
-export function listFictitiousOwners(blocks: { owner?: string | null }[]) {
+export function listFictitiousOwners(blocks: FictitiousOwnerSource[]) {
   const seen = new Set<string>(FICTITIOUS_KNOWN_OWNERS);
-  for (const block of blocks) seen.add(fictitiousOwnerOf(block));
+  for (const block of blocks) {
+    for (const name of fictitiousOwnersOf(block)) seen.add(name);
+  }
   return [...seen];
 }
 
-export function filterByFictitiousOwner<T extends { owner?: string | null }>(
+export function filterByFictitiousOwner<T extends FictitiousOwnerSource>(
   items: T[],
   ownerFilters: Set<string>
 ) {
   if (ownerFilters.size === 0) return items;
-  return items.filter((item) => ownerFilters.has(fictitiousOwnerOf(item)));
+  return items.filter((item) => fictitiousOwnersOf(item).some((name) => ownerFilters.has(name)));
 }
 
 export function stepFictitiousFontSize(current: number, delta: -1 | 1) {
@@ -63,11 +78,15 @@ export type FictitiousBlock = {
   allDay?: boolean;
   location?: string | null;
   description?: string | null;
+  /** When true, the description is painted on the draft square. */
+  showDescription?: boolean;
   color?: string | null;
   variant?: FictitiousBlockVariant;
   /** Title size in px; omitted uses the grid default. */
   fontSize?: number | null;
-  /** Person this draft block belongs to, e.g. "פודי". */
+  /** People this draft block belongs to, e.g. ["פודי", "תומר"]. */
+  owners?: string[] | null;
+  /** @deprecated Prefer `owners`. Kept so older localStorage drafts still load. */
   owner?: string | null;
 };
 
@@ -79,46 +98,8 @@ export type FictitiousTaskPlacement = {
 export type FictitiousScheduleState = {
   blocks: FictitiousBlock[];
   placements: FictitiousTaskPlacement[];
+  seedVersion?: string;
 };
-
-type StoredSchedules = Record<string, FictitiousScheduleState>;
-
-function emptyState(): FictitiousScheduleState {
-  return { blocks: [], placements: [] };
-}
-
-function resetStoredScheduleOnce() {
-  if (typeof window === "undefined") return;
-  try {
-    if (localStorage.getItem(RESET_KEY) === RESET_VERSION) return;
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.setItem(RESET_KEY, RESET_VERSION);
-  } catch {
-    /* ignore quota / private mode */
-  }
-}
-
-function readAll(): StoredSchedules {
-  if (typeof window === "undefined") return {};
-  resetStoredScheduleOnce();
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as StoredSchedules;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeAll(data: StoredSchedules) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    /* ignore quota / private mode */
-  }
-}
 
 function at(year: number, month: number, day: number, hour: number, minute: number) {
   return new Date(year, month - 1, day, hour, minute, 0, 0).toISOString();
@@ -130,6 +111,25 @@ const SEED_16_TOUR_DETAILS = [
   "13:00-13:30 - הצגת בסיס 108 ע״י מב״ס (חד״ת מופ״ת)",
   "13:30-15:00 - סיור במחלקות: פיתוח תקשוב, קרנות, מערכת בדיקות REI, הנדסת מכונות, אינטגרציה",
   "15:00-15:30 - סיכום ושאלות (חד״ת מופ״ת)",
+].join("\n");
+
+const SEED_16_TOHAN_VISIT_DETAILS = [
+  "לו״ז יום ביקור מפקד 108 הנכנס:",
+  "13:00-13:15 - פתיחה + נושאים למיקוד",
+  "13:15-14:00 - פ״ע ממ״ח משאבים וקו״מ",
+  "14:00-15:30 - סיור ביחידה",
+  "15:30-15:50 - אפיון שיפוץ לשכת 108 — סיכום תכולות ויציאה לדרך",
+  "15:50-16:00 - סיכום",
+  "",
+  "תחנות הסיור:",
+  "14:00 - מחלקת תחום מכני",
+  "14:15 - תחום מכני הנדסה",
+  "14:30 - חוות שרתים ומחלקות מחשוב",
+  "14:45 - מחסן מצ״מ",
+  "15:00 - מחסן אוטומטי",
+  "15:30 - מחסן בלק",
+  "",
+  "רלוונטיים לשיפוץ: תומר מבורך, אוהד שמריהו, אלכסיי שמובסקי, אור מיכאלי",
 ].join("\n");
 
 /** Draft roster for 16 Sep 2026 — Outlook-colored blocks. */
@@ -232,7 +232,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
     color: OUTLOOK_COLORS.yellow,
     location: "צפי מועד 9, חד״ן רמ״ה תוכניות והנדסת כלי טיס",
     description: "התנעת קבוצות עבודה\nהטכנולוגי / תוכניות והנדסת כלי טיס",
-    owner: FICTITIOUS_OWNER_TOMER,
+    owners: [FICTITIOUS_OWNER_TOMER],
   },
   {
     id: "fictitious-16-tomer-pa-mmh",
@@ -242,7 +242,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
     color: OUTLOOK_COLORS.ink,
     location: "משרד מבורך; בארי בוטנרו",
     description: "התוכן של פעילות זו התעדכן",
-    owner: FICTITIOUS_OWNER_TOMER,
+    owners: [FICTITIOUS_OWNER_TOMER],
   },
   {
     id: "fictitious-16-tomer-status-tatam",
@@ -251,7 +251,7 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
     end: at(2026, 9, 16, 13, 0),
     color: OUTLOOK_COLORS.burgundy,
     location: "מפקד תוה״ן; בסיס 108/תוה״ן/מפקד",
-    owner: FICTITIOUS_OWNER_TOMER,
+    owners: [FICTITIOUS_OWNER_TOMER],
   },
   {
     id: "fictitious-16-tomer-tohan-visit",
@@ -260,40 +260,95 @@ export const FICTITIOUS_SEED_BLOCKS: FictitiousBlock[] = [
     end: at(2026, 9, 16, 16, 0),
     color: OUTLOOK_COLORS.ink,
     location: "יחידת תוה״ן · בארי בוטנרו",
-    description: [
-      "13:00-15:30 - ביקור יחידת תוה״ן",
-      "15:30-16:00 - סיכום תכולות ויציאה לדרך — אפיון שיפוץ לשכת 108",
-      "רלוונטיים: תומר מבורך, אוהד שמריהו, אלכסיי שמובסקי, אור מיכאלי",
-    ].join("\n"),
-    owner: FICTITIOUS_OWNER_TOMER,
+    description: SEED_16_TOHAN_VISIT_DETAILS,
+    owners: [FICTITIOUS_OWNER_TOMER],
   },
 ];
 
+function normalizeBlocks(blocks: FictitiousBlock[]): FictitiousBlock[] {
+  return blocks.map((block) => {
+    const owners = fictitiousOwnersOf(block);
+    return { ...block, owners, owner: owners[0] ?? FICTITIOUS_OWNER_POODI };
+  });
+}
+
+export function emptyFictitiousSchedule(): FictitiousScheduleState {
+  return { blocks: [], placements: [], seedVersion: FICTITIOUS_SEED_VERSION };
+}
+
+/** Adds any seed blocks that are still missing (does not overwrite edits). */
 export function mergeFictitiousSeed(state: FictitiousScheduleState): FictitiousScheduleState {
   const existingIds = new Set(state.blocks.map((block) => block.id));
   const missing = FICTITIOUS_SEED_BLOCKS.filter((block) => !existingIds.has(block.id));
-  const blocks = [...state.blocks, ...missing].map((block) => ({
-    ...block,
-    owner: fictitiousOwnerOf(block),
-  }));
-  return { ...state, blocks };
+  return {
+    ...state,
+    blocks: normalizeBlocks([...state.blocks, ...missing]),
+    seedVersion: state.seedVersion ?? FICTITIOUS_SEED_VERSION,
+  };
 }
 
-export function readFictitiousSchedule(areaId: string): FictitiousScheduleState {
-  const stored = readAll()[areaId];
-  const base = stored
-    ? {
-        blocks: Array.isArray(stored.blocks) ? stored.blocks : [],
-        placements: Array.isArray(stored.placements) ? stored.placements : [],
-      }
-    : emptyState();
-  return mergeFictitiousSeed(base);
+/**
+ * When seed version changes, refresh built-in seed blocks from code while keeping
+ * custom (non-seed) blocks and task placements.
+ */
+export function applyFictitiousSeedVersion(
+  state: FictitiousScheduleState
+): { state: FictitiousScheduleState; changed: boolean } {
+  const currentVersion = state.seedVersion ?? "";
+  if (currentVersion === FICTITIOUS_SEED_VERSION) {
+    const merged = mergeFictitiousSeed(state);
+    const changed =
+      merged.blocks.length !== state.blocks.length ||
+      merged.seedVersion !== state.seedVersion;
+    return { state: { ...merged, seedVersion: FICTITIOUS_SEED_VERSION }, changed };
+  }
+
+  const seedIds = new Set(FICTITIOUS_SEED_BLOCKS.map((block) => block.id));
+  const custom = state.blocks.filter((block) => !seedIds.has(block.id));
+  return {
+    state: {
+      ...state,
+      blocks: normalizeBlocks([...FICTITIOUS_SEED_BLOCKS, ...custom]),
+      seedVersion: FICTITIOUS_SEED_VERSION,
+    },
+    changed: true,
+  };
 }
 
-export function persistFictitiousSchedule(areaId: string, state: FictitiousScheduleState) {
-  const all = readAll();
-  all[areaId] = state;
-  writeAll(all);
+export function sanitizeFictitiousSchedule(raw: unknown): FictitiousScheduleState {
+  if (!raw || typeof raw !== "object") return emptyFictitiousSchedule();
+  const value = raw as Partial<FictitiousScheduleState>;
+  return {
+    blocks: Array.isArray(value.blocks) ? (value.blocks as FictitiousBlock[]) : [],
+    placements: Array.isArray(value.placements)
+      ? (value.placements as FictitiousTaskPlacement[])
+      : [],
+    seedVersion: typeof value.seedVersion === "string" ? value.seedVersion : "",
+  };
+}
+
+/** One-time: pull a browser-local draft so it can be uploaded to the shared DB. */
+export function takeLegacyLocalFictitiousSchedule(areaId: string): FictitiousScheduleState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const entry = parsed?.[areaId];
+    if (!entry) return null;
+    const state = sanitizeFictitiousSchedule(entry);
+    if (state.blocks.length === 0 && state.placements.length === 0) return null;
+    delete parsed[areaId];
+    if (Object.keys(parsed).length === 0) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_RESET_KEY);
+    } else {
+      localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(parsed));
+    }
+    return state;
+  } catch {
+    return null;
+  }
 }
 
 export function newFictitiousBlockId() {
@@ -349,7 +404,9 @@ export function blockToOccurrence(block: FictitiousBlock): EventOccurrence {
     seriesStart: start,
     seriesEnd: end,
     fontSize: block.fontSize ?? null,
+    owners: fictitiousOwnersOf(block),
     owner: fictitiousOwnerOf(block),
+    showDescription: !!block.showDescription,
   };
 }
 

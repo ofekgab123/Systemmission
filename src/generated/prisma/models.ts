@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Area'
+export type * from './models/FictitiousSchedule'
 export type * from './models/Project'
 export type * from './models/Tag'
 export type * from './models/Task'

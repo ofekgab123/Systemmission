@@ -21,7 +21,7 @@ import {
   FICTITIOUS_FONT_DEFAULT,
   FICTITIOUS_OWNER_POODI,
   fictitiousOwnerColor,
-  fictitiousOwnerOf,
+  fictitiousOwnersOf,
   listFictitiousOwners,
   OUTLOOK_COLORS,
   stepFictitiousFontSize,
@@ -86,7 +86,8 @@ function initialFromTarget(target: FictitiousBlockTarget) {
       color: OUTLOOK_COLORS.navy,
       variant: "solid" as FictitiousBlockVariant,
       fontSize: FICTITIOUS_FONT_DEFAULT,
-      owner: FICTITIOUS_OWNER_POODI,
+      owners: [FICTITIOUS_OWNER_POODI],
+      showDescription: false,
     };
   }
   const start = new Date(target.block.start);
@@ -104,7 +105,8 @@ function initialFromTarget(target: FictitiousBlockTarget) {
     color: variant === "ghost" ? null : (normalizeHex(target.block.color) ?? FICTITIOUS_BLOCK_COLOR),
     variant,
     fontSize: target.block.fontSize ?? FICTITIOUS_FONT_DEFAULT,
-    owner: fictitiousOwnerOf(target.block),
+    owners: fictitiousOwnersOf(target.block),
+    showDescription: !!target.block.showDescription,
   };
 }
 
@@ -165,11 +167,20 @@ function FictitiousBlockForm({
   const [color, setColor] = useState<string | null>(initial.color);
   const [variant, setVariant] = useState<FictitiousBlockVariant>(initial.variant);
   const [fontSize, setFontSize] = useState(initial.fontSize);
-  const [owner, setOwner] = useState(initial.owner);
+  const [selectedOwners, setSelectedOwners] = useState<string[]>(initial.owners);
+  const [ownerDraft, setOwnerDraft] = useState("");
+  const [showDescription, setShowDescription] = useState(initial.showDescription);
   const ownerOptions = listFictitiousOwners([
-    ...owners.map((name) => ({ owner: name })),
-    { owner },
+    ...owners.map((name) => ({ owners: [name] })),
+    { owners: selectedOwners },
   ]);
+
+  const addOwnerName = (raw: string) => {
+    const name = raw.trim();
+    if (!name) return;
+    setSelectedOwners((current) => (current.includes(name) ? current : [...current, name]));
+    setOwnerDraft("");
+  };
 
   const computedStart = allDay ? startOfDay(startDate) : combineDateTime(startDate, startTime);
   const computedEnd = allDay ? endOfDay(endDate) : combineDateTime(endDate, endTime);
@@ -196,7 +207,9 @@ function FictitiousBlockForm({
       color: variant === "ghost" ? null : color,
       variant,
       fontSize,
-      owner: fictitiousOwnerOf({ owner }),
+      owners: fictitiousOwnersOf({ owners: selectedOwners }),
+      owner: fictitiousOwnersOf({ owners: selectedOwners })[0] ?? FICTITIOUS_OWNER_POODI,
+      showDescription,
     });
     onClose();
   };
@@ -300,12 +313,19 @@ function FictitiousBlockForm({
           <span className="text-xs font-medium text-muted-foreground">{he.today.fictitiousOwner}</span>
           <div className="flex flex-wrap items-center gap-1.5">
             {ownerOptions.map((name) => {
-              const selected = fictitiousOwnerOf({ owner }) === name;
+              const selected = selectedOwners.includes(name);
               return (
                 <button
                   key={name}
                   type="button"
-                  onClick={() => setOwner(name)}
+                  onClick={() => {
+                    setSelectedOwners((current) => {
+                      if (current.includes(name)) {
+                        return current.length === 1 ? current : current.filter((item) => item !== name);
+                      }
+                      return [...current, name];
+                    });
+                  }}
                   className={cn(
                     "h-7 rounded-full border px-2.5 text-xs font-medium transition-colors",
                     selected
@@ -319,11 +339,27 @@ function FictitiousBlockForm({
               );
             })}
           </div>
-          <Input
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            placeholder={he.today.fictitiousOwnerPlaceholder}
-          />
+          <div className="flex gap-1.5">
+            <Input
+              value={ownerDraft}
+              onChange={(e) => setOwnerDraft(e.target.value)}
+              placeholder={he.today.fictitiousOwnerPlaceholder}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                addOwnerName(ownerDraft);
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 shrink-0"
+              disabled={!ownerDraft.trim()}
+              onClick={() => addOwnerName(ownerDraft)}
+            >
+              {he.today.fictitiousOwnerAdd}
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -347,6 +383,10 @@ function FictitiousBlockForm({
           onChange={(e) => setLocation(e.target.value)}
           placeholder={he.events.locationPlaceholder}
         />
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-muted-foreground">{he.today.fictitiousShowDescription}</span>
+          <Switch checked={showDescription} onCheckedChange={setShowDescription} />
+        </div>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}

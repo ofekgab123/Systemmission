@@ -49,7 +49,7 @@ export function EventChip({
           ? { fontSize: `${occurrence.fontSize ?? FICTITIOUS_FONT_DEFAULT}px` }
           : null),
       }}
-      title={[occurrence.owner, occurrence.title].filter(Boolean).join(" · ")}
+      title={[occurrence.owners?.join(" · "), occurrence.title].filter(Boolean).join(" · ")}
     >
       {showTime && !occurrence.allDay && !compact && (
         <span className="shrink-0 tabular-nums opacity-70">
@@ -59,7 +59,7 @@ export function EventChip({
       <span className="min-w-0 flex-1 truncate">{occurrence.title}</span>
       {outlook && (
         <FictitiousOwnerTag
-          owner={occurrence.owner}
+          owners={occurrence.owners}
           ghost={variant === "ghost"}
           compact
           className="pointer-events-none shrink-0"

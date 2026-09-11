@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type Area = Prisma.AreaModel
 /**
+ * Model FictitiousSchedule
+ * 
+ */
+export type FictitiousSchedule = Prisma.FictitiousScheduleModel
+/**
  * Model Project
  * 
  */

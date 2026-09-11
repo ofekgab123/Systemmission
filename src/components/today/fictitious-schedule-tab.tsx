@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { eachDayOfInterval, set, startOfDay, startOfToday } from "date-fns";
 import { ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,6 @@ import { CalendarExternalDragProvider } from "@/components/calendar/calendar-ext
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
 import { useUIStore } from "@/store/ui-store";
-import { useAreaStore } from "@/store/area-store";
 import { he } from "@/lib/i18n/he";
 import { CAL } from "@/lib/calendar-theme";
 import { cn } from "@/lib/utils";
@@ -25,17 +24,15 @@ import {
   applyFictitiousPlacement,
   blockToOccurrence,
   fictitiousOwnerColor,
-  fictitiousOwnerOf,
+  fictitiousOwnersOf,
   filterByFictitiousOwner,
   listFictitiousOwners,
   newFictitiousBlockId,
   OUTLOOK_COLORS,
-  persistFictitiousSchedule,
-  readFictitiousSchedule,
   type FictitiousBlock,
-  type FictitiousScheduleState,
   type FictitiousTaskPlacement,
 } from "@/lib/fictitious-schedule";
+import { useFictitiousSchedule } from "@/hooks/use-fictitious-schedule";
 import {
   FictitiousBlockDialog,
   type FictitiousBlockTarget,
@@ -56,12 +53,11 @@ export function FictitiousScheduleTab({
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
 }) {
-  const areaId = useAreaStore((s) => s.selectedAreaId);
   const openTaskPanel = useUIStore((s) => s.openTaskPanel);
+  const { state, commit } = useFictitiousSchedule();
 
   const [viewMode, setViewMode] = useState<Extract<CalendarViewMode, "day" | "week">>("day");
   const [anchorDate, setAnchorDate] = useState(() => startOfDay(new Date(2026, 8, 16)));
-  const [state, setState] = useState<FictitiousScheduleState>({ blocks: [], placements: [] });
   const [formOpen, setFormOpen] = useState(false);
   const [formTarget, setFormTarget] = useState<FictitiousBlockTarget | null>(null);
   const [ownerFilters, setOwnerFilters] = useState<Set<string>>(new Set());
@@ -71,15 +67,6 @@ export function FictitiousScheduleTab({
     const resolved = typeof next === "function" ? next(collapsed) : next;
     onCollapsedChange?.(resolved);
     if (collapsedProp === undefined) setCollapsedInner(resolved);
-  };
-
-  useEffect(() => {
-    setState(readFictitiousSchedule(areaId));
-  }, [areaId]);
-
-  const commit = (next: FictitiousScheduleState) => {
-    setState(next);
-    persistFictitiousSchedule(areaId, next);
   };
 
   const range = useMemo(() => getCalendarRange(anchorDate, viewMode), [anchorDate, viewMode]);
@@ -95,8 +82,9 @@ export function FictitiousScheduleTab({
   const ownerCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const block of state.blocks) {
-      const owner = fictitiousOwnerOf(block);
-      counts.set(owner, (counts.get(owner) ?? 0) + 1);
+      for (const owner of fictitiousOwnersOf(block)) {
+        counts.set(owner, (counts.get(owner) ?? 0) + 1);
+      }
     }
     return counts;
   }, [state.blocks]);
@@ -154,7 +142,8 @@ export function FictitiousScheduleTab({
       ...draft,
       id: draft.id ?? newFictitiousBlockId(),
       fontSize: draft.fontSize ?? previous?.fontSize ?? null,
-      owner: fictitiousOwnerOf({ owner: draft.owner ?? previous?.owner }),
+      owners: fictitiousOwnersOf(draft),
+      owner: fictitiousOwnersOf(draft)[0],
     };
     const exists = state.blocks.some((item) => item.id === block.id);
     commit({

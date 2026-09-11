@@ -86,6 +86,10 @@ export type EventOccurrence = CalendarEventWithRelations & {
   seriesEnd: Date;
   /** Optional per-block title size for draft/fictitious squares. */
   fontSize?: number | null;
-  /** Draft-schedule owner shown as a tag and used for person filters. */
+  /** Draft-schedule people shown as tags and used for person filters. */
+  owners?: string[] | null;
+  /** @deprecated Prefer `owners`. First assigned person, for older callers. */
   owner?: string | null;
+  /** When true, paint the event description on the draft square. */
+  showDescription?: boolean;
 };

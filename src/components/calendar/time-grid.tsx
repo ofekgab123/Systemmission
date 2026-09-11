@@ -984,7 +984,7 @@ export function TimeGrid({
                 const defaultFont = outlook ? FICTITIOUS_FONT_DEFAULT : narrow ? 9.5 : 12;
                 const titleSize = occurrence.fontSize ?? defaultFont;
                 const titleBits = [
-                  occurrence.owner,
+                  occurrence.owners?.join(" · "),
                   occurrence.title,
                   `${formatEventTime(occurrence.start)}-${formatEventTime(occurrence.end)}`,
                   occurrence.location,
@@ -1020,7 +1020,7 @@ export function TimeGrid({
                       </p>
                       {outlook && (
                         <FictitiousOwnerTag
-                          owner={occurrence.owner}
+                          owners={occurrence.owners}
                           ghost={ghost}
                           compact
                           className="pointer-events-none mt-px shrink-0"
@@ -1035,6 +1035,14 @@ export function TimeGrid({
                     {!narrow && occurrence.location && height >= 52 && (
                       <p className="break-words opacity-80">{occurrence.location}</p>
                     )}
+                    {outlook &&
+                      occurrence.showDescription &&
+                      occurrence.description &&
+                      (!narrow || height >= 40) && (
+                        <p className="whitespace-pre-wrap break-words opacity-80">
+                          {occurrence.description}
+                        </p>
+                      )}
                     <div
                       className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"
                       onPointerDown={(e) =>

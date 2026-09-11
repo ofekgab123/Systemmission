@@ -122,10 +122,22 @@ model Area {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  projects       Project[]
-  tasks          Task[]
-  stickyNotes    StickyNote[]
-  calendarEvents CalendarEvent[]
+  projects            Project[]
+  tasks               Task[]
+  stickyNotes         StickyNote[]
+  calendarEvents      CalendarEvent[]
+  fictitiousSchedule  FictitiousSchedule?
+}
+
+model FictitiousSchedule {
+  id          String   @id @default(cuid())
+  areaId      String   @unique
+  area        Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  blocks      Json
+  placements  Json
+  seedVersion String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Project {

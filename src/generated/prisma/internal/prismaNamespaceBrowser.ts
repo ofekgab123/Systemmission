@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Area: 'Area',
+  FictitiousSchedule: 'FictitiousSchedule',
   Project: 'Project',
   Tag: 'Tag',
   Task: 'Task',
@@ -91,6 +92,19 @@ export const AreaScalarFieldEnum = {
 } as const
 
 export type AreaScalarFieldEnum = (typeof AreaScalarFieldEnum)[keyof typeof AreaScalarFieldEnum]
+
+
+export const FictitiousScheduleScalarFieldEnum = {
+  id: 'id',
+  areaId: 'areaId',
+  blocks: 'blocks',
+  placements: 'placements',
+  seedVersion: 'seedVersion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FictitiousScheduleScalarFieldEnum = (typeof FictitiousScheduleScalarFieldEnum)[keyof typeof FictitiousScheduleScalarFieldEnum]
 
 
 export const ProjectScalarFieldEnum = {
@@ -240,6 +254,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -254,4 +275,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

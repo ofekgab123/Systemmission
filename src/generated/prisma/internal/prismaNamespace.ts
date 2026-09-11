@@ -398,6 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Area: 'Area',
+  FictitiousSchedule: 'FictitiousSchedule',
   Project: 'Project',
   Tag: 'Tag',
   Task: 'Task',
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "area" | "project" | "tag" | "task" | "taskAttachment" | "activity" | "eventCategory" | "calendarEvent" | "stickyNote"
+    modelProps: "area" | "fictitiousSchedule" | "project" | "tag" | "task" | "taskAttachment" | "activity" | "eventCategory" | "calendarEvent" | "stickyNote"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -496,6 +497,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AreaCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AreaCountAggregateOutputType> | number
+        }
+      }
+    }
+    FictitiousSchedule: {
+      payload: Prisma.$FictitiousSchedulePayload<ExtArgs>
+      fields: Prisma.FictitiousScheduleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FictitiousScheduleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FictitiousScheduleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>
+        }
+        findFirst: {
+          args: Prisma.FictitiousScheduleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FictitiousScheduleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>
+        }
+        findMany: {
+          args: Prisma.FictitiousScheduleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>[]
+        }
+        create: {
+          args: Prisma.FictitiousScheduleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>
+        }
+        createMany: {
+          args: Prisma.FictitiousScheduleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FictitiousScheduleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>[]
+        }
+        delete: {
+          args: Prisma.FictitiousScheduleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>
+        }
+        update: {
+          args: Prisma.FictitiousScheduleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>
+        }
+        deleteMany: {
+          args: Prisma.FictitiousScheduleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FictitiousScheduleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FictitiousScheduleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>[]
+        }
+        upsert: {
+          args: Prisma.FictitiousScheduleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FictitiousSchedulePayload>
+        }
+        aggregate: {
+          args: Prisma.FictitiousScheduleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFictitiousSchedule>
+        }
+        groupBy: {
+          args: Prisma.FictitiousScheduleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FictitiousScheduleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FictitiousScheduleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FictitiousScheduleCountAggregateOutputType> | number
         }
       }
     }
@@ -1145,6 +1220,19 @@ export const AreaScalarFieldEnum = {
 export type AreaScalarFieldEnum = (typeof AreaScalarFieldEnum)[keyof typeof AreaScalarFieldEnum]
 
 
+export const FictitiousScheduleScalarFieldEnum = {
+  id: 'id',
+  areaId: 'areaId',
+  blocks: 'blocks',
+  placements: 'placements',
+  seedVersion: 'seedVersion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FictitiousScheduleScalarFieldEnum = (typeof FictitiousScheduleScalarFieldEnum)[keyof typeof FictitiousScheduleScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1292,6 +1380,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -1306,6 +1401,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1346,6 +1450,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1696,6 +1814,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   area?: Prisma.AreaOmit
+  fictitiousSchedule?: Prisma.FictitiousScheduleOmit
   project?: Prisma.ProjectOmit
   tag?: Prisma.TagOmit
   task?: Prisma.TaskOmit
