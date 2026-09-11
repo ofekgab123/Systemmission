@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     const empty: FictitiousScheduleState = {
       blocks: [],
       placements: [],
+      categories: [],
       seedVersion: "",
     };
     return NextResponse.json(empty);
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
   const state = sanitizeFictitiousSchedule({
     blocks: row.blocks,
     placements: row.placements,
+    categories: row.categories,
     seedVersion: row.seedVersion,
   });
 
@@ -60,11 +62,13 @@ export async function PUT(req: NextRequest) {
       areaId,
       blocks: asJson(state.blocks),
       placements: asJson(state.placements),
+      categories: asJson(state.categories ?? []),
       seedVersion,
     },
     update: {
       blocks: asJson(state.blocks),
       placements: asJson(state.placements),
+      categories: asJson(state.categories ?? []),
       seedVersion,
     },
   });
@@ -73,6 +77,7 @@ export async function PUT(req: NextRequest) {
     sanitizeFictitiousSchedule({
       blocks: row.blocks,
       placements: row.placements,
+      categories: row.categories,
       seedVersion: row.seedVersion,
     })
   );

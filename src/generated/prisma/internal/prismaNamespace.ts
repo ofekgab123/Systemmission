@@ -1225,6 +1225,7 @@ export const FictitiousScheduleScalarFieldEnum = {
   areaId: 'areaId',
   blocks: 'blocks',
   placements: 'placements',
+  categories: 'categories',
   seedVersion: 'seedVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

@@ -135,6 +135,7 @@ model FictitiousSchedule {
   area        Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
   blocks      Json
   placements  Json
+  categories  Json     @default("[]")
   seedVersion String   @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

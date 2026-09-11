@@ -37,7 +37,11 @@ function prepareLoadedState(
   areaId: string,
   remote: FictitiousScheduleState
 ): { state: FictitiousScheduleState; shouldPersist: boolean } {
-  const hasRemote = remote.blocks.length > 0 || remote.placements.length > 0 || !!remote.seedVersion;
+  const hasRemote =
+    remote.blocks.length > 0 ||
+    remote.placements.length > 0 ||
+    (remote.categories?.length ?? 0) > 0 ||
+    !!remote.seedVersion;
   if (!hasRemote) {
     const legacy = takeLegacyLocalFictitiousSchedule(areaId);
     if (legacy) {

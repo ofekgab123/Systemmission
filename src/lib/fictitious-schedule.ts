@@ -70,6 +70,12 @@ export const OUTLOOK_COLORS = {
 
 export type FictitiousBlockVariant = "solid" | "ghost";
 
+export type FictitiousCategory = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 export type FictitiousBlock = {
   id: string;
   title: string;
@@ -81,6 +87,8 @@ export type FictitiousBlock = {
   /** When true, the description is painted on the draft square. */
   showDescription?: boolean;
   color?: string | null;
+  /** Optional shared category — its color paints the square when set. */
+  categoryId?: string | null;
   variant?: FictitiousBlockVariant;
   /** Title size in px; omitted uses the grid default. */
   fontSize?: number | null;
@@ -98,6 +106,7 @@ export type FictitiousTaskPlacement = {
 export type FictitiousScheduleState = {
   blocks: FictitiousBlock[];
   placements: FictitiousTaskPlacement[];
+  categories?: FictitiousCategory[];
   seedVersion?: string;
 };
 
@@ -273,7 +282,102 @@ function normalizeBlocks(blocks: FictitiousBlock[]): FictitiousBlock[] {
 }
 
 export function emptyFictitiousSchedule(): FictitiousScheduleState {
-  return { blocks: [], placements: [], seedVersion: FICTITIOUS_SEED_VERSION };
+  return { blocks: [], placements: [], categories: [], seedVersion: FICTITIOUS_SEED_VERSION };
+}
+
+export function newFictitiousCategoryId() {
+  return crypto.randomUUID();
+}
+
+export function sanitizeFictitiousCategory(raw: unknown): FictitiousCategory | null {
+  if (!raw || typeof raw !== "object") return null;
+  const value = raw as Partial<FictitiousCategory>;
+  const id = typeof value.id === "string" ? value.id.trim() : "";
+  const name = typeof value.name === "string" ? value.name.trim() : "";
+  const color =
+    typeof value.color === "string" && /^#([0-9a-fA-F]{6})$/.test(value.color.trim())
+      ? value.color.trim().toUpperCase()
+      : "";
+  if (!id || !name || !color) return null;
+  return { id, name, color };
+}
+
+export function sanitizeFictitiousCategories(raw: unknown): FictitiousCategory[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const categories: FictitiousCategory[] = [];
+  for (const item of raw) {
+    const category = sanitizeFictitiousCategory(item);
+    if (!category || seen.has(category.id)) continue;
+    seen.add(category.id);
+    categories.push(category);
+  }
+  return categories;
+}
+
+export function findFictitiousCategory(
+  categories: FictitiousCategory[] | null | undefined,
+  categoryId: string | null | undefined
+) {
+  if (!categoryId) return null;
+  return categories?.find((category) => category.id === categoryId) ?? null;
+}
+
+export function resolveFictitiousBlockColor(
+  block: Pick<FictitiousBlock, "color" | "categoryId" | "variant">,
+  categories: FictitiousCategory[] | null | undefined
+): string | null {
+  if ((block.variant ?? "solid") === "ghost") return null;
+  const fromCategory = findFictitiousCategory(categories, block.categoryId)?.color;
+  if (fromCategory) return fromCategory;
+  return block.color ?? FICTITIOUS_BLOCK_COLOR;
+}
+
+/** Colors already used on blocks/categories, most frequent first. */
+export function collectUsedFictitiousColors(
+  blocks: FictitiousBlock[],
+  categories: FictitiousCategory[] | null | undefined = []
+): string[] {
+  const counts = new Map<string, number>();
+  const bump = (raw: string | null | undefined) => {
+    if (!raw) return;
+    const hex = raw.trim().toUpperCase();
+    if (!/^#([0-9A-F]{6})$/.test(hex)) return;
+    counts.set(hex, (counts.get(hex) ?? 0) + 1);
+  };
+
+  for (const category of categories ?? []) bump(category.color);
+  for (const block of blocks) {
+    if ((block.variant ?? "solid") === "ghost") continue;
+    bump(resolveFictitiousBlockColor(block, categories) ?? block.color);
+  }
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([color]) => color);
+}
+
+export function upsertFictitiousCategory(
+  categories: FictitiousCategory[],
+  next: FictitiousCategory
+): FictitiousCategory[] {
+  const exists = categories.some((category) => category.id === next.id);
+  return exists
+    ? categories.map((category) => (category.id === next.id ? next : category))
+    : [...categories, next];
+}
+
+export function removeFictitiousCategory(
+  state: FictitiousScheduleState,
+  categoryId: string
+): FictitiousScheduleState {
+  return {
+    ...state,
+    categories: (state.categories ?? []).filter((category) => category.id !== categoryId),
+    blocks: state.blocks.map((block) =>
+      block.categoryId === categoryId ? { ...block, categoryId: null } : block
+    ),
+  };
 }
 
 /** Adds any seed blocks that are still missing (does not overwrite edits). */
@@ -283,6 +387,7 @@ export function mergeFictitiousSeed(state: FictitiousScheduleState): FictitiousS
   return {
     ...state,
     blocks: normalizeBlocks([...state.blocks, ...missing]),
+    categories: sanitizeFictitiousCategories(state.categories),
     seedVersion: state.seedVersion ?? FICTITIOUS_SEED_VERSION,
   };
 }
@@ -309,6 +414,7 @@ export function applyFictitiousSeedVersion(
     state: {
       ...state,
       blocks: normalizeBlocks([...FICTITIOUS_SEED_BLOCKS, ...custom]),
+      categories: sanitizeFictitiousCategories(state.categories),
       seedVersion: FICTITIOUS_SEED_VERSION,
     },
     changed: true,
@@ -323,6 +429,7 @@ export function sanitizeFictitiousSchedule(raw: unknown): FictitiousScheduleStat
     placements: Array.isArray(value.placements)
       ? (value.placements as FictitiousTaskPlacement[])
       : [],
+    categories: sanitizeFictitiousCategories(value.categories),
     seedVersion: typeof value.seedVersion === "string" ? value.seedVersion : "",
   };
 }
@@ -365,10 +472,14 @@ export function fictitiousOccurrenceVariant(
   return occurrence.category?.id === "fictitious-ghost" ? "ghost" : "solid";
 }
 
-export function blockToOccurrence(block: FictitiousBlock): EventOccurrence {
+export function blockToOccurrence(
+  block: FictitiousBlock,
+  categories?: FictitiousCategory[] | null
+): EventOccurrence {
   const start = new Date(block.start);
   const end = new Date(block.end);
   const variant = block.variant ?? "solid";
+  const color = resolveFictitiousBlockColor(block, categories);
   return {
     id: block.id,
     title: block.title,
@@ -387,11 +498,11 @@ export function blockToOccurrence(block: FictitiousBlock): EventOccurrence {
     recurrenceExceptions: [],
     seriesId: null,
     originalStart: null,
-    categoryId: null,
+    categoryId: block.categoryId ?? null,
     category: {
       id: variant === "ghost" ? "fictitious-ghost" : "fictitious-solid",
-      name: "פיקטיבי",
-      color: block.color ?? FICTITIOUS_BLOCK_COLOR,
+      name: findFictitiousCategory(categories, block.categoryId)?.name ?? "פיקטיבי",
+      color: color ?? FICTITIOUS_BLOCK_COLOR,
       createdAt: start,
     },
     areaId: null,

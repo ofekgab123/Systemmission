@@ -20,13 +20,18 @@ import {
   FICTITIOUS_BLOCK_COLOR,
   FICTITIOUS_FONT_DEFAULT,
   FICTITIOUS_OWNER_POODI,
+  findFictitiousCategory,
   fictitiousOwnerColor,
   fictitiousOwnersOf,
   listFictitiousOwners,
+  newFictitiousCategoryId,
   OUTLOOK_COLORS,
+  resolveFictitiousBlockColor,
   stepFictitiousFontSize,
+  upsertFictitiousCategory,
   type FictitiousBlock,
   type FictitiousBlockVariant,
+  type FictitiousCategory,
 } from "@/lib/fictitious-schedule";
 
 const SPECTRUM_SWATCHES = [
@@ -57,6 +62,24 @@ function normalizeHex(value: string | null | undefined): string | null {
   return hex.toUpperCase();
 }
 
+function buildColorPalette(usedColors: string[]): string[] {
+  const seen = new Set<string>();
+  const palette: string[] = [];
+  for (const raw of usedColors) {
+    const hex = normalizeHex(raw);
+    if (!hex || seen.has(hex)) continue;
+    seen.add(hex);
+    palette.push(hex);
+  }
+  for (const swatch of SPECTRUM_SWATCHES) {
+    const hex = swatch.toUpperCase();
+    if (seen.has(hex)) continue;
+    seen.add(hex);
+    palette.push(hex);
+  }
+  return palette;
+}
+
 export type FictitiousBlockTarget =
   | { mode: "create"; start: Date; end: Date; allDay?: boolean }
   | { mode: "edit"; block: FictitiousBlock };
@@ -72,7 +95,7 @@ function combineDateTime(date: Date, time: string): Date {
   return next;
 }
 
-function initialFromTarget(target: FictitiousBlockTarget) {
+function initialFromTarget(target: FictitiousBlockTarget, categories: FictitiousCategory[]) {
   if (target.mode === "create") {
     return {
       title: "",
@@ -84,6 +107,7 @@ function initialFromTarget(target: FictitiousBlockTarget) {
       location: "",
       description: "",
       color: OUTLOOK_COLORS.navy,
+      categoryId: null as string | null,
       variant: "solid" as FictitiousBlockVariant,
       fontSize: FICTITIOUS_FONT_DEFAULT,
       owners: [FICTITIOUS_OWNER_POODI],
@@ -93,6 +117,8 @@ function initialFromTarget(target: FictitiousBlockTarget) {
   const start = new Date(target.block.start);
   const end = new Date(target.block.end);
   const variant = target.block.variant ?? "solid";
+  const categoryId = target.block.categoryId ?? null;
+  const resolved = resolveFictitiousBlockColor(target.block, categories);
   return {
     title: target.block.title,
     allDay: !!target.block.allDay,
@@ -102,7 +128,8 @@ function initialFromTarget(target: FictitiousBlockTarget) {
     endTime: toTimeString(end),
     location: target.block.location ?? "",
     description: target.block.description ?? "",
-    color: variant === "ghost" ? null : (normalizeHex(target.block.color) ?? FICTITIOUS_BLOCK_COLOR),
+    color: variant === "ghost" ? null : (normalizeHex(resolved) ?? FICTITIOUS_BLOCK_COLOR),
+    categoryId,
     variant,
     fontSize: target.block.fontSize ?? FICTITIOUS_FONT_DEFAULT,
     owners: fictitiousOwnersOf(target.block),
@@ -114,16 +141,22 @@ export function FictitiousBlockDialog({
   open,
   target,
   owners = [FICTITIOUS_OWNER_POODI],
+  categories = [],
+  usedColors = [],
   onClose,
   onSave,
   onDelete,
+  onCategoriesChange,
 }: {
   open: boolean;
   target: FictitiousBlockTarget | null;
   owners?: string[];
+  categories?: FictitiousCategory[];
+  usedColors?: string[];
   onClose: () => void;
   onSave: (block: Omit<FictitiousBlock, "id"> & { id?: string }) => void;
   onDelete?: (id: string) => void;
+  onCategoriesChange?: (categories: FictitiousCategory[]) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
@@ -132,9 +165,12 @@ export function FictitiousBlockDialog({
           key={target.mode === "edit" ? target.block.id : `${target.start.toISOString()}-${target.end.toISOString()}`}
           target={target}
           owners={owners}
+          categories={categories}
+          usedColors={usedColors}
           onClose={onClose}
           onSave={onSave}
           onDelete={onDelete}
+          onCategoriesChange={onCategoriesChange}
         />
       )}
     </Dialog>
@@ -144,17 +180,23 @@ export function FictitiousBlockDialog({
 function FictitiousBlockForm({
   target,
   owners,
+  categories: categoriesProp,
+  usedColors,
   onClose,
   onSave,
   onDelete,
+  onCategoriesChange,
 }: {
   target: FictitiousBlockTarget;
   owners: string[];
+  categories: FictitiousCategory[];
+  usedColors: string[];
   onClose: () => void;
   onSave: (block: Omit<FictitiousBlock, "id"> & { id?: string }) => void;
   onDelete?: (id: string) => void;
+  onCategoriesChange?: (categories: FictitiousCategory[]) => void;
 }) {
-  const initial = initialFromTarget(target);
+  const initial = initialFromTarget(target, categoriesProp);
   const isEditing = target.mode === "edit";
   const [title, setTitle] = useState(initial.title);
   const [allDay, setAllDay] = useState(initial.allDay);
@@ -165,6 +207,10 @@ function FictitiousBlockForm({
   const [location, setLocation] = useState(initial.location);
   const [description, setDescription] = useState(initial.description);
   const [color, setColor] = useState<string | null>(initial.color);
+  const [categoryId, setCategoryId] = useState<string | null>(initial.categoryId);
+  const [categories, setCategories] = useState<FictitiousCategory[]>(categoriesProp);
+  const [categoryDraft, setCategoryDraft] = useState("");
+  const [categoryDraftColor, setCategoryDraftColor] = useState<string>(OUTLOOK_COLORS.navy);
   const [variant, setVariant] = useState<FictitiousBlockVariant>(initial.variant);
   const [fontSize, setFontSize] = useState(initial.fontSize);
   const [selectedOwners, setSelectedOwners] = useState<string[]>(initial.owners);
@@ -174,12 +220,67 @@ function FictitiousBlockForm({
     ...owners.map((name) => ({ owners: [name] })),
     { owners: selectedOwners },
   ]);
+  const selectedCategory = findFictitiousCategory(categories, categoryId);
+
+  const publishCategories = (next: FictitiousCategory[]) => {
+    setCategories(next);
+    onCategoriesChange?.(next);
+  };
 
   const addOwnerName = (raw: string) => {
     const name = raw.trim();
     if (!name) return;
     setSelectedOwners((current) => (current.includes(name) ? current : [...current, name]));
     setOwnerDraft("");
+  };
+
+  const addCategory = () => {
+    const name = categoryDraft.trim();
+    const nextColor = normalizeHex(categoryDraftColor) ?? OUTLOOK_COLORS.navy;
+    if (!name) return;
+    const category: FictitiousCategory = {
+      id: newFictitiousCategoryId(),
+      name,
+      color: nextColor,
+    };
+    publishCategories(upsertFictitiousCategory(categories, category));
+    setCategoryId(category.id);
+    setVariant("solid");
+    setColor(category.color);
+    setCategoryDraft("");
+  };
+
+  const selectCategory = (id: string | null) => {
+    setCategoryId(id);
+    if (!id) return;
+    const category = findFictitiousCategory(categories, id);
+    if (!category) return;
+    setVariant("solid");
+    setColor(category.color);
+  };
+
+  const updateSelectedCategoryColor = (nextColor: string) => {
+    if (!categoryId) {
+      setVariant("solid");
+      setColor(nextColor);
+      return;
+    }
+    const current = findFictitiousCategory(categories, categoryId);
+    if (!current) {
+      setVariant("solid");
+      setColor(nextColor);
+      return;
+    }
+    const updated = { ...current, color: nextColor };
+    publishCategories(upsertFictitiousCategory(categories, updated));
+    setVariant("solid");
+    setColor(nextColor);
+  };
+
+  const deleteSelectedCategory = () => {
+    if (!categoryId) return;
+    publishCategories(categories.filter((category) => category.id !== categoryId));
+    setCategoryId(null);
   };
 
   const computedStart = allDay ? startOfDay(startDate) : combineDateTime(startDate, startTime);
@@ -196,6 +297,7 @@ function FictitiousBlockForm({
 
   const handleSave = () => {
     if (!canSave) return;
+    const linkedCategory = findFictitiousCategory(categories, categoryId);
     onSave({
       id: isEditing ? target.block.id : undefined,
       title: title.trim(),
@@ -204,7 +306,8 @@ function FictitiousBlockForm({
       allDay,
       location: location.trim() || null,
       description: description.trim() || null,
-      color: variant === "ghost" ? null : color,
+      categoryId: linkedCategory?.id ?? null,
+      color: variant === "ghost" ? null : linkedCategory?.color ?? color,
       variant,
       fontSize,
       owners: fictitiousOwnersOf({ owners: selectedOwners }),
@@ -362,18 +465,102 @@ function FictitiousBlockForm({
           </div>
         </div>
 
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">{he.today.fictitiousCategory}</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => selectCategory(null)}
+              className={cn(
+                "h-7 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                !categoryId
+                  ? "border-primary bg-[#F1F3F7] text-[#111827]"
+                  : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+              )}
+            >
+              {he.today.fictitiousNoCategory}
+            </button>
+            {categories.map((category) => {
+              const selected = categoryId === category.id;
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => selectCategory(category.id)}
+                  className={cn(
+                    "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                    selected
+                      ? "border-transparent text-white"
+                      : "border-[#DDE1E9] bg-white text-[#374151] hover:bg-[#F1F3F7]"
+                  )}
+                  style={selected ? { backgroundColor: category.color } : undefined}
+                >
+                  <span
+                    className="size-2.5 rounded-full border border-black/10"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  {category.name}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-1.5">
+            <Input
+              value={categoryDraft}
+              onChange={(e) => setCategoryDraft(e.target.value)}
+              placeholder={he.today.fictitiousCategoryPlaceholder}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                addCategory();
+              }}
+            />
+            <label
+              className="relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-md border border-[#DDE1E9]"
+              title={he.today.fictitiousCategoryColor}
+            >
+              <span className="absolute inset-0" style={{ backgroundColor: categoryDraftColor }} />
+              <input
+                type="color"
+                value={categoryDraftColor}
+                aria-label={he.today.fictitiousCategoryColor}
+                className="absolute inset-0 cursor-pointer opacity-0"
+                onChange={(e) => {
+                  const next = normalizeHex(e.target.value);
+                  if (next) setCategoryDraftColor(next);
+                }}
+              />
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 shrink-0"
+              disabled={!categoryDraft.trim()}
+              onClick={addCategory}
+            >
+              {he.today.fictitiousCategoryAdd}
+            </Button>
+          </div>
+          {selectedCategory && (
+            <Button type="button" variant="ghost" className="h-8 self-start px-2 text-xs" onClick={deleteSelectedCategory}>
+              {he.today.fictitiousCategoryDelete}
+            </Button>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-medium text-muted-foreground">{he.today.fictitiousColor}</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {selectedCategory ? he.today.fictitiousCategoryColor : he.today.fictitiousColor}
+          </span>
           <ColorSpectrumPicker
             color={color}
             variant={variant}
-            onSelect={(nextColor) => {
-              setVariant("solid");
-              setColor(nextColor);
-            }}
+            usedColors={usedColors}
+            onSelect={updateSelectedCategoryColor}
             onClear={() => {
               setVariant("ghost");
               setColor(null);
+              setCategoryId(null);
             }}
           />
         </div>
@@ -426,17 +613,24 @@ function FictitiousBlockForm({
 function ColorSpectrumPicker({
   color,
   variant,
+  usedColors = [],
   onSelect,
   onClear,
 }: {
   color: string | null;
   variant: FictitiousBlockVariant;
+  usedColors?: string[];
   onSelect: (color: string) => void;
   onClear: () => void;
 }) {
   const selected = variant === "ghost" ? null : normalizeHex(color);
   const pickerValue = selected ?? FICTITIOUS_BLOCK_COLOR;
-  const customSelected = !!selected && !SPECTRUM_SWATCHES.some((swatch) => swatch.toUpperCase() === selected);
+  const palette = buildColorPalette([
+    ...(selected ? [selected] : []),
+    ...usedColors,
+  ]);
+  const defaultSet = new Set(SPECTRUM_SWATCHES.map((swatch) => swatch.toUpperCase()));
+  const customSelected = !!selected && !defaultSet.has(selected);
 
   return (
     <div className="flex flex-col gap-2">
@@ -451,23 +645,25 @@ function ColorSpectrumPicker({
         >
           {he.today.fictitiousNoColor}
         </button>
-        {SPECTRUM_SWATCHES.map((swatch) => {
+        {palette.map((swatch) => {
           const hex = swatch.toUpperCase();
           const isWhite = hex === "#FFFFFF";
+          const used = usedColors.some((item) => normalizeHex(item) === hex);
           return (
             <button
-              key={swatch}
+              key={hex}
               type="button"
               onClick={() => onSelect(hex)}
               className={cn(
                 "size-7 rounded-full border border-black/10 transition-transform active:scale-95",
-                selected === hex && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                selected === hex && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                used && selected !== hex && "ring-1 ring-black/20 ring-offset-1 ring-offset-background"
               )}
-              style={{ backgroundColor: swatch }}
-              aria-label={swatch}
-              title={swatch}
+              style={{ backgroundColor: hex }}
+              aria-label={hex}
+              title={hex}
             >
-              {isWhite ? <span className="sr-only">{swatch}</span> : null}
+              {isWhite ? <span className="sr-only">{hex}</span> : null}
             </button>
           );
         })}

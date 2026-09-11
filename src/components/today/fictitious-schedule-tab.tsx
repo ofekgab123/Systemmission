@@ -23,6 +23,7 @@ import {
 import {
   applyFictitiousPlacement,
   blockToOccurrence,
+  collectUsedFictitiousColors,
   fictitiousOwnerColor,
   fictitiousOwnersOf,
   filterByFictitiousOwner,
@@ -90,8 +91,17 @@ export function FictitiousScheduleTab({
   }, [state.blocks]);
 
   const events = useMemo(
-    () => filterByFictitiousOwner(state.blocks.map(blockToOccurrence), ownerFilters),
-    [state.blocks, ownerFilters]
+    () =>
+      filterByFictitiousOwner(
+        state.blocks.map((block) => blockToOccurrence(block, state.categories)),
+        ownerFilters
+      ),
+    [state.blocks, state.categories, ownerFilters]
+  );
+
+  const usedColors = useMemo(
+    () => collectUsedFictitiousColors(state.blocks, state.categories),
+    [state.blocks, state.categories]
   );
 
   const toggleOwnerFilter = (owner: string) => {
@@ -142,6 +152,7 @@ export function FictitiousScheduleTab({
       ...draft,
       id: draft.id ?? newFictitiousBlockId(),
       fontSize: draft.fontSize ?? previous?.fontSize ?? null,
+      categoryId: draft.categoryId ?? null,
       owners: fictitiousOwnersOf(draft),
       owner: fictitiousOwnersOf(draft)[0],
     };
@@ -153,6 +164,17 @@ export function FictitiousScheduleTab({
         : [...state.blocks, block],
     });
     toast.success(exists ? he.today.fictitiousUpdated : he.today.fictitiousSaved);
+  };
+
+  const handleCategoriesChange = (categories: NonNullable<typeof state.categories>) => {
+    const ids = new Set(categories.map((category) => category.id));
+    commit({
+      ...state,
+      categories,
+      blocks: state.blocks.map((block) =>
+        block.categoryId && !ids.has(block.categoryId) ? { ...block, categoryId: null } : block
+      ),
+    });
   };
 
   const handleDeleteBlock = (id: string) => {
@@ -398,9 +420,12 @@ export function FictitiousScheduleTab({
         open={formOpen}
         target={formTarget}
         owners={owners}
+        categories={state.categories ?? []}
+        usedColors={usedColors}
         onClose={() => setFormOpen(false)}
         onSave={handleSaveBlock}
         onDelete={handleDeleteBlock}
+        onCategoriesChange={handleCategoriesChange}
       />
     </CalendarExternalDragProvider>
   );

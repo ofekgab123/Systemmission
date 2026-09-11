@@ -45,6 +45,7 @@ export type FictitiousScheduleCountAggregateOutputType = {
   areaId: number
   blocks: number
   placements: number
+  categories: number
   seedVersion: number
   createdAt: number
   updatedAt: number
@@ -73,6 +74,7 @@ export type FictitiousScheduleCountAggregateInputType = {
   areaId?: true
   blocks?: true
   placements?: true
+  categories?: true
   seedVersion?: true
   createdAt?: true
   updatedAt?: true
@@ -156,6 +158,7 @@ export type FictitiousScheduleGroupByOutputType = {
   areaId: string
   blocks: runtime.JsonValue
   placements: runtime.JsonValue
+  categories: runtime.JsonValue
   seedVersion: string
   createdAt: Date
   updatedAt: Date
@@ -187,6 +190,7 @@ export type FictitiousScheduleWhereInput = {
   areaId?: Prisma.StringFilter<"FictitiousSchedule"> | string
   blocks?: Prisma.JsonFilter<"FictitiousSchedule">
   placements?: Prisma.JsonFilter<"FictitiousSchedule">
+  categories?: Prisma.JsonFilter<"FictitiousSchedule">
   seedVersion?: Prisma.StringFilter<"FictitiousSchedule"> | string
   createdAt?: Prisma.DateTimeFilter<"FictitiousSchedule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FictitiousSchedule"> | Date | string
@@ -198,6 +202,7 @@ export type FictitiousScheduleOrderByWithRelationInput = {
   areaId?: Prisma.SortOrder
   blocks?: Prisma.SortOrder
   placements?: Prisma.SortOrder
+  categories?: Prisma.SortOrder
   seedVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -212,6 +217,7 @@ export type FictitiousScheduleWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.FictitiousScheduleWhereInput | Prisma.FictitiousScheduleWhereInput[]
   blocks?: Prisma.JsonFilter<"FictitiousSchedule">
   placements?: Prisma.JsonFilter<"FictitiousSchedule">
+  categories?: Prisma.JsonFilter<"FictitiousSchedule">
   seedVersion?: Prisma.StringFilter<"FictitiousSchedule"> | string
   createdAt?: Prisma.DateTimeFilter<"FictitiousSchedule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FictitiousSchedule"> | Date | string
@@ -223,6 +229,7 @@ export type FictitiousScheduleOrderByWithAggregationInput = {
   areaId?: Prisma.SortOrder
   blocks?: Prisma.SortOrder
   placements?: Prisma.SortOrder
+  categories?: Prisma.SortOrder
   seedVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -239,6 +246,7 @@ export type FictitiousScheduleScalarWhereWithAggregatesInput = {
   areaId?: Prisma.StringWithAggregatesFilter<"FictitiousSchedule"> | string
   blocks?: Prisma.JsonWithAggregatesFilter<"FictitiousSchedule">
   placements?: Prisma.JsonWithAggregatesFilter<"FictitiousSchedule">
+  categories?: Prisma.JsonWithAggregatesFilter<"FictitiousSchedule">
   seedVersion?: Prisma.StringWithAggregatesFilter<"FictitiousSchedule"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FictitiousSchedule"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"FictitiousSchedule"> | Date | string
@@ -248,6 +256,7 @@ export type FictitiousScheduleCreateInput = {
   id?: string
   blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -259,6 +268,7 @@ export type FictitiousScheduleUncheckedCreateInput = {
   areaId: string
   blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -268,6 +278,7 @@ export type FictitiousScheduleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -279,6 +290,7 @@ export type FictitiousScheduleUncheckedUpdateInput = {
   areaId?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -289,6 +301,7 @@ export type FictitiousScheduleCreateManyInput = {
   areaId: string
   blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -298,6 +311,7 @@ export type FictitiousScheduleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -308,6 +322,7 @@ export type FictitiousScheduleUncheckedUpdateManyInput = {
   areaId?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -323,6 +338,7 @@ export type FictitiousScheduleCountOrderByAggregateInput = {
   areaId?: Prisma.SortOrder
   blocks?: Prisma.SortOrder
   placements?: Prisma.SortOrder
+  categories?: Prisma.SortOrder
   seedVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -380,6 +396,7 @@ export type FictitiousScheduleCreateWithoutAreaInput = {
   id?: string
   blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -389,6 +406,7 @@ export type FictitiousScheduleUncheckedCreateWithoutAreaInput = {
   id?: string
   blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -414,6 +432,7 @@ export type FictitiousScheduleUpdateWithoutAreaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -423,6 +442,7 @@ export type FictitiousScheduleUncheckedUpdateWithoutAreaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   placements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   seedVersion?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -435,6 +455,7 @@ export type FictitiousScheduleSelect<ExtArgs extends runtime.Types.Extensions.In
   areaId?: boolean
   blocks?: boolean
   placements?: boolean
+  categories?: boolean
   seedVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -446,6 +467,7 @@ export type FictitiousScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.
   areaId?: boolean
   blocks?: boolean
   placements?: boolean
+  categories?: boolean
   seedVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -457,6 +479,7 @@ export type FictitiousScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.
   areaId?: boolean
   blocks?: boolean
   placements?: boolean
+  categories?: boolean
   seedVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -468,12 +491,13 @@ export type FictitiousScheduleSelectScalar = {
   areaId?: boolean
   blocks?: boolean
   placements?: boolean
+  categories?: boolean
   seedVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FictitiousScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "areaId" | "blocks" | "placements" | "seedVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["fictitiousSchedule"]>
+export type FictitiousScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "areaId" | "blocks" | "placements" | "categories" | "seedVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["fictitiousSchedule"]>
 export type FictitiousScheduleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
 }
@@ -494,6 +518,7 @@ export type $FictitiousSchedulePayload<ExtArgs extends runtime.Types.Extensions.
     areaId: string
     blocks: runtime.JsonValue
     placements: runtime.JsonValue
+    categories: runtime.JsonValue
     seedVersion: string
     createdAt: Date
     updatedAt: Date
@@ -925,6 +950,7 @@ export interface FictitiousScheduleFieldRefs {
   readonly areaId: Prisma.FieldRef<"FictitiousSchedule", 'String'>
   readonly blocks: Prisma.FieldRef<"FictitiousSchedule", 'Json'>
   readonly placements: Prisma.FieldRef<"FictitiousSchedule", 'Json'>
+  readonly categories: Prisma.FieldRef<"FictitiousSchedule", 'Json'>
   readonly seedVersion: Prisma.FieldRef<"FictitiousSchedule", 'String'>
   readonly createdAt: Prisma.FieldRef<"FictitiousSchedule", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"FictitiousSchedule", 'DateTime'>
